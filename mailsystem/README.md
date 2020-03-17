@@ -3,6 +3,10 @@
 ## Project setup
 ```
 npm install
+// if you are in China, you can choose the cnpm
+// first you should install th cnpm
+npm i cpnm -g
+cnpm install 
 ```
 
 ### Compiles and hot-reloads for development
