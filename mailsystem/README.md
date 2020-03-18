@@ -5,7 +5,7 @@
 npm install
 // if you are in China, you can choose the cnpm
 // first you should install th cnpm
-npm i cpnm -g
+npm i cnpm -g
 cnpm install 
 ```
 
