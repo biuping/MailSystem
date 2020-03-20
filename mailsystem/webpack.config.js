@@ -5,11 +5,11 @@ const htmlwebpackplugin = require('html-webpack-plugin')
 const VueLoaderPlugin = require('vue-loader/lib/plugin')
 
 module.exports={
-	entry: './src/main.js',  //入口表示webpack打包文件
+	entry: {main:'./src/main.js',page:'./src/page.js'},  //入口表示webpack打包文件
 	output:{
 		// 输出文件配置
 		path:path.resolve(__dirname, './dist'),  // 指定打包到的路径
-		filename: 'bundle.js'  //打包的文件名
+		filename: '[name]-[hash].js'  //打包的文件名
 	},
 	devServer:{
 		open:'chrome',
@@ -20,7 +20,15 @@ module.exports={
 	plugins:[
 		new htmlwebpackplugin({  // 创建一个在内存中生成HTML的插件
 			template: path.resolve(__dirname,'./static/index.html'),   //指定模板路径
-			filename: 'index.html' //指定生成的页面名称
+			filename: 'index.html', //指定生成的页面名称
+			inject:true,
+			chunks:['main']
+		}),
+		new htmlwebpackplugin({  
+			template: path.resolve(__dirname,'./static/mainPage.html'),   
+			filename: 'mainPage.html', 
+			inject:true,
+			chunks:['page']
 		}),
 		new VueLoaderPlugin()
 	],

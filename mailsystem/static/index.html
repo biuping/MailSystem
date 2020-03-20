@@ -4,11 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
-    <!-- <link rel="stylesheet" href="./css/index.css"> -->
 </head>
 <body>
+    <!-- <transition>
+
+    </transition> -->
     <div id="app">
-        
+        <transition enter-active-class=" bounceIn" leave-active-class="bounceOut" v-bind="{enter:200,leave:400}">
+            <login class="animated"></login>   
+        </transition>
+           
     </div>
 </body>
 </html>
