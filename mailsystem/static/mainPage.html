@@ -6,9 +6,24 @@
     <title>樱花邮箱</title>
 </head>
 <body>
-    <div id="nav"></div>
-    <div id="app">
+    <div id="nav">
+        <div class="open_frame">
+            <button class="btn btn-info openBtn" @click="show">
+                <span class="glyphicon glyphicon-off" aria-hidden="true"></span>
+            </button>
+        </div>
         
+        <div class="nav_li" v-if="flag">
+            <ul>
+                <li><router-link to="/mailbox"><span class="glyphicon glyphicon-envelope icon_span" aria-hidden="true"></span><span class="icon_span">收件箱</span></router-link></li>
+                <li><router-link to="/sendmail"><span class="glyphicon glyphicon-pencil icon_span" aria-hidden="true"></span><span class="icon_span">写邮件</span></router-link></li>
+                <li><router-link to=""><span class="glyphicon glyphicon-inbox icon_span" aria-hidden="true"></span><span class="icon_span">草稿箱</span></router-link></li>
+            </ul>
+        </div>
+        <router-view class="router_view" ref="main_frame"></router-view>
+
+    </div>
+    <div id="app" >
     </div>
     
 </body>
