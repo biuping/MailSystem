@@ -15,7 +15,7 @@
     </div>
 </template>
 <style lang="stylus" scoped>
-	import 'bootstrap/dist/css/bootstrap.css'
+
 </style>
 <script>
 
