@@ -8,6 +8,7 @@
     "dev1": "webpack-dev-server"
   },
   "dependencies": {
+    "animate.css": "^3.7.2",
     "bootstrap": "^3.4.1",
     "core-js": "^3.6.4",
     "register-service-worker": "^1.6.2",

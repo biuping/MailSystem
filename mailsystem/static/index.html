@@ -6,8 +6,14 @@
     <title>Document</title>
 </head>
 <body>
+    <!-- <transition>
+
+    </transition> -->
     <div id="app">
-        
+        <transition enter-active-class=" bounceIn" leave-active-class="bounceOut" v-bind="{enter:200,leave:400}">
+            <login class="animated"></login>   
+        </transition>
+           
     </div>
 </body>
 </html>
