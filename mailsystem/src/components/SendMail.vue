@@ -4,22 +4,32 @@
         <ul class="nav nav-pills">
             <li role="presentation" class="left"><button type="button" class="btn btn-primary">发送</button></li>
             <li role="presentation" class="left"><button type="button" class="btn btn-info">存草稿</button></li>
-            <li role="presentation" class="right"><button type="button" class="btn btn-danger"><span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button></li>
+            <li role="presentation" class="right"><button type="button" class="btn btn-danger" @click="refresh">
+                <span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>
+            </li>
         </ul>
         <div class="cutoff_line"></div>
         <div class="input-group recive">
             <span class="input-group-addon" id="basic-addon3">收件人</span>
             <input type="email" class="form-control" id="basic-url" aria-describedby="basic-addon3">
         </div>
-        <div>
+        <div class="mail_group">
             <div class="input-group">
-                <span class="input-group-addon " id="basic-addon">主题</span>
-                <input type="email" class="form-control" id="basic-url" aria-describedby="basic-addon3">               
+                <span class="input-group-addon " id="basic-addon">主题</span>               
+                <input type="email" class="form-control" id="basic-url" aria-describedby="basic-addon">
+               
+                               
             </div>
             <div class="form-group">
-                <label class="inputfile_label"><span class="glyphicon glyphicon-folder-open" aria-hidden="true"></span>上传附件</label>
-                <input type="file" id="inputFile">
-                <textarea class="form-control" rows="3"></textarea>
+                <input type="file" id="thisfile" ref="inputFile" style="display:none" @change="fileChange">
+                <div id="uplode_group" class="uplode">
+                    <button class="btn btn-info mybtn" id="input_display" @click="uploadFile" >
+                        <span class="glyphicon glyphicon-folder-open myspan" aria-hidden="true"></span>上传附件
+                    </button>
+                    
+                    <input type="text" name="" id="filePath" disabled v-model="fileName">
+                </div>
+                <textarea class="form-control" rows="22"></textarea>
            </div>
         </div>
 
@@ -69,18 +79,43 @@
         margin: 1%;
         float: left;
     }
-    #inputFile{
+    .mail_group{
+        position: relative;
+        margin: 1%;
+    }
+
+    .inputfile_label{
         position: relative;
         float: left;
-        margin-top: 1%;
-        /* margin-top: 1%; */
     }
+
+    .uplode{
+        position: relative;
+        margin-top: 1%;
+        margin-bottom: 1%;
+    }
+    .uplode input{
+        position: relative;
+
+        margin-bottom: 0%;
+    }
+    .mybtn{
+        position: relative;
+        vertical-align: middle;
+    }
+    .myspan{
+        position: relative;
+        margin: 2px;
+    }
+    
+
 </style>
 <script>
 export default {
     data(){
         return {
-            flag:false
+            flag:false,
+            fileName:''
         }
     },
     mounted(){
@@ -97,7 +132,19 @@ export default {
             }else{
                 this.$refs.main_frame.style.width="95%"
             }
+        },
+        uploadFile:function(){
+            this.$refs.inputFile.dispatchEvent(new MouseEvent('click'))
+            
+        },
+        fileChange:function(e){
+            this.fileName=this.$refs.inputFile.files[0].name
+        },
+        refresh:function(){
+            this.$router.go(0)
         }
+       
+
     }
 }
 </script>
