@@ -11,7 +11,7 @@
         <div class="cutoff_line"></div>
         <div class="input-group recive">
             <span class="input-group-addon" id="basic-addon3">收件人</span>
-            <input type="email" class="form-control" id="basic-url" aria-describedby="basic-addon3">
+            <input type="email" class="form-control" aria-describedby="basic-addon3">
         </div>
         <div class="mail_group">
             <div class="input-group">
@@ -39,11 +39,10 @@
 <style scoped>
     .sendmail_frame{
         position: relative;
-        height: 100%;
+        height: 99%;
         top: 1%;
         left: 1%;
-        width: 98%;
-        height: 98%;
+        width: 85%;
         background-color: rgba(156, 122, 97, 0.1);
         border-radius: 2%;
     }
@@ -118,15 +117,9 @@ export default {
             fileName:''
         }
     },
-    mounted(){
-        if(this.flag){
-            this.$refs.main_frame.style.width="85%"
-        }else{
-            this.$refs.main_frame.style.width="95%"
-        }
-    },
     methods:{
         changeWidth:function(flag){
+            console.log(flag)
             if(flag){
                 this.$refs.main_frame.style.width="85%"
             }else{
