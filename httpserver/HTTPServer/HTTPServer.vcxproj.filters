@@ -13,5 +13,57 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Header Files\http_include">
+      <UniqueIdentifier>{30a3a0f1-54df-4365-9d0b-6ef6783a21aa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\http_src">
+      <UniqueIdentifier>{4461f2de-3fe3-4cc5-8635-fed406c15e23}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="severTest.cpp">
+      <Filter>Source Files\http_src</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>Source Files\http_src</Filter>
+    </ClCompile>
+    <ClCompile Include="HttpSocket.cpp">
+      <Filter>Source Files\http_src</Filter>
+    </ClCompile>
+    <ClCompile Include="HttpClient.cpp">
+      <Filter>Source Files\http_src</Filter>
+    </ClCompile>
+    <ClCompile Include="HttpRequest.cpp">
+      <Filter>Source Files\http_src</Filter>
+    </ClCompile>
+    <ClCompile Include="HttpServer.cpp">
+      <Filter>Source Files\http_src</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="config.h">
+      <Filter>Header Files\http_include</Filter>
+    </ClInclude>
+    <ClInclude Include="HttpRequest.h">
+      <Filter>Header Files\http_include</Filter>
+    </ClInclude>
+    <ClInclude Include="HttpResponse.h">
+      <Filter>Header Files\http_include</Filter>
+    </ClInclude>
+    <ClInclude Include="HttpSocket.h">
+      <Filter>Header Files\http_include</Filter>
+    </ClInclude>
+    <ClInclude Include="Tools.h">
+      <Filter>Header Files\http_include</Filter>
+    </ClInclude>
+    <ClInclude Include="HttpClient.h">
+      <Filter>Header Files\http_include</Filter>
+    </ClInclude>
+    <ClInclude Include="HttpServer.h">
+      <Filter>Header Files\http_include</Filter>
+    </ClInclude>
+    <ClInclude Include="severTest.h">
+      <Filter>Header Files\http_include</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
