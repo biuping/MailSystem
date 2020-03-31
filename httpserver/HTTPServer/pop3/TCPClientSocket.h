@@ -7,6 +7,7 @@
 
 #include <WinSock2.h>
 #include <string>
+#include <WS2tcpip.h>
 
 typedef std::string rstring;
 
@@ -15,9 +16,9 @@ class TCPClientSocket
 {
 public:
 	TCPClientSocket();
-	TCPClientSocket(const char* addr, int port);
+	TCPClientSocket(const char* addr, int port, int tmo);
 
-	bool connect2ServerAddr(const char* addr, int port);
+	bool connect2ServerAddr(const char* addr, int port, int tmo);
 	sockaddr getServerAddr();
 	
 	void closeSocket();
@@ -29,5 +30,8 @@ protected:
 	sockaddr mServerAddr;
 	SOCKET mSocket;
 	virtual void report(rstring info);
+
+private:
+	bool createNBSocketAndConnect(addrinfo* info, int tmo = DEFAULT_WRITE_TIMEOUT);
 };
 

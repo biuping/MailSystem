@@ -1,6 +1,5 @@
 #include "TCPClientSocket.h"
 #include <iostream>
-#include <WS2tcpip.h>
 
 
 TCPClientSocket::TCPClientSocket()
@@ -9,10 +8,12 @@ TCPClientSocket::TCPClientSocket()
 	mSocket = INVALID_SOCKET;
 }
 
-TCPClientSocket::TCPClientSocket(const char* addr, int port)
+// 构造 TCPClientSocket 对象，并连接到 (addr,port,TCP) 指定的网络进程套接字
+// addr 可为域名或ip地址
+// tmo 为超时时间（单位秒），为0时无限等待
+TCPClientSocket::TCPClientSocket(const char* addr, int port, int tmo) : TCPClientSocket()
 {
-	ZeroMemory(&mServerAddr, sizeof(mServerAddr));
-	connect2ServerAddr(addr, port);
+	connect2ServerAddr(addr, port, tmo);
 }
 
 TCPClientSocket::~TCPClientSocket() {
@@ -32,10 +33,95 @@ void TCPClientSocket::closeSocket()
 	}
 }
 
-// 给定服务器地址（ip或域名）和端口，创建套接字并连接到服务器地址
-// TODO: 考虑是否需要使用非阻塞模式
-bool TCPClientSocket::connect2ServerAddr(const char* addr, int port)
+// 创建非阻塞模式的套接字并连接到 info 中指定地址的套接字
+// 创建成功返回 true，mSocket设为对应套接字
+// 创建失败返回 false，mSocket设为 INVALID_SOCKET
+// tmo 为超时时间（单位秒），为0时无限等待
+bool TCPClientSocket::createNBSocketAndConnect(addrinfo* info, int tmo) 
 {
+	mSocket = INVALID_SOCKET;
+	mSocket = socket(info->ai_family, info->ai_socktype, info->ai_protocol);
+
+	if (mSocket == INVALID_SOCKET) {
+		// 创建套接字失败
+		rstring errstr = "connect to server failed: socket returned ";
+		errstr.append(std::to_string(WSAGetLastError()));
+		report(errstr);
+		return false;
+	}
+	else {
+		// 套接字创建成功
+		report("create socket success");
+
+		DWORD arg = 1;
+		ioctlsocket(mSocket, FIONBIO, &arg);  // 设置非阻塞模式
+
+		// 连接到服务器地址
+		int iRet = connect(mSocket, info->ai_addr, (int)info->ai_addrlen);
+		if (iRet == SOCKET_ERROR) {
+			// 尝试连接失败
+			int error = WSAGetLastError();
+			
+			if (error != WSAEWOULDBLOCK) {
+				// 非 WSAEWOULDBLOCK 错误，无法连接
+				rstring errstr = "connect to server failed: connect returned ";
+				errstr.append(std::to_string(error));
+				report(errstr);
+				this->closeSocket();
+
+				return false;
+			}
+			else {
+				// WSAEWOULDBLOCK 错误，连接无法立即建立，在之后 select 调用对套接字写时会进行连接
+				fd_set wrset, exset;   // 套接字读测试、错误检查测试集合
+				// 非阻塞模式下，connect 试图连接的失败会表现在 exceptfds 中
+				FD_ZERO(&wrset); FD_ZERO(&exset);
+				FD_SET(mSocket, &wrset); FD_SET(mSocket, &exset);
+
+				// 设置 select 超时时间
+				struct timeval timeout;
+				timeout.tv_sec = tmo;
+				timeout.tv_usec = 0;
+
+				int status = select(mSocket + 1, NULL, &wrset, &exset, tmo != 0 ? &timeout : NULL);
+				if (status <= 0) {
+					if (status == 0) {
+						report("connect to server failed: select timeout");
+					} else {
+						rstring errstr = "connect to server failed: select returned ";
+						errstr.append(std::to_string(error));
+						report(errstr);
+					}
+
+					this->closeSocket();
+					return false;
+				}
+
+				if (FD_ISSET(mSocket, &exset)) {
+					// 检查到连接失败的错误
+					report("connect to server failed: select found error in exceptfds");
+
+					this->closeSocket();
+					return false;
+				}
+			}
+		}
+		// 连接成功
+		report("connect to server success");
+
+		mServerAddr = *info->ai_addr; // 保存服务器地址
+
+		return true;
+	}
+}
+
+// 给定服务器地址（ip或域名）和端口，创建套接字并连接到服务器地址
+// addr 可以为域名或ip地址
+// TODO: 考虑是否需要使用非阻塞模式
+bool TCPClientSocket::connect2ServerAddr(const char* addr, int port, int tmo)
+{
+	closeSocket();  // 如果之前存在已建立的套接字则关闭
+
 	addrinfo* res = NULL,
 		* ptr = NULL,
 		hints;
@@ -59,38 +145,13 @@ bool TCPClientSocket::connect2ServerAddr(const char* addr, int port)
 	// 获取成功
 	ptr = res;
 	while (ptr) {
-		// 访问地址信息链表，逐个创建套接字及连接直到全部成功
-		mSocket = INVALID_SOCKET;
-		mSocket = socket(ptr->ai_family, ptr->ai_socktype, ptr->ai_protocol);
-		
-		if (mSocket == INVALID_SOCKET) {
-			rstring errstr = "connect to server failed: socket returned ";
-			errstr.append(std::to_string(WSAGetLastError()));
-			report(errstr);
+		// 访问地址信息链表，逐个创建套接字及连接直到成功连接
+		if (createNBSocketAndConnect(ptr)) {
+			// 创建套接字并连接成功
+			break;
 		}
-		else {
-			// 套接字创建成功
-			report("create socket success");
 
-			// 连接到服务器地址
-			iRet = connect(mSocket, ptr->ai_addr, (int)ptr->ai_addrlen);
-			if (iRet == SOCKET_ERROR) {
-				// 连接失败
-				rstring errstr = "connect to server failed: connect returned ";
-				errstr.append(std::to_string(WSAGetLastError()));
-				report(errstr);
-				closesocket(mSocket); // 关闭套接字
-				mSocket = INVALID_SOCKET;
-			}
-			else {
-				// 连接成功
-				report("connect success");
-
-				mServerAddr = *ptr->ai_addr; // 保存服务器地址
-				break;
-			}
-		}
-		// 取下一个地址进行尝试
+		// 连接失败，取下一个地址进行尝试
 		ptr = ptr->ai_next;
 	}
 
