@@ -4,6 +4,7 @@ import sendmail from './components/SendMail.vue'
 import mailbox from './components/MailBox.vue'
 import '../static/css/page.css'
 import VueRouter from 'vue-router'
+import animated from 'animate.css'
 
 Vue.use(VueRouter)
 
