@@ -16,7 +16,8 @@ class TCPClientSocket
 {
 public:
 	TCPClientSocket();
-	TCPClientSocket(const char* addr, int port, int tmo);
+	TCPClientSocket(const char* addr, int port, int tmo = DEFAULT_WRITE_TIMEOUT);
+	~TCPClientSocket();
 
 	bool connect2ServerAddr(const char* addr, int port, int tmo);
 	sockaddr getServerAddr();
@@ -26,6 +27,7 @@ public:
 	int readBlock(char* buf, int len, int tmo = DEFAULT_READ_TIMEOUT);
 	int write(char* buf, int len, int tmo = DEFAULT_WRITE_TIMEOUT);
 
+	bool isConnected();
 protected:
 	sockaddr mServerAddr;
 	SOCKET mSocket;

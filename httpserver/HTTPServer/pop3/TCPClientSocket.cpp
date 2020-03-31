@@ -25,12 +25,19 @@ sockaddr TCPClientSocket::getServerAddr()
 	return mServerAddr;
 }
 
+// 关闭套接字
 void TCPClientSocket::closeSocket()
 {
 	if (mSocket != INVALID_SOCKET) {
 		closesocket(mSocket);
 		mSocket = INVALID_SOCKET;
 	}
+}
+
+// 返回套接字是否已连接（套接字创建成功）
+bool TCPClientSocket::isConnected()
+{
+	return mSocket == INVALID_SOCKET;
 }
 
 // 创建非阻塞模式的套接字并连接到 info 中指定地址的套接字
@@ -131,10 +138,9 @@ bool TCPClientSocket::connect2ServerAddr(const char* addr, int port, int tmo)
 	hints.ai_family = AF_UNSPEC; // 未指明返回类型
 	hints.ai_socktype = SOCK_STREAM; // TCP
 	hints.ai_protocol = IPPROTO_TCP;
-	const char* portName = std::to_string(port).c_str();
 
 	// 获取服务器地址信息
-	iRet = getaddrinfo(addr, portName, &hints, &res);
+	iRet = getaddrinfo(addr, std::to_string(port).c_str(), &hints, &res);
 	if (iRet != 0) {
 		// 获取服务器地址信息失败
 		rstring errstr = "connect to server failed: getaddrinfo returned ";
@@ -226,7 +232,7 @@ int TCPClientSocket::readLine(char* buf, int len, int tmo)
 	return sz;
 }
 
-// 
+// 读取一块数据
 // tmo 为超时时间（单位秒），为0时无限等待
 int TCPClientSocket::readBlock(char* buf, int len, int tmo)
 {
