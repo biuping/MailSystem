@@ -2,7 +2,9 @@ html,body{
     margin: 0;
     width: 100%;
     height: 100%;
-    
+}
+body{
+    /* background-color: rgba(89, 104, 110, 0.5);; */
 }
 /*
 nav css
@@ -20,7 +22,7 @@ nav css
     left: 0%;
     height: 100%;
     width: 3%;
-    background-color: rgb(89, 97, 97);
+    background:transparent;
     /* float: left; */
 }
 .openBtn{
@@ -29,6 +31,7 @@ nav css
     transform: translateY(-25%);
     margin: 0 auto;
     width: 100%;
+    background: transparent;
 }
 .nav_li{
     position: relative;
@@ -66,8 +69,14 @@ a{
     margin-right: 5px;
 }
 
-/* 路由显示配置 */
-/* .router_view{
-    position: relative;
-    float: left;
+.v-leave-to {
+    opacity: 0;
+    transform: translateX(-150px);
+    position: absolute;
+}
+.v-leave-active{
+    transition: all 0.8s ease;
+}
+/* .mailanimation-move{
+    transition: all 0.8s ease;
 } */

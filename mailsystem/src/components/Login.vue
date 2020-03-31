@@ -2,7 +2,7 @@
     
     <div id="login-group">
         <form action="">
-            <transition enter-active-class="fadeInDown" :="{enter:400}">
+            <transition enter-active-class="fadeInDown" >
                 <div class="headline animated" v-if="flag" >樱花邮箱</div>
             </transition>
 
