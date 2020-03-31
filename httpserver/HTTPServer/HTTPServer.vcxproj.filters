@@ -19,6 +19,12 @@
     <Filter Include="Source Files\http_src">
       <UniqueIdentifier>{4461f2de-3fe3-4cc5-8635-fed406c15e23}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\pop3_src">
+      <UniqueIdentifier>{bf03365d-50ea-4eff-a06b-787e14da5ad3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\pop3_include">
+      <UniqueIdentifier>{2cd6dd06-56fc-466b-ae63-9eb3d5fba64d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="severTest.cpp">
@@ -38,6 +44,18 @@
     </ClCompile>
     <ClCompile Include="HttpServer.cpp">
       <Filter>Source Files\http_src</Filter>
+    </ClCompile>
+    <ClCompile Include="pop3\EncodeUtils.cpp">
+      <Filter>Source Files\pop3_src</Filter>
+    </ClCompile>
+    <ClCompile Include="pop3\POP3Client.cpp">
+      <Filter>Source Files\pop3_src</Filter>
+    </ClCompile>
+    <ClCompile Include="pop3\POP3ClientSocket.cpp">
+      <Filter>Source Files\pop3_src</Filter>
+    </ClCompile>
+    <ClCompile Include="pop3\TCPClientSocket.cpp">
+      <Filter>Source Files\pop3_src</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -64,6 +82,18 @@
     </ClInclude>
     <ClInclude Include="severTest.h">
       <Filter>Header Files\http_include</Filter>
+    </ClInclude>
+    <ClInclude Include="pop3\EncodeUtils.h">
+      <Filter>Header Files\pop3_include</Filter>
+    </ClInclude>
+    <ClInclude Include="pop3\POP3Client.h">
+      <Filter>Header Files\pop3_include</Filter>
+    </ClInclude>
+    <ClInclude Include="pop3\POP3ClientSocket.h">
+      <Filter>Header Files\pop3_include</Filter>
+    </ClInclude>
+    <ClInclude Include="pop3\TCPClientSocket.h">
+      <Filter>Header Files\pop3_include</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

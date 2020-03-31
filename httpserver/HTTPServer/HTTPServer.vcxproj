@@ -143,6 +143,10 @@
     <ClCompile Include="HttpServer.cpp" />
     <ClCompile Include="HttpSocket.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="pop3\EncodeUtils.cpp" />
+    <ClCompile Include="pop3\POP3Client.cpp" />
+    <ClCompile Include="pop3\POP3ClientSocket.cpp" />
+    <ClCompile Include="pop3\TCPClientSocket.cpp" />
     <ClCompile Include="severTest.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -152,6 +156,10 @@
     <ClInclude Include="HttpResponse.h" />
     <ClInclude Include="HttpServer.h" />
     <ClInclude Include="HttpSocket.h" />
+    <ClInclude Include="pop3\EncodeUtils.h" />
+    <ClInclude Include="pop3\POP3Client.h" />
+    <ClInclude Include="pop3\POP3ClientSocket.h" />
+    <ClInclude Include="pop3\TCPClientSocket.h" />
     <ClInclude Include="severTest.h" />
     <ClInclude Include="Tools.h" />
   </ItemGroup>
