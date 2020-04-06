@@ -22,15 +22,22 @@ int HttpServer::start(int backlog)
 		return 0;
 
 	//建立套接字，失败返回-1
+	//流式套接字: 数据在客户端是顺序发送的，并且到达的顺序是一致的。
+	//比如你在客户端先发送1，再发送2，那么在服务器端的接收顺序是先接收到1，
+	//再接收到2，流式套接字是可靠的，是面向连接的
 	SOCKET sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-	if (sock == INVALID_SOCKET)
+	if (sock == SOCKET_ERROR)
+	{
+		std::cout << "create socket error: " << WSAGetLastError() << std::endl;
 		return -1;
+	}
+
 
 	sockaddr_in sock_addr = { 0 };
 	//指定地址族
 	sock_addr.sin_family = AF_INET;
 	//初始化IP地址
-	sock_addr.sin_addr.s_addr = INADDR_ANY;
+	sock_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 	//初始化端口号
 	sock_addr.sin_port = htons(m_port);
 
@@ -56,11 +63,15 @@ int HttpServer::close()
 	if (m_socket == INVALID_SOCKET)
 		return -1;
 
-	if (::closesocket(m_socket) < 0)
+	if (::closesocket(m_socket) == SOCKET_ERROR)
+	{
+		Tools::report("close server socket error: " + WSAGetLastError());
 		return -1;
+	}
 
-	m_socket == INVALID_SOCKET;
 
+	m_socket = INVALID_SOCKET;
+	delete this;
 	return 0;
 }
 
@@ -69,6 +80,25 @@ bool HttpServer::is_close()
 	if (m_socket == INVALID_SOCKET)
 		return true;
 	return false;
+}
+
+void HttpServer::run()
+{
+	if (this->start() < 0) {
+		Tools::report("start failed");
+	}
+	else {
+		Tools::report("start success");
+	}
+
+	HttpClient* client;
+	HttpServerHandler* handler;
+	while (NULL != (client = this->accept()))
+	{
+		handler = new HttpServerHandler(client);
+		handler->handle_client();
+		client->close();
+	}
 }
 
 HttpClient* HttpServer::accept()
@@ -83,10 +113,10 @@ HttpClient* HttpServer::accept()
 	if (client_sock == INVALID_SOCKET)
 	{
 		int error = WSAGetLastError();
-		std::cout<<"accept error: "+ WSAGetLastError()<<std::endl;
+		std::cout << "accept error: " + WSAGetLastError() << std::endl;
 		return NULL;
 	}
-	
+
 	HttpClient* client = new HttpClient(client_sock);
 
 	return client;
