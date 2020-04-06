@@ -8,12 +8,18 @@ TCPClientSocket::TCPClientSocket()
 	mSocket = INVALID_SOCKET;
 }
 
+TCPClientSocket::TCPClientSocket(const TCPClientSocket& tcpcliSocket)
+{
+	mServerAddr = tcpcliSocket.mServerAddr;
+	mSocket = tcpcliSocket.mSocket;
+}
+
 // 构造 TCPClientSocket 对象，并连接到 (addr,port,TCP) 指定的网络进程套接字
 // addr 可为域名或ip地址
 // tmo 为超时时间（单位秒），为0时无限等待
-TCPClientSocket::TCPClientSocket(const char* addr, int port, int tmo) : TCPClientSocket()
+TCPClientSocket::TCPClientSocket(const char* addr, USHORT port, int tmo) : TCPClientSocket()
 {
-	connect2ServerAddr(addr, port, tmo);
+	connect2Server(addr, port, tmo);
 }
 
 TCPClientSocket::~TCPClientSocket() {
@@ -35,7 +41,7 @@ void TCPClientSocket::closeSocket()
 }
 
 // 返回套接字是否已连接（套接字创建成功）
-bool TCPClientSocket::isConnected()
+bool TCPClientSocket::connected()
 {
 	return mSocket == INVALID_SOCKET;
 }
@@ -90,7 +96,7 @@ bool TCPClientSocket::createNBSocketAndConnect(addrinfo* info, int tmo)
 				timeout.tv_sec = tmo;
 				timeout.tv_usec = 0;
 
-				int status = select(mSocket + 1, NULL, &wrset, &exset, tmo != 0 ? &timeout : NULL);
+				int status = select(mSocket + 1, nullptr, &wrset, &exset, tmo != 0 ? &timeout : nullptr);
 				if (status <= 0) {
 					if (status == 0) {
 						report("connect to server failed: select timeout");
@@ -124,13 +130,13 @@ bool TCPClientSocket::createNBSocketAndConnect(addrinfo* info, int tmo)
 
 // 给定服务器地址（ip或域名）和端口，创建套接字并连接到服务器地址
 // addr 可以为域名或ip地址
-// TODO: 考虑是否需要使用非阻塞模式
-bool TCPClientSocket::connect2ServerAddr(const char* addr, int port, int tmo)
+// 返回是否连接成功
+bool TCPClientSocket::connect2Server(const char* addr, USHORT port, int tmo)
 {
 	closeSocket();  // 如果之前存在已建立的套接字则关闭
 
-	addrinfo* res = NULL,
-		* ptr = NULL,
+	addrinfo* res = nullptr,
+		* ptr = nullptr,
 		hints;
 	int iRet;
 
@@ -171,7 +177,8 @@ bool TCPClientSocket::connect2ServerAddr(const char* addr, int port, int tmo)
 
 // 从套接字中读取一行的数据
 // tmo 为超时时间（单位秒），为0时无限等待
-int TCPClientSocket::readLine(char* buf, int len, int tmo)
+// 返回读取的字节数，失败返回-1
+int TCPClientSocket::readline(char* buf, int len, int tmo)
 {
 	if (mSocket == INVALID_SOCKET) {
 		return -1;
@@ -191,7 +198,7 @@ int TCPClientSocket::readLine(char* buf, int len, int tmo)
 		timeout.tv_usec = 0;
 
 		// 测试是否可读
-		int status = select(mSocket+1, &rdset, NULL, NULL, tmo != 0 ? &timeout : NULL);
+		int status = select(mSocket+1, &rdset, nullptr, nullptr, tmo != 0 ? &timeout : nullptr);
 		if (status <= 0) {
 			// 调用失败
 			if (status == 0)
@@ -234,7 +241,8 @@ int TCPClientSocket::readLine(char* buf, int len, int tmo)
 
 // 读取一块数据
 // tmo 为超时时间（单位秒），为0时无限等待
-int TCPClientSocket::readBlock(char* buf, int len, int tmo)
+// 返回读取的字节数，失败返回-1
+int TCPClientSocket::readblock(char* buf, int len, int tmo)
 {
 	if (mSocket == INVALID_SOCKET) {
 		return -1;
@@ -251,7 +259,7 @@ int TCPClientSocket::readBlock(char* buf, int len, int tmo)
 	timeout.tv_sec = tmo;
 	timeout.tv_usec = 0;
 
-	int status = select(mSocket + 1, &rdset, NULL, NULL, tmo != 0 ? &timeout : NULL);  // 检查是否可读
+	int status = select(mSocket + 1, &rdset, nullptr, nullptr, tmo != 0 ? &timeout : nullptr);  // 检查是否可读
 
 	if (status <= 0) {
 		// 调用失败
@@ -285,7 +293,8 @@ int TCPClientSocket::readBlock(char* buf, int len, int tmo)
 
 // 往套接字中写数据
 // tmo 为超时时间（单位秒），为0时无限等待
-int TCPClientSocket::write(char* buf, int len, int tmo) 
+// 返回写入的字节数，失败返回-1
+int TCPClientSocket::write(const char* buf, int len, int tmo) 
 {
 	if (mSocket == INVALID_SOCKET) {
 		return -1;
@@ -305,7 +314,7 @@ int TCPClientSocket::write(char* buf, int len, int tmo)
 		timeout.tv_usec = 0;
 
 		// 检查是否可写
-		int status = select(mSocket + 1, NULL, &wrset, NULL, tmo != 0 ? &timeout : NULL);
+		int status = select(mSocket + 1, nullptr, &wrset, nullptr, tmo != 0 ? &timeout : nullptr);
 		if (status <= 0) {
 			// 调用失败
 			if (status == 0)

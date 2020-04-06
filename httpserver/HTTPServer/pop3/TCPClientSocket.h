@@ -1,6 +1,5 @@
 #ifndef _TCPCLIENT_SOCKET_H_
 #define _TCPCLIENT_SOCKET_H_
-#endif // !_TCPCLIENT_SOCKET_H_
 
 #define DEFAULT_READ_TIMEOUT 10
 #define DEFAULT_WRITE_TIMEOUT 10
@@ -16,18 +15,19 @@ class TCPClientSocket
 {
 public:
 	TCPClientSocket();
-	TCPClientSocket(const char* addr, int port, int tmo = DEFAULT_WRITE_TIMEOUT);
-	~TCPClientSocket();
+	TCPClientSocket(const TCPClientSocket& tcpcliSocket);
+	TCPClientSocket(const char* addr, USHORT port, int tmo = DEFAULT_WRITE_TIMEOUT);
+	virtual ~TCPClientSocket();
 
-	bool connect2ServerAddr(const char* addr, int port, int tmo);
+	virtual bool connect2Server(const char* addr, USHORT port, int tmo = DEFAULT_WRITE_TIMEOUT);
 	sockaddr getServerAddr();
 	
 	void closeSocket();
-	int readLine(char* buf, int len, int tmo = DEFAULT_READ_TIMEOUT);
-	int readBlock(char* buf, int len, int tmo = DEFAULT_READ_TIMEOUT);
-	int write(char* buf, int len, int tmo = DEFAULT_WRITE_TIMEOUT);
+	int readline(char* buf, int len, int tmo = DEFAULT_READ_TIMEOUT);
+	int readblock(char* buf, int len, int tmo = DEFAULT_READ_TIMEOUT);
+	int write(const char* buf, int len, int tmo = DEFAULT_WRITE_TIMEOUT);
 
-	bool isConnected();
+	bool connected();
 protected:
 	sockaddr mServerAddr;
 	SOCKET mSocket;
@@ -37,3 +37,5 @@ private:
 	bool createNBSocketAndConnect(addrinfo* info, int tmo = DEFAULT_WRITE_TIMEOUT);
 };
 
+
+#endif // !_TCPCLIENT_SOCKET_H_
