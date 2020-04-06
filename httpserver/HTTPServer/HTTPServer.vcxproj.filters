@@ -54,6 +54,12 @@
     <ClCompile Include="pop3\TCPClientSocket.cpp">
       <Filter>Source Files\pop3_src</Filter>
     </ClCompile>
+    <ClCompile Include="Tools.cpp">
+      <Filter>Source Files\http_src</Filter>
+    </ClCompile>
+    <ClCompile Include="HttpServerHandler.cpp">
+      <Filter>Source Files\http_src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="config.h">
@@ -74,9 +80,6 @@
     <ClInclude Include="HttpClient.h">
       <Filter>Header Files\http_include</Filter>
     </ClInclude>
-    <ClInclude Include="HttpServer.h">
-      <Filter>Header Files\http_include</Filter>
-    </ClInclude>
     <ClInclude Include="pop3\EncodeUtils.h">
       <Filter>Header Files\pop3_include</Filter>
     </ClInclude>
@@ -88,6 +91,15 @@
     </ClInclude>
     <ClInclude Include="pop3\TCPClientSocket.h">
       <Filter>Header Files\pop3_include</Filter>
+    </ClInclude>
+    <ClInclude Include="HttpServer.h">
+      <Filter>Header Files\http_include</Filter>
+    </ClInclude>
+    <ClInclude Include="HttpServerHandler.h">
+      <Filter>Header Files\http_include</Filter>
+    </ClInclude>
+    <ClInclude Include="http_const.h">
+      <Filter>Header Files\http_include</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -31,7 +31,7 @@ int HttpServer::start(int backlog)
 		std::cout << "create socket error: " << WSAGetLastError() << std::endl;
 		return -1;
 	}
-		
+
 
 	sockaddr_in sock_addr = { 0 };
 	//指定地址族
@@ -63,11 +63,15 @@ int HttpServer::close()
 	if (m_socket == INVALID_SOCKET)
 		return -1;
 
-	if (::closesocket(m_socket) < 0)
+	if (::closesocket(m_socket) == SOCKET_ERROR)
+	{
+		Tools::report("close server socket error: " + WSAGetLastError());
 		return -1;
+	}
+
 
 	m_socket = INVALID_SOCKET;
-
+	delete this;
 	return 0;
 }
 
@@ -76,6 +80,25 @@ bool HttpServer::is_close()
 	if (m_socket == INVALID_SOCKET)
 		return true;
 	return false;
+}
+
+void HttpServer::run()
+{
+	if (this->start() < 0) {
+		Tools::report("start failed");
+	}
+	else {
+		Tools::report("start success");
+	}
+
+	HttpClient* client;
+	HttpServerHandler* handler;
+	while (NULL != (client = this->accept()))
+	{
+		handler = new HttpServerHandler(client);
+		handler->handle_client();
+		client->close();
+	}
 }
 
 HttpClient* HttpServer::accept()
@@ -90,10 +113,10 @@ HttpClient* HttpServer::accept()
 	if (client_sock == INVALID_SOCKET)
 	{
 		int error = WSAGetLastError();
-		std::cout<<"accept error: "+ WSAGetLastError()<<std::endl;
+		std::cout << "accept error: " + WSAGetLastError() << std::endl;
 		return NULL;
 	}
-	
+
 	HttpClient* client = new HttpClient(client_sock);
 
 	return client;
