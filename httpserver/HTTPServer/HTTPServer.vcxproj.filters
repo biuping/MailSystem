@@ -27,9 +27,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="severTest.cpp">
-      <Filter>Source Files\http_src</Filter>
-    </ClCompile>
     <ClCompile Include="main.cpp">
       <Filter>Source Files\http_src</Filter>
     </ClCompile>
@@ -78,9 +75,6 @@
       <Filter>Header Files\http_include</Filter>
     </ClInclude>
     <ClInclude Include="HttpServer.h">
-      <Filter>Header Files\http_include</Filter>
-    </ClInclude>
-    <ClInclude Include="severTest.h">
       <Filter>Header Files\http_include</Filter>
     </ClInclude>
     <ClInclude Include="pop3\EncodeUtils.h">

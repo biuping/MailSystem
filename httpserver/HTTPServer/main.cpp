@@ -1,14 +1,12 @@
 #include "HttpClient.h"
 #include "HttpServer.h"
 #include "HttpRequest.h"
-#include <iostream>
-#include "severTest.h"
 
 void start1() {
 	
 	HttpServer server;
 	if (server.start() < 0) {
-		std::cout << "start failed" << endl;
+		std::cout << "start failed" << std::endl;
 	}
 	int server_sock = server.get_socket();
 	HttpClient* client;
@@ -21,8 +19,6 @@ void start1() {
 		HttpRequest request(client);
 		request.handle_request();
 		client->close();
-
-
 	}
 	server.close();
 }
@@ -30,31 +26,27 @@ void start1() {
 void start2() {
 	HttpServer server;
 	if (server.start() < 0) {
-		std::cout << "start failed" << endl;
+		std::cout << "start failed" << std::endl;
 	}
 	else {
-		std::cout << "start success" << endl;
+		std::cout << "start success" << std::endl;
 	}
 
 	HttpClient* client;
-	sockaddr_in client_addr;
-	int client_addr_size = sizeof(client_addr);
 	while (NULL != (client = server.accept()))
 	{
 		HttpRequest request(client);
 		request.handle_request();
 		client->close();
-
-
 	}
 	server.close();
 }
-int main()
+int main(int argc, char* argv[])
 {
+	std::cout << "sdf" << std::endl;
 	HttpSocket socketInit;
 	//main2();
 	start2();
 	delete &socketInit;
-	system("pause");
 	return 0;
 }

@@ -22,15 +22,22 @@ int HttpServer::start(int backlog)
 		return 0;
 
 	//建立套接字，失败返回-1
+	//流式套接字: 数据在客户端是顺序发送的，并且到达的顺序是一致的。
+	//比如你在客户端先发送1，再发送2，那么在服务器端的接收顺序是先接收到1，
+	//再接收到2，流式套接字是可靠的，是面向连接的
 	SOCKET sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-	if (sock == INVALID_SOCKET)
+	if (sock == SOCKET_ERROR)
+	{
+		std::cout << "create socket error: " << WSAGetLastError() << std::endl;
 		return -1;
+	}
+		
 
 	sockaddr_in sock_addr = { 0 };
 	//指定地址族
 	sock_addr.sin_family = AF_INET;
 	//初始化IP地址
-	sock_addr.sin_addr.s_addr = INADDR_ANY;
+	sock_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 	//初始化端口号
 	sock_addr.sin_port = htons(m_port);
 
@@ -59,7 +66,7 @@ int HttpServer::close()
 	if (::closesocket(m_socket) < 0)
 		return -1;
 
-	m_socket == INVALID_SOCKET;
+	m_socket = INVALID_SOCKET;
 
 	return 0;
 }

@@ -147,7 +147,6 @@
     <ClCompile Include="pop3\POP3Client.cpp" />
     <ClCompile Include="pop3\POP3ClientSocket.cpp" />
     <ClCompile Include="pop3\TCPClientSocket.cpp" />
-    <ClCompile Include="severTest.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="config.h" />
@@ -160,7 +159,6 @@
     <ClInclude Include="pop3\POP3Client.h" />
     <ClInclude Include="pop3\POP3ClientSocket.h" />
     <ClInclude Include="pop3\TCPClientSocket.h" />
-    <ClInclude Include="severTest.h" />
     <ClInclude Include="Tools.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
