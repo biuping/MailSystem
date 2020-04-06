@@ -69,7 +69,6 @@ int HttpServer::close()
 		return -1;
 	}
 
-
 	m_socket = INVALID_SOCKET;
 	delete this;
 	return 0;

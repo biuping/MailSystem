@@ -31,11 +31,16 @@ public:
 	const rstring& method();
 	//获取报文url
 	const rstring& url();
+	//获取http版本
 	const rstring& version();
+	//获取头部map
 	const HttpHead_t& headers();
+	//是否有头部
 	bool has_head(const rstring& name);
+	//根据名称找到头部内容
 	const rstring& head_content(const rstring& name);
+	//body长度
 	const size_t body_len();
+	//body内容
 	const char* body();
-	const char* strerror();
 };

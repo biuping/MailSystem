@@ -1,5 +1,6 @@
 #pragma once
 #include "Tools.h"
+#include "json/json.h"
 
 class HttpResponse
 {
@@ -12,6 +13,7 @@ public:
 	int del_head(const rstring& name);
 	int set_body(const char* body, size_t bodylen);
 	size_t size();
+	//序列化报文
 	const char* serialize();
 
 private:

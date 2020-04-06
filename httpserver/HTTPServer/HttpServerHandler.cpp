@@ -21,9 +21,18 @@ void HttpServerHandler::handle_client()
 	m_readbuff[nread] = 0x00;
 
 	HttpRequest request;
-	request.load_packet(m_readbuff, nread);
+	if (request.load_packet(m_readbuff, nread) < 0)
+	{
+		Tools::report("parse package error");
+		return;
+	}
 
 	HttpResponse* response = handle_request(request);
+	if (nullptr != response)
+	{
+		m_client->send(response->serialize(), response->size(), 0);
+		delete response;
+	}
 }
 
 HttpResponse* HttpServerHandler::handle_request(HttpRequest& request)

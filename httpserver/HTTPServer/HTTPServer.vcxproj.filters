@@ -102,4 +102,7 @@
       <Filter>Header Files\http_include</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
 </Project>
