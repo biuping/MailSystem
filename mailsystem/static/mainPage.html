@@ -8,20 +8,16 @@
 <body>
     <div id="nav">
         <div class="open_frame">
-            <button class="btn openBtn" @click="show">
+            <!-- <button class="openBtn" @click="show">
                 <span class="glyphicon glyphicon-th-list" aria-hidden="true"></span>
-            </button>
+
+            </button> -->
+            <router-link to="/mailbox" class="myrouter" title="收件箱"><span class="glyphicon glyphicon-envelope icon_span fa-4x" aria-hidden="true"></span><span class="icon_span"></span></router-link>
+            <router-link to="/sendmail" class="myrouter" title="发送邮件"><span class="glyphicon glyphicon-pencil icon_span fa-4x" aria-hidden="true"></span><span class="icon_span"></span></router-link>
+            <router-link to="/draft" class="myrouter" title="草稿"><span class="glyphicon glyphicon-inbox icon_span" aria-hidden="true"></span><span class="icon_span"></span></router-link>
         </div>
-        <transition enter-active-class="slideInLeft">
-            <div class="nav_li animated" v-if="flag" animate-delay="1s" animate-duration="2s">
-                <ul>
-                    <li><router-link to="/mailbox"><span class="glyphicon glyphicon-envelope icon_span" aria-hidden="true"></span><span class="icon_span">收件箱</span></router-link></li>
-                    <li><router-link to="/sendmail"><span class="glyphicon glyphicon-pencil icon_span" aria-hidden="true"></span><span class="icon_span">写邮件</span></router-link></li>
-                    <li><router-link to=""><span class="glyphicon glyphicon-inbox icon_span" aria-hidden="true"></span><span class="icon_span">草稿箱</span></router-link></li>
-                </ul>
-            </div>
-        </transition>
-        <router-view class="router_view" ref="main_frame"></router-view>
+
+        <router-view class="router_view animated" ref="main_frame"></router-view>
 
     </div>
     <div id="app" >

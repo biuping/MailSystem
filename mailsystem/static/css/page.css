@@ -22,17 +22,30 @@ nav css
     left: 0%;
     height: 100%;
     width: 3%;
-    background:transparent;
+    background-color: rgba(89, 104, 110, 0.5);
+    display: flex;
+    flex-direction: column;
+    /* text-align: center; */
     /* float: left; */
 }
-.openBtn{
-    position: relative;
-    top: 50%;
-    transform: translateY(-25%);
-    margin: 0 auto;
+.myrouter{
+    /* position: absolute; */
+    margin-top: 20px;
+    margin-bottom: 50%;
     width: 100%;
-    background: transparent;
+    border-color: transparent;
+    box-shadow:none;
+    text-align: center;
 }
+.myrouter span{
+    margin-left: 5px;
+    font-size: 35px;
+    color: rgb(83, 139, 243);
+}
+.myrouter span:hover{
+    color: rgb(223, 152, 20);
+}
+
 .nav_li{
     position: relative;
     top: 0%;

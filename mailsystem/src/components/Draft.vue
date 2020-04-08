@@ -3,7 +3,7 @@
         
         <ul class="nav nav-pills">
             <li role="presentation" class="left"><button type="button" class="btn btn-primary">发送</button></li>
-            <li role="presentation" class="left"><button type="button" class="btn btn-info">存草稿</button></li>
+            <li role="presentation" class="left"><button type="button" class="btn btn-info">保存</button></li>
             <li role="presentation" class="right"><button type="button" class="btn btn-danger" @click="refresh">
                 <span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>
             </li>
