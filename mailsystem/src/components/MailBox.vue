@@ -31,7 +31,7 @@
         height: 99%;
         top: 1%;
         left: 1%;
-        width: 85%;
+        width: 95%;
         background-color: rgba(156, 122, 97, 0.1);
         border-radius: 2%;
         padding: 0%;
@@ -147,14 +147,7 @@ export default {
         show:function(){
             this.flag=!this.flag
         },
-        changeWidth:function(flag){
-            if(flag){
-                
-                this.$refs.main_frame.style.width="85%"
-            }else{
-                this.$refs.main_frame.style.width="95%"
-            }
-        },
+        
         checkAll:function(){
             if(this.allchecked){
                 this.checkModel=[]
