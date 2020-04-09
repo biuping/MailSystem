@@ -76,3 +76,8 @@ void HttpRequest::handle_request()
 	send_data(response);
 	url_router(get_url());
 }
+
+int HttpRequest::load_packet(const char* msg, size_t msglen)
+{
+	return 0;
+}

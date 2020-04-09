@@ -3,7 +3,7 @@
 HttpServerHandler::HttpServerHandler(HttpClient* client):
 	m_client(client)
 {
-	m_readbuff = nullptr;
+	m_readbuff = new char[DEFAULT_BUFF_SIZE+1];
 }
 
 HttpServerHandler::~HttpServerHandler()
@@ -30,8 +30,8 @@ void HttpServerHandler::handle_client()
 	HttpResponse* response = handle_request(request);
 	if (nullptr != response)
 	{
-		m_client->send(response->serialize(), response->size(), 0);
-		delete response;
+		//m_client->send(response->serialize(), response->size(), 0);
+		//delete response;
 	}
 }
 

@@ -60,6 +60,9 @@
     <ClCompile Include="HttpServerHandler.cpp">
       <Filter>Source Files\http_src</Filter>
     </ClCompile>
+    <ClCompile Include="HttpResponse.cpp">
+      <Filter>Source Files\http_src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="config.h">
