@@ -3,7 +3,7 @@
         
         <ul class="nav nav-pills">
             <li role="presentation" class="left"><button type="button" class="btn btn-primary">发送</button></li>
-            <li role="presentation" class="left"><button type="button" class="btn btn-info">存草稿</button></li>
+            <li role="presentation" class="left"><button type="button" class="btn btn-info" @click="saveDraft">存草稿</button></li>
             <li role="presentation" class="right"><button type="button" class="btn btn-danger" @click="refresh">
                 <span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>
             </li>
@@ -11,12 +11,12 @@
         <div class="cutoff_line"></div>
         <div class="input-group recive">
             <span class="input-group-addon" id="basic-addon3">收件人</span>
-            <input type="email" class="form-control" aria-describedby="basic-addon3">
+            <input type="email" class="form-control" aria-describedby="basic-addon3" v-model="draftMail.recipient">
         </div>
         <div class="mail_group">
             <div class="input-group">
                 <span class="input-group-addon " id="basic-addon">主题</span>               
-                <input type="email" class="form-control" id="basic-url" aria-describedby="basic-addon">
+                <input type="text" class="form-control" id="basic-url" aria-describedby="basic-addon" v-model="draftMail.theme">
                
                                
             </div>
@@ -29,7 +29,7 @@
                     
                     <input type="text" name="" id="filePath" disabled v-model="fileName">
                 </div>
-                <textarea class="form-control" rows="22"></textarea>
+                <textarea class="form-control" rows="22" v-model="draftMail.content"></textarea>
            </div>
         </div>
 
@@ -110,11 +110,13 @@
 
 </style>
 <script>
+import savedraftutil from '../utils/saveDraftUtil'
 export default {
     data(){
         return {
             flag:false,
-            fileName:''
+            fileName:'',
+            draftMail:{recipient:'',theme:'',attachment:Object,attachmentName:'',content:''}
         }
     },
     methods:{
@@ -127,6 +129,15 @@ export default {
         },
         refresh:function(){
             this.$router.go(0)
+        },
+        saveDraft(){
+            if(this.fileName!=''){
+                this.draftMail.attachmentName=this.fileName
+                this.draftMail.attachment=this.$refs.inputFile.files[0]
+            }
+            savedraftutil.saveData('draft_mail',this.draftMail)
+            this.refresh()
+            alert('保存草稿成功')
         }
        
 
