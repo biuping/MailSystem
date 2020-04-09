@@ -2,16 +2,14 @@
 #include <iostream>
 
 
-TCPClientSocket::TCPClientSocket()
+TCPClientSocket::TCPClientSocket():mSocket(INVALID_SOCKET)
 {
 	ZeroMemory(&mServerAddr, sizeof(mServerAddr));
-	mSocket = INVALID_SOCKET;
 }
 
 TCPClientSocket::TCPClientSocket(const TCPClientSocket& tcpcliSocket)
+	:mSocket(tcpcliSocket.mSocket), mServerAddr(tcpcliSocket.mServerAddr)
 {
-	mServerAddr = tcpcliSocket.mServerAddr;
-	mSocket = tcpcliSocket.mSocket;
 }
 
 // 构造 TCPClientSocket 对象，并连接到 (addr,port,TCP) 指定的网络进程套接字

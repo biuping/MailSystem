@@ -1,11 +1,11 @@
 #include "POP3Client.h"
 
 
-POP3Client::POP3Client() : mConn(new TCPClientSocket())
+POP3Client::POP3Client() : mConn(new TCPClientSocket()), mState(Unconnected)
 {
 }
 
-POP3Client::POP3Client(const POP3Client& pop3cli) : mConn(pop3cli.mConn)
+POP3Client::POP3Client(const POP3Client& pop3cli) : mConn(pop3cli.mConn), mState(pop3cli.mState)
 {
 }
 
@@ -37,7 +37,7 @@ char* POP3Client::prefix(const char* host)
 // resp 为命令发送后收到的回复
 bool POP3Client::cmdOK(const char* resp)
 {
-	if (strncmp(resp, "+OK", 3) == 0)
+	if (resp[0] == '+')
 		return true;
 
 	return false;
