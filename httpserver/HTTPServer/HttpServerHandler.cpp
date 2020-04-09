@@ -23,7 +23,7 @@ void HttpServerHandler::handle_client()
 	HttpRequest request;
 	if (request.load_packet(m_readbuff, nread) < 0)
 	{
-		Tools::report("parse package error");
+		Tools::report("Parse package error");
 		return;
 	}
 
