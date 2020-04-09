@@ -20,7 +20,7 @@ public:
 	virtual ~TCPClientSocket();
 
 	virtual bool connect2Server(const char* addr, USHORT port, int tmo = DEFAULT_WRITE_TIMEOUT);
-	sockaddr getServerAddr();
+	const sockaddr& getServerAddr();
 	
 	void closeSocket();
 	int readline(char* buf, int len, int tmo = DEFAULT_READ_TIMEOUT);

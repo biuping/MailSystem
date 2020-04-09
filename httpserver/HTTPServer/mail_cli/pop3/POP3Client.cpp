@@ -1,33 +1,24 @@
-#include "POP3ClientSocket.h"
-#include <iostream>
-#include <string>
-#include <cstring>
-#include <WS2tcpip.h>
+#include "POP3Client.h"
 
 
-POP3ClientSocket::POP3ClientSocket()
+POP3Client::POP3Client() : mConn(new TCPClientSocket())
 {
 }
 
-POP3ClientSocket::POP3ClientSocket(const POP3ClientSocket& pop3cliSocket) : TCPClientSocket(pop3cliSocket)
+POP3Client::POP3Client(const POP3Client& pop3cli) : mConn(pop3cli.mConn)
 {
 }
 
-POP3ClientSocket::POP3ClientSocket(const char* at, int tmo) : TCPClientSocket(at, RESERVED_POP3_PORT, tmo)
+POP3Client::~POP3Client()
 {
-}
+	this->quit();
 
-POP3ClientSocket::POP3ClientSocket(const char* at, USHORT port, int tmo) : TCPClientSocket(at, port, tmo)
-{
-}
-
-POP3ClientSocket::~POP3ClientSocket()
-{
+	delete mConn;
 }
 
 // 在主机域名前加上 pop 前缀
 // 返回指向拼接后的新字符串的指针，注意使用后应使用 delete[] 释放该字符串
-char* POP3ClientSocket::prefix(const char* host)
+char* POP3Client::prefix(const char* host)
 {
 	// 获取字符串长度
 	int prefixlen = strlen(RESERVED_POP3_PREFIX);
@@ -42,37 +33,13 @@ char* POP3ClientSocket::prefix(const char* host)
 	return outs;
 }
 
-bool POP3ClientSocket::connect2Server(const char* at, int tmo)
-{
-	// 在 at 内容前加上邮箱服务器前缀
-	char* addr = prefix(at);
-
-	bool succ = TCPClientSocket::connect2Server(addr, RESERVED_POP3_PORT, tmo);
-	
-	delete[] addr;
-
-	return succ;
-}
-
-bool POP3ClientSocket::connect2Server(const char* at, USHORT port, int tmo)
-{
-	// 在 at 内容前加上 游戏服务器前缀
-	char* addr = prefix(at);
-
-	bool succ = TCPClientSocket::connect2Server(addr, port, tmo);
-
-	delete[] addr;
-
-	return succ;
-}
-
 // 检查命令是否成功
 // resp 为命令发送后收到的回复
-bool POP3ClientSocket::cmdOK(const char* resp)
+bool POP3Client::cmdOK(const char* resp)
 {
 	if (strncmp(resp, "+OK", 3) == 0)
 		return true;
-	
+
 	return false;
 }
 
@@ -82,18 +49,18 @@ bool POP3ClientSocket::cmdOK(const char* resp)
 //		  非空时为指向字符指针的指针，若结果返回0，则将reply指向的指针指向一块新的内存
 // outlen: 配合 reply 输出新分配空间的大小
 // 正常回复返回0，回复错误返回1，读写错误或内存分配失败返回-1
-int inline POP3ClientSocket::cmdWithSingLineReply(const char* cmd, char** reply, int* outlen)
+int inline POP3Client::cmdWithSingLineReply(const char* cmd, char** reply, int* outlen)
 {
 	char buf[BUFFER_SIZE];
 
 	int cmdlen = strlen(cmd);
-	int r = this->write(cmd, cmdlen);		// 发送命令
+	int r = mConn->write(cmd, cmdlen);		// 发送命令
 
 	// 检查写错误
 	if (r <= 0)
 		return -1;
 
-	r = this->readline(buf, BUFFER_SIZE);	// 读取回复
+	r = mConn->readline(buf, BUFFER_SIZE);	// 读取回复
 
 	// 检查读错误或无回复
 	if (r <= 0)
@@ -120,14 +87,14 @@ int inline POP3ClientSocket::cmdWithSingLineReply(const char* cmd, char** reply,
 // reply: 指向字符指针的指针，若结果返回0，则将reply指向的指针指向一块新的内存
 // outlen: 给 reply 分配的内存空间的大小，一定为 BUFFER_SIZE 的倍数 + 1（可能多余实际长度）
 // 正常回复返回0，回复错误返回1，读写错误及内存分配失败返回-1
-int inline POP3ClientSocket::cmdWithMultiLinesReply(
+int inline POP3Client::cmdWithMultiLinesReply(
 	const char* cmd, const char* ends, char** reply, int* outlen
 )
 {
 	int cmdlen = strlen(cmd);
-	int r = this->write(cmd, cmdlen);	// 发送命令
+	int r = mConn->write(cmd, cmdlen);	// 发送命令
 	int ret = 0;	// 返回值
-	
+
 	if (r < 0) {
 		ret = -1;
 	}
@@ -141,7 +108,7 @@ int inline POP3ClientSocket::cmdWithMultiLinesReply(
 
 		int sz = 0;		// 已收到的字节数
 		while (ret >= 0) {
-			int r = this->readblock(newBuf + sz, totsz - sz);
+			int r = mConn->readblock(newBuf + sz, totsz - sz);
 			if (r < 0) {
 				// 发生读错误
 				ret = -1;
@@ -159,7 +126,7 @@ int inline POP3ClientSocket::cmdWithMultiLinesReply(
 			if (sz >= totsz) {
 				// 已读字节数溢出当前分配的空间
 				totsz += BUFFER_SIZE;
-				char* tmpbuf = (char*)realloc(newBuf, totsz+1);		// 多1个字节检测溢出
+				char* tmpbuf = (char*)realloc(newBuf, totsz + 1);		// 多1个字节检测溢出
 
 				if (tmpbuf == nullptr) {
 					ret = -1;
@@ -186,7 +153,7 @@ int inline POP3ClientSocket::cmdWithMultiLinesReply(
 	else {
 		ret = cmdOK(*reply);
 	}
-	
+
 	return ret;
 }
 
@@ -196,12 +163,12 @@ int inline POP3ClientSocket::cmdWithMultiLinesReply(
 //		  非空时为指向字符指针的指针，若结果返回0，则将reply指向的指针指向一块新的内存
 // outlen: 配合 reply 输出新分配空间的大小
 // 正常回复返回 0，命令回复错误返回 1，读写错误或无回复或内存分配失败返回 -1
-int POP3ClientSocket::user(const char* usr, char ** reply, int* outlen)
+int POP3Client::user(const char* usr, char** reply, int* outlen)
 {
 	char buf[BUFFER_SIZE];		// 缓冲区
 
 	sprintf(buf, "USER %s\r\n", usr);		// 放入 USER 命令
-	
+
 	return cmdWithSingLineReply(buf, reply, outlen);
 }
 
@@ -211,12 +178,28 @@ int POP3ClientSocket::user(const char* usr, char ** reply, int* outlen)
 //		  非空时为指向字符指针的指针，若结果返回0，则将reply指向的指针指向一块新的内存
 // outlen: 配合 reply 输出新分配空间的大小
 // 正常回复返回 0，命令回复错误返回 1，读写错误或无回复或内存分配失败返回 -1
-int POP3ClientSocket::pass(const char* passwd, char ** reply, int* outlen)
+int POP3Client::pass(const char* passwd, char** reply, int* outlen)
 {
 	char buf[BUFFER_SIZE];		// 缓冲区
 
 	sprintf(buf, "PASS %s\r\n", passwd);		// PASS 命令放入缓冲区
-	
+
+	return cmdWithSingLineReply(buf, reply, outlen);
+}
+
+// POP3 APOP 命令，另一种提供确认过程的方式
+// name: 邮箱字串，同用户名
+// digest: MD5 产生的包括时间戳和共享密钥的字串
+// reply: 传入 nullptr(默认) 表示不关心回复；
+//		  非空时为指向字符指针的指针，若结果返回0，则将reply指向的指针指向一块新的内存
+// outlen: 配合 reply 输出新分配空间的大小
+// 正常回复返回 0，命令回复错误返回 1，读写错误或无回复或内存分配失败返回 -1
+int POP3Client::apop(const char* name, const char* digest, char** reply, int* outlen)
+{
+	char buf[BUFFER_SIZE];
+
+	sprintf(buf, "APOP %s,%s\r\n", name, digest);
+
 	return cmdWithSingLineReply(buf, reply, outlen);
 }
 
@@ -225,7 +208,7 @@ int POP3ClientSocket::pass(const char* passwd, char ** reply, int* outlen)
 //		  非空时为指向字符指针的指针，若结果返回0，则将reply指向的指针指向一块新的内存
 // outlen: 配合 reply 输出新分配空间的大小
 // 正常回复返回 0，命令回复错误返回 1，读写错误或无回复或内存分配失败返回 -1
-int POP3ClientSocket::quit(char** reply, int* outlen)
+int POP3Client::quit(char** reply, int* outlen)
 {
 	char buf[BUFFER_SIZE];		// 缓冲区
 
@@ -233,7 +216,7 @@ int POP3ClientSocket::quit(char** reply, int* outlen)
 
 	int ret = cmdWithSingLineReply(buf, reply, outlen);
 
-	this->closeSocket();
+	mConn->closeSocket();
 
 	return ret;
 }
@@ -244,10 +227,10 @@ int POP3ClientSocket::quit(char** reply, int* outlen)
 // outlen: 配合 reply 输出新分配空间的大小
 // 正常回复返回 0，命令回复错误返回 1，读写错误或无回复或内存分配失败返回 -1
 // 正常回复表连接正常
-int POP3ClientSocket::noop(char** reply, int* outlen)
+int POP3Client::noop(char** reply, int* outlen)
 {
 	char buf[BUFFER_SIZE];		// 缓冲区
-	
+
 	sprintf(buf, "NOOP\r\n");
 
 	return cmdWithSingLineReply(buf, reply, outlen);
@@ -259,7 +242,7 @@ int POP3ClientSocket::noop(char** reply, int* outlen)
 // outlen: 配合 reply 输出新分配空间的大小
 // 正常回复返回 0，命令回复错误返回 1，读写错误或无回复或内存分配失败返回 -1
 // 正常回复内容包含邮件数量以及所占空间的大小
-int POP3ClientSocket::stat(char** reply, int* outlen)
+int POP3Client::stat(char** reply, int* outlen)
 {
 	char buf[BUFFER_SIZE];		// 缓冲区
 
@@ -273,7 +256,7 @@ int POP3ClientSocket::stat(char** reply, int* outlen)
 // outlen: 为给 reply 分配的内存空间的大小，返回多行时一定为 BUFFER_SIZE 的倍数 + 1（可能多余实际长度）
 // no 指定返回特定序号邮件的大小信息，默认值 -1 表示不指定
 // 正常回复返回0，回复错误返回1，读写错误及内存分配失败返回-1
-int POP3ClientSocket::list(char** reply, int*outlen, int no)
+int POP3Client::list(char** reply, int* outlen, int no)
 {
 	if (no > 0) {
 		// 指定序号，返回单行内容
@@ -291,7 +274,7 @@ int POP3ClientSocket::list(char** reply, int*outlen, int no)
 // reply: 指向字符指针的指针，若结果返回0，则将reply指向的指针指向一块新的内存
 // outlen: 为给 reply 分配的内存空间的大小，一定为 BUFFER_SIZE 的倍数 + 1（可能多余实际长度）
 // 正常回复返回0，回复错误返回1，读写错误及内存分配失败返回-1
-int POP3ClientSocket::retr(char** reply, int* outlen, int no)
+int POP3Client::retr(char** reply, int* outlen, int no)
 {
 	char buf[BUFFER_SIZE];		// 缓冲区
 	sprintf(buf, "RETR %d\r\n", no);
@@ -304,7 +287,7 @@ int POP3ClientSocket::retr(char** reply, int* outlen, int no)
 // outlen: 为给 reply 分配的内存空间的大小，一定为 BUFFER_SIZE 的倍数 + 1（可能多余实际长度）
 // no: 指定返回特定序号邮件的相关内容
 // 正常回复返回0，回复错误返回1，读写错误及内存分配失败返回-1
-int POP3ClientSocket::top(char** reply, int*outlen, int no, int lines)
+int POP3Client::top(char** reply, int* outlen, int no, int lines)
 {
 	char buf[BUFFER_SIZE];		// 缓冲区
 	sprintf(buf, "TOP %d %d\r\n", no, lines);
@@ -318,7 +301,7 @@ int POP3ClientSocket::top(char** reply, int*outlen, int no, int lines)
 //		  非空时为指向字符指针的指针，若结果返回0，则将reply指向的指针指向一块新的内存
 // outlen: 配合 reply 输出新分配空间的大小
 // 正常回复返回 0，命令回复错误返回 1，读写错误或无回复或内存分配失败返回 -1
-int POP3ClientSocket::dele(int no, char** reply, int* outlen)
+int POP3Client::dele(int no, char** reply, int* outlen)
 {
 	char buf[BUFFER_SIZE];		// 缓冲区
 
@@ -332,7 +315,7 @@ int POP3ClientSocket::dele(int no, char** reply, int* outlen)
 //		  非空时为指向字符指针的指针，若结果返回0，则将reply指向的指针指向一块新的内存
 // outlen: 配合 reply 输出新分配空间的大小
 // 正常回复返回 0，命令回复错误返回 1，读写错误或无回复或内存分配失败返回 -1
-int POP3ClientSocket::rest(char** reply, int* outlen)
+int POP3Client::rest(char** reply, int* outlen)
 {
 	char buf[BUFFER_SIZE];		// 缓冲区
 
@@ -346,7 +329,7 @@ int POP3ClientSocket::rest(char** reply, int* outlen)
 // outlen: 为给 reply 分配的内存空间的大小，返回多行时一定为 BUFFER_SIZE 的倍数 + 1（可能多余实际长度）
 // no 指定返回特定序号邮件的大小信息，默认值 -1 表示不指定
 // 正常回复返回0，回复错误返回1，读写错误及内存分配失败返回-1
-int POP3ClientSocket::uidl(char** reply, int* outlen, int no)
+int POP3Client::uidl(char** reply, int* outlen, int no)
 {
 	if (no > 0) {
 		// 取单行内容

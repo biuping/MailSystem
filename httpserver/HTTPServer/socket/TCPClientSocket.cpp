@@ -26,7 +26,7 @@ TCPClientSocket::~TCPClientSocket() {
 	this->closeSocket();
 }
 
-sockaddr TCPClientSocket::getServerAddr()
+const sockaddr& TCPClientSocket::getServerAddr()
 {
 	return mServerAddr;
 }

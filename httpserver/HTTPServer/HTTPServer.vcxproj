@@ -143,12 +143,15 @@
     <ClCompile Include="HttpServer.cpp" />
     <ClCompile Include="HttpServerHandler.cpp" />
     <ClCompile Include="HttpSocket.cpp" />
+    <ClCompile Include="mail_cli\Mail.cpp" />
+    <ClCompile Include="mail_cli\MailClient.cpp" />
+    <ClCompile Include="mail_cli\MailReceiver.cpp" />
+    <ClCompile Include="mail_cli\MailSender.cpp" />
+    <ClCompile Include="mail_cli\pop3\POP3Client.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="pop3\EncodeUtils.cpp" />
-    <ClCompile Include="pop3\POP3Client.cpp" />
-    <ClCompile Include="pop3\POP3ClientSocket.cpp" />
-    <ClCompile Include="pop3\TCPClientSocket.cpp" />
+    <ClCompile Include="socket\TCPClientSocket.cpp" />
     <ClCompile Include="Tools.cpp" />
+    <ClCompile Include="tools\EncodeUtils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="config.h" />
@@ -159,11 +162,14 @@
     <ClInclude Include="HttpServerHandler.h" />
     <ClInclude Include="HttpSocket.h" />
     <ClInclude Include="http_const.h" />
-    <ClInclude Include="pop3\EncodeUtils.h" />
-    <ClInclude Include="pop3\POP3Client.h" />
-    <ClInclude Include="pop3\POP3ClientSocket.h" />
-    <ClInclude Include="pop3\TCPClientSocket.h" />
+    <ClInclude Include="mail_cli\Mail.h" />
+    <ClInclude Include="mail_cli\MailClient.h" />
+    <ClInclude Include="mail_cli\MailReceiver.h" />
+    <ClInclude Include="mail_cli\MailSender.h" />
+    <ClInclude Include="mail_cli\pop3\POP3Client.h" />
+    <ClInclude Include="socket\TCPClientSocket.h" />
     <ClInclude Include="Tools.h" />
+    <ClInclude Include="tools\EncodeUtils.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -174,7 +180,7 @@
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
-      <ErrorText>这台计算机上缺少此项目引用的 NuGet 程序包。使用“NuGet 程序包还原”可下载这些程序包。有关更多信息，请参见 http://go.microsoft.com/fwlink/?LinkID=322105。缺少的文件是 {0}。</ErrorText>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
     <Error Condition="!Exists('packages\JsonCpp.Windows.1.9.2\build\JsonCpp.Windows.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\JsonCpp.Windows.1.9.2\build\JsonCpp.Windows.targets'))" />
   </Target>
