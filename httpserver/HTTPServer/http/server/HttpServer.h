@@ -1,10 +1,10 @@
 #pragma once
-#include "HttpSocket.h"
-#include "HttpClient.h"
-#include "HttpRequest.h"
-#include "HttpResponse.h"
+#include "..\socket\HttpSocket.h"
+#include "..\client\HttpClient.h"
+#include "..\client\HttpRequest.h"
+#include "..\client\HttpResponse.h"
 #include "HttpServerHandler.h"
-#include "config.h"
+#include "..\static\config.h"
 
 class HttpServer
 {

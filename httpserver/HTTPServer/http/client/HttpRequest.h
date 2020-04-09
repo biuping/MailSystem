@@ -1,7 +1,7 @@
 #pragma once
 #include <map>
 #include "HttpClient.h"
-#include "Tools.h"
+#include "..\static\Tools.h"
 
 class HttpRequest 
 {
