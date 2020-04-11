@@ -3,7 +3,8 @@
 #include <WinSock2.h>
 #include <WS2tcpip.h>
 #include <windows.h>
-#include "Tools.h"
+#include "..\static\Tools.h"
+
 #pragma comment(lib,"WS2_32")
 
 class HttpSocket 

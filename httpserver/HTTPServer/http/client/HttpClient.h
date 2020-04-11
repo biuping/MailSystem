@@ -1,5 +1,5 @@
 #pragma once
-#include "HttpSocket.h"
+#include "..\socket\HttpSocket.h"
 class HttpClient 
 {
 private:

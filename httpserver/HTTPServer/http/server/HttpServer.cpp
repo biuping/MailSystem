@@ -28,7 +28,7 @@ int HttpServer::start(int backlog)
 	SOCKET sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (sock == SOCKET_ERROR)
 	{
-		std::cout << "create socket error: " << WSAGetLastError() << std::endl;
+		Tools::report("create socket error: ", WSAGetLastError());
 		return -1;
 	}
 
@@ -44,17 +44,28 @@ int HttpServer::start(int backlog)
 	//绑定
 	if (::bind(sock, (sockaddr*)&sock_addr, sizeof(sock_addr)) == SOCKET_ERROR) {
 		::closesocket(sock);
-		std::cout << "bind error: " + WSAGetLastError() << std::endl;
+		Tools::report("bind error: ", WSAGetLastError());
 		return -1;
 	}
 
 	//监听
 	if (::listen(sock, backlog) < 0) {
 		::closesocket(sock);
-		std::cout << "listen error: " + WSAGetLastError() << std::endl;
+		Tools::report("listen error: ", WSAGetLastError());
 		return -1;
 	}
+
 	m_socket = sock;
+
+	// 设置非阻塞模式
+	/*DWORD arg = 1;
+	int nRet = ::ioctlsocket(m_socket, FIONBIO, &arg);
+	if (nRet == SOCKET_ERROR)
+	{
+		Tools::report("ioctlsocket failed! error:", WSAGetLastError());
+		return -1;
+	}*/
+
 	return 0;
 }
 
@@ -65,7 +76,7 @@ int HttpServer::close()
 
 	if (::closesocket(m_socket) == SOCKET_ERROR)
 	{
-		Tools::report("close server socket error: " + WSAGetLastError());
+		Tools::report("close server socket error: ", WSAGetLastError());
 		return -1;
 	}
 
@@ -85,6 +96,7 @@ void HttpServer::run()
 {
 	if (this->start() < 0) {
 		Tools::report("start failed");
+		this->close();
 	}
 	else {
 		Tools::report("start success");
@@ -92,7 +104,18 @@ void HttpServer::run()
 
 	HttpClient* client;
 	HttpServerHandler* handler;
-	while (NULL != (client = this->accept()))
+	HttpRequest* request;
+	//while (true)
+	//{
+	//	if (nullptr != (client = this->accept()))
+	//	{
+	//		request = new HttpRequest(client);
+	//		request->handle_request();
+	//		client->close();
+	//	}
+	//}
+
+	while (nullptr != (client = this->accept()))
 	{
 		handler = new HttpServerHandler(client);
 		handler->handle_client();
@@ -103,7 +126,7 @@ void HttpServer::run()
 HttpClient* HttpServer::accept()
 {
 	if (m_socket == INVALID_SOCKET)
-		return NULL;
+		return nullptr;
 	//设置客户端
 	sockaddr_in client_addr;
 	int client_addr_size = sizeof(client_addr);
@@ -111,9 +134,9 @@ HttpClient* HttpServer::accept()
 	SOCKET client_sock = ::accept(m_socket, (sockaddr*)&client_addr, (socklen_t*)&client_addr_size);
 	if (client_sock == INVALID_SOCKET)
 	{
-		int error = WSAGetLastError();
-		std::cout << "accept error: " + WSAGetLastError() << std::endl;
-		return NULL;
+		//int error = WSAGetLastError();
+		//Tools::report( "accept error: ", WSAGetLastError());
+		return nullptr;
 	}
 
 	HttpClient* client = new HttpClient(client_sock);

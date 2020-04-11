@@ -1,6 +1,5 @@
-#include "HttpClient.h"
-#include "HttpServer.h"
-#include "HttpRequest.h"
+#include "server\HttpServer.h"
+
 
 int main(int argc, char* argv[])
 {

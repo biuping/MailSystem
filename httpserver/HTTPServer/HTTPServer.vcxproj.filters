@@ -45,27 +45,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
-      <Filter>Source Files\http_src</Filter>
-    </ClCompile>
-    <ClCompile Include="HttpSocket.cpp">
-      <Filter>Source Files\http_src</Filter>
-    </ClCompile>
-    <ClCompile Include="HttpClient.cpp">
-      <Filter>Source Files\http_src</Filter>
-    </ClCompile>
-    <ClCompile Include="HttpRequest.cpp">
-      <Filter>Source Files\http_src</Filter>
-    </ClCompile>
-    <ClCompile Include="HttpServer.cpp">
-      <Filter>Source Files\http_src</Filter>
-    </ClCompile>
-    <ClCompile Include="Tools.cpp">
-      <Filter>Source Files\http_src</Filter>
-    </ClCompile>
-    <ClCompile Include="HttpServerHandler.cpp">
-      <Filter>Source Files\http_src</Filter>
-    </ClCompile>
     <ClCompile Include="mail_cli\Mail.cpp">
       <Filter>Source Files\mail_client_src</Filter>
     </ClCompile>
@@ -87,35 +66,32 @@
     <ClCompile Include="mail_cli\pop3\POP3Client.cpp">
       <Filter>Source Files\mail_client_src\pop3_src</Filter>
     </ClCompile>
+    <ClCompile Include="http\main.cpp">
+      <Filter>Source Files\http_src</Filter>
+    </ClCompile>
+    <ClCompile Include="http\static\Tools.cpp">
+      <Filter>Source Files\http_src</Filter>
+    </ClCompile>
+    <ClCompile Include="http\client\HttpClient.cpp">
+      <Filter>Source Files\http_src</Filter>
+    </ClCompile>
+    <ClCompile Include="http\client\HttpRequest.cpp">
+      <Filter>Source Files\http_src</Filter>
+    </ClCompile>
+    <ClCompile Include="http\client\HttpResponse.cpp">
+      <Filter>Source Files\http_src</Filter>
+    </ClCompile>
+    <ClCompile Include="http\server\HttpServerHandler.cpp">
+      <Filter>Source Files\http_src</Filter>
+    </ClCompile>
+    <ClCompile Include="http\server\HttpServer.cpp">
+      <Filter>Source Files\http_src</Filter>
+    </ClCompile>
+    <ClCompile Include="http\socket\HttpSocket.cpp">
+      <Filter>Source Files\http_src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="config.h">
-      <Filter>Header Files\http_include</Filter>
-    </ClInclude>
-    <ClInclude Include="HttpRequest.h">
-      <Filter>Header Files\http_include</Filter>
-    </ClInclude>
-    <ClInclude Include="HttpResponse.h">
-      <Filter>Header Files\http_include</Filter>
-    </ClInclude>
-    <ClInclude Include="HttpSocket.h">
-      <Filter>Header Files\http_include</Filter>
-    </ClInclude>
-    <ClInclude Include="Tools.h">
-      <Filter>Header Files\http_include</Filter>
-    </ClInclude>
-    <ClInclude Include="HttpClient.h">
-      <Filter>Header Files\http_include</Filter>
-    </ClInclude>
-    <ClInclude Include="HttpServer.h">
-      <Filter>Header Files\http_include</Filter>
-    </ClInclude>
-    <ClInclude Include="HttpServerHandler.h">
-      <Filter>Header Files\http_include</Filter>
-    </ClInclude>
-    <ClInclude Include="http_const.h">
-      <Filter>Header Files\http_include</Filter>
-    </ClInclude>
     <ClInclude Include="tools\EncodeUtils.h">
       <Filter>Header Files\tools_include</Filter>
     </ClInclude>
@@ -136,6 +112,33 @@
     </ClInclude>
     <ClInclude Include="mail_cli\MailSender.h">
       <Filter>Header Files\mail_client_include</Filter>
+    </ClInclude>
+    <ClInclude Include="http\static\Tools.h">
+      <Filter>Header Files\http_include</Filter>
+    </ClInclude>
+    <ClInclude Include="http\static\config.h">
+      <Filter>Header Files\http_include</Filter>
+    </ClInclude>
+    <ClInclude Include="http\static\http_const.h">
+      <Filter>Header Files\http_include</Filter>
+    </ClInclude>
+    <ClInclude Include="http\client\HttpClient.h">
+      <Filter>Header Files\http_include</Filter>
+    </ClInclude>
+    <ClInclude Include="http\client\HttpRequest.h">
+      <Filter>Header Files\http_include</Filter>
+    </ClInclude>
+    <ClInclude Include="http\client\HttpResponse.h">
+      <Filter>Header Files\http_include</Filter>
+    </ClInclude>
+    <ClInclude Include="http\server\HttpServer.h">
+      <Filter>Header Files\http_include</Filter>
+    </ClInclude>
+    <ClInclude Include="http\server\HttpServerHandler.h">
+      <Filter>Header Files\http_include</Filter>
+    </ClInclude>
+    <ClInclude Include="http\socket\HttpSocket.h">
+      <Filter>Header Files\http_include</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
