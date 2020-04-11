@@ -11,6 +11,20 @@ typedef std::list<rstring> mlist;
 typedef std::map<rstring, rstring> str_kvmap;
 
 
+typedef struct {
+	rstring from;
+	rstring subject;
+	rstring date;
+	rstring content_type;
+	mlist to;
+	str_kvmap xfields;		// extended fields
+} mail_header_t;
+
+typedef struct {
+	rstring message;
+} mail_body_t;
+
+
 class Mail
 {
 public:
@@ -36,20 +50,6 @@ private:
 	mail_body_t mBody;
 	int mSize;
 };
-
-typedef struct {
-	rstring from;
-	rstring subject;
-	rstring date;
-	rstring content_type;
-	mlist to;
-	str_kvmap xfields;		// extended fields
-} mail_header_t;
-
-typedef struct {
-
-} mail_body_t;
-
 
 
 #endif // !_MAIL_H_

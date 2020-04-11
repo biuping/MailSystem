@@ -8,9 +8,17 @@
 #include "../MailReceiver.h"
 #include "../../socket/TCPClientSocket.h"
 
+
 class POP3Client : public MailReceiver
 {
 public:
+	enum POP3State {
+		Unconnected,		// 未连接到服务器
+		Authorization,		// 验证状态
+		Transaction,		// 事务状态
+		Update				// 更新状态
+	};
+
 	POP3Client();
 	POP3Client(const POP3Client& pop3cli);
 	virtual ~POP3Client();
@@ -44,13 +52,6 @@ private:
 	int rest(char** reply = nullptr, int* outlen = nullptr);
 	int uidl(char** reply, int* outlen, int no = -1);
 	int capa(char** reply, int* outlen);
-};
-
-enum POP3State {
-	Unconnected,		// 未连接到服务器
-	Authorization,		// 验证状态
-	Transaction,		// 事务状态
-	Update				// 更新状态
 };
 
 
