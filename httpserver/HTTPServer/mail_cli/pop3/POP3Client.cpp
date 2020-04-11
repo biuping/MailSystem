@@ -14,6 +14,7 @@ POP3Client::~POP3Client()
 	this->quit();
 
 	delete mConn;
+	mConn = nullptr;
 }
 
 // 在主机域名前加上 pop 前缀
