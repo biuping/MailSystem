@@ -25,18 +25,25 @@ public:
 	/*  */
 	const mail_header_t& getHeader();
 	const mail_body_t& getBody();
+
+	void setHeader(mail_header_t header);
+	void setBody(mail_body_t body);
+
+	int getSize();
+
 private:
 	mail_header_t mHeader;
 	mail_body_t mBody;
+	int mSize;
 };
 
 typedef struct {
 	rstring from;
-	mlist to;
 	rstring subject;
 	rstring date;
 	rstring content_type;
-	str_kvmap xfields;
+	mlist to;
+	str_kvmap xfields;		// extended fields
 } mail_header_t;
 
 typedef struct {

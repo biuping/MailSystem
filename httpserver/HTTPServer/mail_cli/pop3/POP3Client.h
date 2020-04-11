@@ -43,6 +43,7 @@ private:
 	int dele(int no, char** reply = nullptr, int* outlen = nullptr);
 	int rest(char** reply = nullptr, int* outlen = nullptr);
 	int uidl(char** reply, int* outlen, int no = -1);
+	int capa(char** reply, int* outlen);
 };
 
 enum POP3State {

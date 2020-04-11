@@ -341,3 +341,12 @@ int POP3Client::uidl(char** reply, int* outlen, int no)
 		return cmdWithMultiLinesReply("UIDL\r\n", "\r\n.\r\n", reply, outlen);
 	}
 }
+
+// POP3 capa 命令，查看服务端兼容命令列表
+// reply: 指向字符指针的指针，若结果返回0，则将reply指向的指针指向一块新的内存
+// outlen: 为给 reply 分配的内存空间的大小，一定为 BUFFER_SIZE 的倍数 + 1（可能多余实际长度）
+// 正常回复返回0，回复错误返回1，读写错误及内存分配失败返回-1
+int POP3Client::capa(char** reply, int* outlen)
+{
+	return cmdWithMultiLinesReply("CAPA\r\n", "\r\n.\r\n", reply, outlen);
+}
