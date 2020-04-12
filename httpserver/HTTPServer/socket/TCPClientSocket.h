@@ -30,10 +30,10 @@ public:
 protected:
 	sockaddr mServerAddr;
 	SOCKET mSocket;
-	virtual void report(const rstring& msg);
 
 private:
 	bool createNBSocketAndConnect(addrinfo* info, int tmo = DEFAULT_WRITE_TIMEOUT);
+	virtual void report(const rstring& msg);
 };
 
 

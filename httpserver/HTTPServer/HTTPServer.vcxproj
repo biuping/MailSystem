@@ -152,9 +152,10 @@
     <ClCompile Include="mail_cli\MailSender.cpp" />
     <ClCompile Include="mail_cli\pop3\POP3Client.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="tests\mao_test\mao.cpp" />
     <ClCompile Include="socket\TCPClientSocket.cpp" />
     <ClCompile Include="http\static\Tools.cpp" />
+    <ClCompile Include="tests\mao_test\mao.cpp" />
+    <ClCompile Include="tests\zhang_test\zhang.cpp" />
     <ClCompile Include="tools\EncodeUtils.cpp" />
     <ClCompile Include="tools\LogUtils.cpp" />
   </ItemGroup>
@@ -177,6 +178,7 @@
     <ClInclude Include="tests\test.h" />
     <ClInclude Include="socket\TCPClientSocket.h" />
     <ClInclude Include="http\static\Tools.h" />
+    <ClInclude Include="tests\zhang_test\zhang.h" />
     <ClInclude Include="tools\LogUtils.h" />
     <ClInclude Include="tools\EncodeUtils.h" />
   </ItemGroup>
