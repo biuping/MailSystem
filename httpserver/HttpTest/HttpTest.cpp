@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "CppUnitTest.h"
-#include "../HTTPServer/HttpRequest.h"
+#include "..\HTTPServer\http\client\HttpRequest.h"
 #define equal(a,b) Assert::AreEqual(a,b)
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
@@ -20,6 +20,7 @@ namespace HttpTest
 		TEST_METHOD(CharTest)
 		{
 			const char* c1 = "123456";
+			std::cout << c1;
 			equal('\0', c1[6]);
 			Assert::AreEqual(6, (int)strlen(c1));
 		}

@@ -16,8 +16,8 @@ public:
 	static Mail* parse(rstring raw);
 
 private:
-	mail_header_t mHeader;
-	mail_body_t mBody;
+	//mail_header_t mHeader;
+	//mail_body_t mBody;
 };
 
 typedef struct {
