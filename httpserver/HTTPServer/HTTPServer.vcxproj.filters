@@ -66,9 +66,6 @@
     <ClCompile Include="mail_cli\pop3\POP3Client.cpp">
       <Filter>Source Files\mail_client_src\pop3_src</Filter>
     </ClCompile>
-    <ClCompile Include="http\main.cpp">
-      <Filter>Source Files\http_src</Filter>
-    </ClCompile>
     <ClCompile Include="http\static\Tools.cpp">
       <Filter>Source Files\http_src</Filter>
     </ClCompile>
@@ -89,6 +86,12 @@
     </ClCompile>
     <ClCompile Include="http\socket\HttpSocket.cpp">
       <Filter>Source Files\http_src</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>Source Files\http_src</Filter>
+    </ClCompile>
+    <ClCompile Include="tests\mao_test\mao.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -139,6 +142,15 @@
     </ClInclude>
     <ClInclude Include="http\socket\HttpSocket.h">
       <Filter>Header Files\http_include</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\my.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\test.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\mao_test\mao.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

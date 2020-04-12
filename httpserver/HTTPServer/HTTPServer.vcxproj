@@ -151,7 +151,8 @@
     <ClCompile Include="mail_cli\MailReceiver.cpp" />
     <ClCompile Include="mail_cli\MailSender.cpp" />
     <ClCompile Include="mail_cli\pop3\POP3Client.cpp" />
-    <ClCompile Include="http\main.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="tests\mao_test\mao.cpp" />
     <ClCompile Include="socket\TCPClientSocket.cpp" />
     <ClCompile Include="http\static\Tools.cpp" />
     <ClCompile Include="tools\EncodeUtils.cpp" />
@@ -170,6 +171,9 @@
     <ClInclude Include="mail_cli\MailReceiver.h" />
     <ClInclude Include="mail_cli\MailSender.h" />
     <ClInclude Include="mail_cli\pop3\POP3Client.h" />
+    <ClInclude Include="tests\mao_test\mao.h" />
+    <ClInclude Include="tests\my.h" />
+    <ClInclude Include="tests\test.h" />
     <ClInclude Include="socket\TCPClientSocket.h" />
     <ClInclude Include="http\static\Tools.h" />
     <ClInclude Include="tools\EncodeUtils.h" />
