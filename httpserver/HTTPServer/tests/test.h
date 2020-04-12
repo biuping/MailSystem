@@ -4,7 +4,7 @@
 #include "mao_test/mao.h"
 #endif
 #ifdef ZHANG_TEST
-#include "zhang_test/mao.h"
+#include "zhang_test/zhang.h"
 #endif
 #ifdef HUANG_TEST
 #include "huang_test/mao.h"
