@@ -1,6 +1,6 @@
 #include "HttpRequest.h"
 
-HttpRequest::HttpRequest() :m_body(nullptr),m_bodylen(0)
+HttpRequest::HttpRequest() :m_body(nullptr), m_bodylen(0)
 {
 
 }
@@ -56,7 +56,7 @@ int HttpRequest::load_packet(const char* msg, size_t msglen)
 int HttpRequest::parse_startline(const char* start, const char* end)
 {
 	size_t content_len = 0, sum_len = 0;
-	const char* remain = start, *content_start = nullptr;
+	const char* remain = start, * content_start = nullptr;
 	content_start = Tools::find_content(remain, end, '\r', content_len, sum_len);
 	if (content_start == nullptr)
 		return -1;
@@ -123,7 +123,7 @@ int HttpRequest::parse_body(const char* start, const char* end)
 	if (body_len == 0x00)
 		return 0;
 
-	char* buff = new char[body_len+1];
+	char* buff = new char[body_len + 1];
 	if (buff == nullptr)
 		return -1;
 	//将body拷贝进缓冲
@@ -133,30 +133,6 @@ int HttpRequest::parse_body(const char* start, const char* end)
 	//不为空，清除
 	if (m_body != nullptr)
 		delete m_body;
-
-	Json::CharReaderBuilder builder;
-	Json::CharReader* reader = builder.newCharReader();
-	Json::Value json_object;
-	Json::String err;
-	
-	reader->parse(buff,buff+strlen(buff),&json_object,&err);
-	std::cout << json_object["name"].asString() << std::endl;
-
-	Json::StreamWriterBuilder write_builder;
-	write_builder.settings_["indentation"] = "";
-	Json::StreamWriter* writer(write_builder.newStreamWriter());
-	std::ostringstream os;
-	Json::Value root;
-
-	root["null"] = NULL;			//注意此处在输出是显示为0，而非null
-	root["message"] = "OK";
-	root["age"] = 52;
-	root["array"].append("arr");	// 新建一个key为array，类型为数组，对第一个元素赋值为字符串“arr”
-	root["array"].append(123);		// 为数组 key_array 赋值，对第二个元素赋值为：1234
-
-	Tools::report(root.toStyledString());
-	writer->write(root, &os);
-	Tools::report(os.str());
 
 	m_body = buff;
 	m_bodylen = body_len;

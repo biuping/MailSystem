@@ -30,6 +30,26 @@ void Tools::to_upper(rstring& s)
 	}
 }
 
+void Tools::json_read(const char* start, size_t len, Json::Value& json_object, Json::String& errs)
+{
+	Json::CharReaderBuilder read_builder;
+	std::unique_ptr<Json::CharReader> json_reader(read_builder.newCharReader());
+	
+	json_reader->parse(start, start + len, &json_object, &errs);
+
+}
+
+void Tools::json_write(Json::Value& root,rstring& res, bool beautify)
+{
+	Json::StreamWriterBuilder writer_builder;
+	if (!beautify)
+		writer_builder.settings_["indentation"] = "";
+	std::unique_ptr<Json::StreamWriter> json_writer(writer_builder.newStreamWriter());
+	std::ostringstream os;
+	json_writer->write(root, &os);
+	res = os.str();
+}
+
 size_t Tools::cal_len(const char* start, const char* end)
 {
 	return (size_t)(end - start);

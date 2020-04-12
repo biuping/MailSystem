@@ -26,6 +26,22 @@ public:
 
 public:
 	/*
+	解析json对象
+	start: 需要解析的字符串起始位置
+	len: 需要解析的字符串的长度
+	json_object: 将解析后的json对象存放在其中
+	errs：出错的信息
+	*/
+	static void json_read(const char* start,size_t len,Json::Value& json_object, Json::String& errs);
+	/*
+	从json对象生成json字符串
+	root：json对象的根节点
+	res：生成后的字符串
+	beautify：是否美化输出，默认为否
+	*/
+	static void json_write(Json::Value& root,rstring& res,bool beautify=false);
+public:
+	/*
 	计算开始指针与结束指针之间的长度
 	*/
 	static size_t cal_len(const char* start, const char* end);
