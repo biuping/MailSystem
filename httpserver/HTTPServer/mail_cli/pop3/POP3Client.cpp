@@ -1,7 +1,7 @@
 #include "POP3Client.h"
 
 
-POP3Client::POP3Client() : mConn(new TCPClientSocket()), mState(Unconnected)
+POP3Client::POP3Client() : mConn(new TCPClientSocket()), mState(POP3State::Unconnected)
 {
 }
 
