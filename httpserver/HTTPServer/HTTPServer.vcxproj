@@ -155,6 +155,7 @@
     <ClCompile Include="socket\TCPClientSocket.cpp" />
     <ClCompile Include="http\static\Tools.cpp" />
     <ClCompile Include="tools\EncodeUtils.cpp" />
+    <ClCompile Include="tools\LogUtils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="http\static\config.h" />
@@ -172,6 +173,7 @@
     <ClInclude Include="mail_cli\pop3\POP3Client.h" />
     <ClInclude Include="socket\TCPClientSocket.h" />
     <ClInclude Include="http\static\Tools.h" />
+    <ClInclude Include="tools\LogUtils.h" />
     <ClInclude Include="tools\EncodeUtils.h" />
   </ItemGroup>
   <ItemGroup>

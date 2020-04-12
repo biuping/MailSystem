@@ -341,7 +341,7 @@ int TCPClientSocket::write(const char* buf, int len, int tmo)
 }
 
 // 报告信息
-void TCPClientSocket::report(rstring info)
+void TCPClientSocket::report(const rstring& msg)
 {
-	std::cout << "TCPClientSocket " << info << std::endl;
+	LogUtil::report("TCPClientSocket " + msg);
 }
