@@ -1,6 +1,7 @@
+#include "../test.h"
 #include "mao.h"
 
-void start() {
+void start_mao() {
 	HttpSocket socketInit;
 	HttpServer server;
 

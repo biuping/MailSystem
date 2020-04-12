@@ -12,7 +12,7 @@
 class POP3Client : public MailReceiver
 {
 public:
-	enum POP3State {
+	enum class POP3State {
 		Unconnected,		// 未连接到服务器
 		Authorization,		// 验证状态
 		Transaction,		// 事务状态
@@ -23,20 +23,23 @@ public:
 	POP3Client(const POP3Client& pop3cli);
 	virtual ~POP3Client();
 
-	bool login(rstring usr, rstring passwd);
+	bool open(const rstring& at);
+	bool open(const rstring& at, USHORT port);
+	bool authenticate(const rstring& usr, const rstring& passwd);
 	void collectmail();
 	void logout();
+
 private:
 	TCPClientSocket* mConn;		// 套接字
 	POP3State mState;			// 会话状态	
 
 
-	virtual char* prefix(const char* host);
+	inline char* prefix(const char* host);
 	
 	/* command checking and sending */
 	bool cmdOK(const char* resp);
-	int inline cmdWithSingLineReply(const char* cmd, char** reply, int* outlen);
-	int inline cmdWithMultiLinesReply(const char* cmd, const char* ends, char** reply, int* outlen);
+	inline int cmdWithSingLineReply(const char* cmd, char** reply, int* outlen);
+	inline int cmdWithMultiLinesReply(const char* cmd, const char* ends, char** reply, int* outlen);
 
 	/* command list */
 	int user(const char* usr, char** reply = nullptr, int* outlen = nullptr);
@@ -52,6 +55,9 @@ private:
 	int rest(char** reply = nullptr, int* outlen = nullptr);
 	int uidl(char** reply, int* outlen, int no = -1);
 	int capa(char** reply, int* outlen);
+
+	// 报告信息
+	virtual void report(const rstring& msg);
 };
 
 

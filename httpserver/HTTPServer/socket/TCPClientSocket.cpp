@@ -41,7 +41,7 @@ void TCPClientSocket::closeSocket()
 // 返回套接字是否已连接（套接字创建成功）
 bool TCPClientSocket::connected()
 {
-	return mSocket == INVALID_SOCKET;
+	return mSocket != INVALID_SOCKET;
 }
 
 // 创建非阻塞模式的套接字并连接到 info 中指定地址的套接字
@@ -341,7 +341,7 @@ int TCPClientSocket::write(const char* buf, int len, int tmo)
 }
 
 // 报告信息
-void TCPClientSocket::report(rstring info)
+void TCPClientSocket::report(const rstring& msg)
 {
-	std::cout << "TCPClientSocket " << info << std::endl;
+	LogUtil::report("TCPClientSocket " + msg);
 }

@@ -5,10 +5,8 @@
 #define DEFAULT_WRITE_TIMEOUT 10
 
 #include <WinSock2.h>
-#include <string>
 #include <WS2tcpip.h>
-
-typedef std::string rstring;
+#include "../tools/LogUtils.h"
 
 
 class TCPClientSocket
@@ -28,13 +26,14 @@ public:
 	int write(const char* buf, int len, int tmo = DEFAULT_WRITE_TIMEOUT);
 
 	bool connected();
+
 protected:
 	sockaddr mServerAddr;
 	SOCKET mSocket;
-	virtual void report(rstring info);
 
 private:
 	bool createNBSocketAndConnect(addrinfo* info, int tmo = DEFAULT_WRITE_TIMEOUT);
+	virtual void report(const rstring& msg);
 };
 
 

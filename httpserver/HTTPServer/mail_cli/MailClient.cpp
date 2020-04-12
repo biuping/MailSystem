@@ -1,6 +1,10 @@
 #include "MailClient.h"
 
-MailClient::MailClient()
+MailClient::MailClient():mReceiver(nullptr), mSender(nullptr)
+{
+}
+
+MailClient::MailClient(const MailClient& cli) : mReceiver(cli.mReceiver), mSender(cli.mSender)
 {
 }
 

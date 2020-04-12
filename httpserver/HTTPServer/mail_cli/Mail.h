@@ -7,7 +7,7 @@
 #include <utility>
 
 typedef std::string rstring;
-typedef std::list<rstring> mlist;
+typedef std::list<rstring> slist;
 typedef std::map<rstring, rstring> str_kvmap;
 
 
@@ -16,7 +16,7 @@ typedef struct {
 	rstring subject;
 	rstring date;
 	rstring content_type;
-	mlist to;
+	slist to;
 	str_kvmap xfields;		// extended fields
 } mail_header_t;
 
@@ -36,7 +36,7 @@ public:
 	static bool parseHeader(rstring raw, mail_header_t& header);
 	static bool parseBody(rstring raw, mail_body_t& body);
 
-	/*  */
+	/* get methods */
 	const mail_header_t& getHeader();
 	const mail_body_t& getBody();
 

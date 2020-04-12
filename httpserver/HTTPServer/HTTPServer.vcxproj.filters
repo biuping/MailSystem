@@ -90,6 +90,12 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files\http_src</Filter>
     </ClCompile>
+    <ClCompile Include="tools\LogUtils.cpp">
+      <Filter>Source Files\tools_src</Filter>
+    </ClCompile>
+    <ClCompile Include="tests\zhang_test\zhang.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="tests\mao_test\mao.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -143,13 +149,19 @@
     <ClInclude Include="http\socket\HttpSocket.h">
       <Filter>Header Files\http_include</Filter>
     </ClInclude>
-    <ClInclude Include="tests\my.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="tests\test.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="tests\mao_test\mao.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="tools\LogUtils.h">
+      <Filter>Header Files\tools_include</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\zhang_test\zhang.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\my.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

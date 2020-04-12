@@ -1,7 +1,7 @@
 #include "POP3Client.h"
 
 
-POP3Client::POP3Client() : mConn(new TCPClientSocket()), mState(Unconnected)
+POP3Client::POP3Client() : mConn(new TCPClientSocket()), mState(POP3State::Unconnected)
 {
 }
 
@@ -15,6 +15,73 @@ POP3Client::~POP3Client()
 
 	delete mConn;
 	mConn = nullptr;
+}
+
+// 进行连接
+// at: 邮件地址中的主机名
+bool POP3Client::open(const rstring& at)
+{
+	return open(at, RESERVED_POP3_PORT);
+}
+
+// 进行连接
+// at: 邮件地址中的主机名
+// port: 服务器 pop3 服务端口号
+bool POP3Client::open(const rstring& at, USHORT port)
+{
+	char* addr = prefix(at.c_str());		// 加上前缀
+	mConn->connect2Server(addr, port);		// 连接到服务器
+
+	if (mConn->connected()) {
+		// 已连接
+		report("connection opened");
+		mState = POP3State::Authorization;	// 进入验证状态
+		return true;
+	}
+	else {
+		// 打开连接失败
+		report("cannot open connection");
+		mState = POP3State::Unconnected;
+		return false;
+	}
+}
+
+// 验证身份
+// at: 邮箱主机名
+// usr: 用户名
+// passwd: 用户密码
+bool POP3Client::authenticate(const rstring& usr, const rstring& passwd)
+{
+	if (mState != POP3State::Authorization) {
+		// 不处于验证状态
+		rstring errstr = "authentication not available in state ";
+		errstr += static_cast<int>(mState);
+		report(errstr);
+	}
+
+	// 处于验证状态
+	char* usrReply, * passReply;
+	int usrReplyLen, passReplyLen, usrRet, passRet;
+	usrReply = passReply = nullptr;
+	usrRet = passRet = -1;
+	if ((usrRet =  this->user(usr.c_str(), &usrReply, &usrReplyLen)) == 0
+		&& (passRet = this->pass(passwd.c_str(), &passReply, &passReplyLen)) == 0) {
+		// user命令和pass命令正确回复
+		mState = POP3State::Transaction;		// 进入事务状态
+		report("authenticated");
+	}
+	else {
+		// 身份验证失败，状态不变
+		rstring errstr = "authentication failed: ";
+		// 添加对应错误信息
+		errstr.append(usrRet != 0 ? usrReply : passReply);
+		report(errstr);
+	}
+
+	delete usrReply;
+	delete passReply;
+
+	return (usrRet == 0) && (passRet == 0);
 }
 
 // 在主机域名前加上 pop 前缀
@@ -350,4 +417,10 @@ int POP3Client::uidl(char** reply, int* outlen, int no)
 int POP3Client::capa(char** reply, int* outlen)
 {
 	return cmdWithMultiLinesReply("CAPA\r\n", "\r\n.\r\n", reply, outlen);
+}
+
+// 报告信息
+void POP3Client::report(const rstring& msg)
+{
+	LogUtil::report("POP3Client " + msg);
 }
