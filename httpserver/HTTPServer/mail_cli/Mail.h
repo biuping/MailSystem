@@ -3,9 +3,27 @@
 
 #include <string>
 #include <list>
+#include <map>
+#include <utility>
 
 typedef std::string rstring;
 typedef std::list<rstring> mlist;
+typedef std::map<rstring, rstring> str_kvmap;
+
+
+typedef struct {
+	rstring from;
+	rstring subject;
+	rstring date;
+	rstring content_type;
+	mlist to;
+	str_kvmap xfields;		// extended fields
+} mail_header_t;
+
+typedef struct {
+	rstring message;
+} mail_body_t;
+
 
 class Mail
 {
@@ -13,24 +31,25 @@ public:
 	Mail();
 	virtual ~Mail();
 
+	/* static methods for parsing */
 	static Mail* parse(rstring raw);
+	static bool parseHeader(rstring raw, mail_header_t& header);
+	static bool parseBody(rstring raw, mail_body_t& body);
 
-private:
-	//mail_header_t mHeader;
-	//mail_body_t mBody;
+	/*  */
+	const mail_header_t& getHeader();
+	const mail_body_t& getBody();
+
+	void setHeader(mail_header_t header);
+	void setBody(mail_body_t body);
+
+	int getSize();
+
+
+	mail_header_t mHeader;
+	mail_body_t mBody;
+	int mSize;
 };
-
-typedef struct {
-	rstring from;
-	mlist to;
-	rstring subject;
-	rstring date;
-} mail_header_t;
-
-typedef struct {
-
-} mail_body_t;
-
 
 
 #endif // !_MAIL_H_

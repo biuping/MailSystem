@@ -1,6 +1,7 @@
 #ifndef _MAIL_RECEIVER_H_
 #define _MAIL_RECEIVER_H_
 
+#include "Mail.h"
 
 
 class MailReceiver
