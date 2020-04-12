@@ -25,7 +25,7 @@ module.exports={
 			chunks:['main']
 		}),
 		new htmlwebpackplugin({  
-			template: path.resolve(__dirname,'./static/mainPage.html'),   
+			template: path.resolve(__dirname,'./static/mainpage.html'),   
 			filename: 'mainPage.html', 
 			inject:true,
 			chunks:['page']
