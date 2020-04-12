@@ -45,7 +45,7 @@ public:
 
 	int getSize();
 
-private:
+
 	mail_header_t mHeader;
 	mail_body_t mBody;
 	int mSize;
