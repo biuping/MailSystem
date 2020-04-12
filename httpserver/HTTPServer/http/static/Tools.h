@@ -4,6 +4,7 @@
 #include "config.h"
 #include "http_const.h"
 #include <map>
+#include "json/json.h"
 
 typedef std::string rstring;
 typedef std::map<rstring, rstring> HttpHead_t;

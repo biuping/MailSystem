@@ -134,6 +134,30 @@ int HttpRequest::parse_body(const char* start, const char* end)
 	if (m_body != nullptr)
 		delete m_body;
 
+	Json::CharReaderBuilder builder;
+	Json::CharReader* reader = builder.newCharReader();
+	Json::Value json_object;
+	Json::String err;
+	
+	reader->parse(buff,buff+strlen(buff),&json_object,&err);
+	std::cout << json_object["name"].asString() << std::endl;
+
+	Json::StreamWriterBuilder write_builder;
+	write_builder.settings_["indentation"] = "";
+	Json::StreamWriter* writer(write_builder.newStreamWriter());
+	std::ostringstream os;
+	Json::Value root;
+
+	root["null"] = NULL;			//注意此处在输出是显示为0，而非null
+	root["message"] = "OK";
+	root["age"] = 52;
+	root["array"].append("arr");	// 新建一个key为array，类型为数组，对第一个元素赋值为字符串“arr”
+	root["array"].append(123);		// 为数组 key_array 赋值，对第二个元素赋值为：1234
+
+	Tools::report(root.toStyledString());
+	writer->write(root, &os);
+	Tools::report(os.str());
+
 	m_body = buff;
 	m_bodylen = body_len;
 	return 0;

@@ -1,6 +1,5 @@
 #pragma once
 #include "..\static\Tools.h"
-#include "json/json.h"
 
 class HttpResponse
 {
