@@ -46,7 +46,7 @@
     <Filter Include="Source Files\smtp_src">
       <UniqueIdentifier>{edea0cba-c540-4e9a-8df4-fd462c41df03}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\smtp_include">
+    <Filter Include="Header Files\mail_client_include\smtp_include">
       <UniqueIdentifier>{1c45976a-17f2-40fa-80f4-ee551ffcf061}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -104,6 +104,9 @@
     </ClCompile>
     <ClCompile Include="tests\mao_test\mao.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SMTPClient.cpp">
+      <Filter>Source Files\smtp_src</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -169,6 +172,9 @@
     </ClInclude>
     <ClInclude Include="tests\my.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SMTPClient.h">
+      <Filter>Header Files\mail_client_include\smtp_include</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
