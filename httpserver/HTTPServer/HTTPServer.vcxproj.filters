@@ -25,6 +25,12 @@
     <Filter Include="Header Files\pop3_include">
       <UniqueIdentifier>{2cd6dd06-56fc-466b-ae63-9eb3d5fba64d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\smtp_src">
+      <UniqueIdentifier>{edea0cba-c540-4e9a-8df4-fd462c41df03}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\smtp_include">
+      <UniqueIdentifier>{1c45976a-17f2-40fa-80f4-ee551ffcf061}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
