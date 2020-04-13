@@ -12,12 +12,18 @@
 		     <input type="file" id="thisfile" ref="inputFile" style="display:none" >
 		     <div id="uplode_group" class="uplode">
 		         <button class="btn btn-info mybtn" id="input_display" >
-		             <span class="glyphicon glyphicon-folder-open myspan" aria-hidden="true"></span>下载附件
+		             <span class="glyphicon glyphicon-save myspan" aria-hidden="true"></span>下载附件
 		         </button>
 		         
 		         <input type="text" name="" id="filePath" disabled >
 		     </div>
 		     <textarea class="form-control" rows="22" readonly="" v-model="mail.content"></textarea>
+		</div>
+		<div class="button_frame">
+			<button type="button" class="btn btn-info" @click="comeback">返回</button>
+			<button type="button" class="btn btn-danger"  title="删除" @click="deleteMail">
+			    <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+			</button>
 		</div>
     </div>
 </template>
@@ -69,6 +75,7 @@
 	.form-group{
 		position: relative;
 		margin: 2%;
+		margin-bottom: 0;
 	}
 	.inputfile_label{
 	    position: relative;
@@ -93,6 +100,16 @@
 	    position: relative;
 	    margin: 2px;
 	}
+	.button_frame{
+		position: relative;
+		width: 10%;
+		margin-top: 2%;
+		margin-left: 88%;
+	}
+	.button_frame button{
+		position: relative;
+		margin-left: 20px;
+	}
 </style>
 <script>
 export default {
@@ -105,6 +122,16 @@ export default {
 		showMail(mail){
 			this.mail=mail
 			console.log(mail.theme)
+		},
+		comeback:function(){
+			this.$emit('backMailBox')
+		},
+		deleteMail:function(){
+			var r = confirm("确认删除邮件？")
+			if(r){
+				this.$emit('deleteFromMail')
+			}
+			
 		}
 	}
 }
