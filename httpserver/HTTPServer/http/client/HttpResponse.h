@@ -17,7 +17,7 @@ public:
 	//设置响应体
 	int set_body(const char* body, size_t bodylen);
 	size_t size();
-	//序列化报文
+	//序列化报文为正确的响应格式
 	const char* serialize();
 
 
@@ -41,4 +41,19 @@ private:
 
 private:
 	respose_package_t m_package;
+
+public:
+	void set_common();
+
+	//将传递来的字符串设置成body
+	void build_body(rstring& body);
+
+	//200 ok
+	void build_ok();
+
+	//500 server error
+	void build_err();
+
+	//404 not found
+	void build_not_found();
 };

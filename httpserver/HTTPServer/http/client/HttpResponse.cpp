@@ -97,3 +97,34 @@ const char* HttpResponse::serialize()
 
 	return m_package.data;
 }
+
+void HttpResponse::set_common()
+{
+	this->set_version(HTTP_VERSION);
+	this->add_head(HTTP_HEAD_CONNECTION, "close");
+}
+
+void HttpResponse::build_body(rstring& body)
+{
+	this->add_head(HTTP_HEAD_CONTENT_LEN, std::to_string(body.size()));
+	this->set_body(&body[0], body.size());
+}
+
+void HttpResponse::build_ok()
+{
+	this->set_common();
+	this->set_status("200", "OK");
+
+}
+
+void HttpResponse::build_err()
+{
+	this->set_common();
+	this->set_status("500", "INTERNAL SERVER ERROR");
+}
+
+void HttpResponse::build_not_found()
+{
+	this->set_common();
+	this->set_status("404", "NOT FOUND");
+}

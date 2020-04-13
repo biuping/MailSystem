@@ -139,6 +139,13 @@ HttpClient* HttpServer::accept()
 		return nullptr;
 	}
 
+	u_long unblock = 1;    //非0为非阻塞模式
+	if (ioctlsocket(client_sock, FIONBIO, &unblock) == SOCKET_ERROR)
+	{
+		Tools::report("set client unblock error: ", WSAGetLastError());
+		return nullptr;
+	}
+
 	HttpClient* client = new HttpClient(client_sock);
 
 	return client;

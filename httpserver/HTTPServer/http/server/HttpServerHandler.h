@@ -1,5 +1,6 @@
 #pragma once
 #include "..\server\HttpServer.h"
+
 class HttpServerHandler
 {
 private:
@@ -12,5 +13,6 @@ public:
 	void handle_client();
 	//¥¶¿Ì«Î«Û
 	HttpResponse* handle_request(HttpRequest& request);
+
 };
 
