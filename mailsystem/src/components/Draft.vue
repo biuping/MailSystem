@@ -3,14 +3,14 @@
         
         <ul class="nav nav-pills">
             <li role="presentation" class="left"><button type="button" class="btn btn-primary">发送</button></li>
-            <li role="presentation" class="left"><button type="button" class="btn btn-info" @click="saveDraft">存草稿</button></li>
-            <li role="presentation" class="right"><button type="button" class="btn btn-danger" @click="refresh">
+            <li role="presentation" class="left"><button type="button" class="btn btn-info" @click="saveDraft">保存</button></li>
+            <li role="presentation" class="right"><button type="button" class="btn btn-danger" @click="deleteDraft">
                 <span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>
             </li>
         </ul>
         <div class="cutoff_line"></div>
         <div class="input-group recive">
-            <span class="input-group-addon" id="basic-addon3">收件人</span>
+            <span class="input-group-addon" id="basic-addon3" >收件人</span>
             <input type="email" class="form-control" aria-describedby="basic-addon3" v-model="draftMail.recipient">
         </div>
         <div class="mail_group">
@@ -33,7 +33,6 @@
            </div>
         </div>
 
-        <!-- <span class="label label-primary">Primary</span> -->
     </div>
 </template>
 <style scoped>
@@ -116,7 +115,7 @@ export default {
         return {
             flag:false,
             fileName:'',
-            draftMail:{recipient:'',theme:'',attachment:Object,attachmentName:'',content:''}
+            draftMail:savedraftutil.readData('draft_mail')
         }
     },
     methods:{
@@ -130,17 +129,31 @@ export default {
         refresh:function(){
             this.$router.go(0)
         },
+        deleteDraft:function(){
+            savedraftutil.deleteData('draft_mail')
+            this.refresh()
+            alert('删除草稿')
+        },
         saveDraft(){
             if(this.fileName!=''){
                 this.draftMail.attachmentName=this.fileName
                 this.draftMail.attachment=this.$refs.inputFile.files[0]
             }
             savedraftutil.saveData('draft_mail',this.draftMail)
-            this.refresh()
-            alert('保存草稿成功')
+            console.log(this.draftMail)
+            alert('保存成功')
+        }               
+    },
+    mounted(){
+        if(this.draftMail===undefined ){
+            this.draftMail={recipient:'1',theme:'',attachment:Object,attachmentName:'',content:''}
         }
-       
+        if(this.draftMail.attachmentName!=''){
+            this.fileName=this.draftMail.attachmentName
 
+            //TODO 注意attachment不用在前端呈现，如果要发送邮件，直接将this.mailDraft.attachment传到后台即可
+        }
+        
     }
 }
 </script>

@@ -1,14 +1,7 @@
-#include "HttpClient.h"
-#include "HttpServer.h"
-#include "HttpRequest.h"
+#include ".\tests\test.h"
+
 
 int main(int argc, char* argv[])
 {
-	HttpSocket socketInit;
-	HttpServer server;
-	
-	server.run();
-	server.close();
-	delete &socketInit;
-	return 0;
+	TEST_START();
 }

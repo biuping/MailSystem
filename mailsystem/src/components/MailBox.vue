@@ -1,18 +1,20 @@
 <template>
     <div class="mail_frame animated" ref="main_frame">
-        <div class="mailbox">
+        <div class="mailbox" v-show="flag">
             <ul class="mail_list">
                 <transition-group >
-                    <li v-for="(mail,index) in maillist" :key="mail.id" class="animated" >
+                    <li v-for="(mail,index) in maillist" :key="mail.id" class="animated" @click="toMail(mail)">
+                        <router-link :to="{path:'/'+mail.id,params:{mail:mail.theme}}" >
                         <div class="singleMail">
                             <div class="mailTitle">
-                                <span class="label ">{{mail.title}}</span>
+                                <span class="label ">{{mail.theme}}</span>
                                 <input type="checkbox" v-model="checkModel" :value="index">
                             </div>
                             
                             <div class="cutoff_line"></div>
                             <span class="label mailSender">发件人：{{mail.sender}}</span>
                         </div>
+                        </router-link>
                     </li>
                 </transition-group>
                 
@@ -21,7 +23,9 @@
             <button type="button" class="btn btn-danger btn_delete" @click="deleteMail">
                 <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
             </button>
+            
         </div>       
+        <router-view ref="mailshow"></router-view>
     </div>
 </template>
 
@@ -31,7 +35,7 @@
         height: 99%;
         top: 1%;
         left: 1%;
-        width: 85%;
+        width: 95%;
         background-color: rgba(156, 122, 97, 0.1);
         border-radius: 2%;
         padding: 0%;
@@ -131,30 +135,29 @@
     }
 </style>
 <script>
-export default {
+import mailcom from './Mail.vue'
+export default {   
     data(){
         return{
             flag:true,
-            maillist:[{id:1,title:'first mail',sender:'tom'},{id:2,title:'second mail',sender:'mike'},{id:3,title:'third mail',sender:'jay'},
-                {id:4,title:'first mail',sender:'tom'},{id:5,title:'second mail',sender:'mike'},{id:6,title:'third mail',sender:'jay'},
-                {id:7,title:'first mail',sender:'tom'},{id:8,title:'second mail',sender:'mike'},{id:9,title:'third mail',sender:'jay'}
+            maillist:[{id:1,theme:'firstmail',sender:'tom',content:'内容'},{id:2,theme:'second mail',sender:'mike'},{id:3,theme:'third mail',sender:'jay'},
+                {id:4,theme:'first mail',sender:'tom'},{id:5,theme:'second mail',sender:'mike'},{id:6,theme:'third mail',sender:'jay'},
+                {id:7,theme:'first mail',sender:'tom'},{id:8,theme:'second mail',sender:'mike'},{id:9,theme:'third mail',sender:'jay'}
             ],
             allchecked:false,   //是否全选判断
             checkModel:[]       //双向绑定选取的数组
         }
     },
+	routes:[		
+        {path:'/id',
+		component:mailcom
+		}
+	],
     methods:{
         show:function(){
             this.flag=!this.flag
         },
-        changeWidth:function(flag){
-            if(flag){
-                
-                this.$refs.main_frame.style.width="85%"
-            }else{
-                this.$refs.main_frame.style.width="95%"
-            }
-        },
+        
         checkAll:function(){
             if(this.allchecked){
                 this.checkModel=[]
@@ -181,6 +184,12 @@ export default {
                 this.maillist.splice(deleteIndex,1)
             })
             this.checkModel=[]
+        },
+        toMail:function(mailinfo){
+            this.flag=!this.flag
+            console.log(this.flag)
+			console.log(mailinfo)
+			this.$refs['mailshow'].showMail(mailinfo)
         }
     },
     watch:{
