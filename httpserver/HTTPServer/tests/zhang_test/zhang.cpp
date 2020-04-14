@@ -26,12 +26,32 @@ void start_zhang()
 
 		/* stat */
 		size_t mailnum, totsize;
-
 		if (popcli->getStatus(mailnum, totsize)) {
 			rstring info = "mails: ";
 			info += std::to_string(mailnum) + " total size: " + std::to_string(totsize);
 
 			LogUtil::report(info);
+		}
+
+		/* list */
+		std::vector<Mail*> mails;
+		if (popcli->getMailListWithSize(mails)) {
+			for (int i = 0; i < mails.size(); ++i) {
+				rstring info = "mail ";
+				info += std::to_string(i + 1) + ": size " + std::to_string(mails[i]->getSize());
+
+				LogUtil::report(info);
+			}
+		}
+
+		/* uidl */
+		if (popcli->getMailListWithUID(mails)) {
+			for (int i = 0; i < mails.size(); ++i) {
+				rstring info = "mail ";
+				info += std::to_string(i + 1) + ": uid " + mails[i]->getUID();
+
+				LogUtil::report(info);
+			}
 		}
 	}
 	else {

@@ -18,3 +18,23 @@ void Mail::setUID(const rstring& mailUID)
 {
 	this->mUID = mailUID;
 }
+
+size_t Mail::getSize()
+{
+	return this->mSize;
+}
+
+rstring Mail::getUID()
+{
+	return this->getUID();
+}
+
+void Mail::setHeader(const mail_header_t& header)
+{
+	this->mHeader = header;
+}
+
+void Mail::setBody(const mail_body_t& body)
+{
+	this->mBody = body;
+}
