@@ -16,12 +16,12 @@ public:
 	HttpServer(USHORT port=PORT_NUM);
 	~HttpServer();
 	SOCKET get_socket();
-	//³õÊ¼»¯
+	//åˆå§‹åŒ–
 	int start(int backlog=BACKLOG_SIZE);
-	//¹Ø±Õ·şÎñ¶Ë
+	//å…³é—­æœåŠ¡ç«¯
 	int close();
 	bool is_close();
-	//¿ªÊ¼ÔËĞĞ£¨°üº¬³õÊ¼»¯£©
+	//å¼€å§‹è¿è¡Œï¼ˆåŒ…å«åˆå§‹åŒ–ï¼‰
 	void run();
 protected:
 	HttpClient* accept();
