@@ -9,10 +9,12 @@ HttpServerHandler::HttpServerHandler(HttpClient* client) :
 
 HttpServerHandler::~HttpServerHandler()
 {
-	delete m_client;
-	m_client = nullptr;
-
-
+	if (m_client != nullptr)
+	{
+		m_client->close();
+		m_client = nullptr;
+	}
+	
 	if (m_readbuff != nullptr)
 	{
 		delete[] m_readbuff;
@@ -51,11 +53,13 @@ void HttpServerHandler::handle_client()
 		}
 	} while (len > 0);
 
+	delete[] temp_buff;
 	//设置末尾0
 	m_readbuff = new char[size + 1];
-	m_readbuff = &temp_str[0];
+	memcpy(m_readbuff, &temp_str[0], size);
 	m_readbuff[size] = 0x00;
 
+	//解析请求
 	HttpRequest request;
 	if (request.load_packet(m_readbuff, size) < 0)
 	{
@@ -63,10 +67,10 @@ void HttpServerHandler::handle_client()
 		return;
 	}
 
+	//生成响应
 	HttpResponse* response = handle_request(request);
 	if (nullptr != response)
 	{
-
 		const char* buff = response->serialize();
 		size_t len = strlen(buff);
 		m_client->send(buff, len, 0);
@@ -81,6 +85,21 @@ HttpResponse* HttpServerHandler::handle_request(HttpRequest& request)
 	const rstring& method = request.method();
 	const rstring& url = request.url();
 
+	const rstring& content_type = request.head_content(HTTP_HEAD_CONTENT_TYPE);
+	if (content_type.find(HTTP_HEAD_JSON_TYPE) != content_type.npos)
+	{
+		Tools::report(HTTP_HEAD_JSON_TYPE);
+	}
+	else if (content_type.find(HTTP_HEAD_FORM_TYPE) != content_type.npos)
+	{
+		Tools::report(HTTP_HEAD_FORM_TYPE);
+	}
+	else
+	{
+		Tools::report("Unknown content type");
+		return nullptr;
+	}
+
 	HttpResponse* response = new HttpResponse();
 
 	rstring write_res;
@@ -94,6 +113,7 @@ HttpResponse* HttpServerHandler::handle_request(HttpRequest& request)
 
 	response->build_ok();
 	response->build_body(write_res);
+	response->add_head(HTTP_HEAD_CONTENT_TYPE, HTTP_HEAD_JSON_TYPE);
 
 	return response;
 }

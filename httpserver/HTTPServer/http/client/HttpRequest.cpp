@@ -79,7 +79,7 @@ int HttpRequest::parse_startline(const char* start, const char* end)
 	content_start = Tools::find_content(remain, end, '\r', content_len, sum_len);
 	if (content_start == nullptr)
 		return -1;
-	m_version = rstring(content_start, content_len); //请求url
+	m_version = rstring(content_start, content_len); //请求版本
 	return 0;
 }
 

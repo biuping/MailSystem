@@ -119,7 +119,7 @@ void HttpServer::run()
 	{
 		handler = new HttpServerHandler(client);
 		handler->handle_client();
-		client->close();
+		delete handler;
 	}
 }
 
@@ -131,14 +131,14 @@ HttpClient* HttpServer::accept()
 	sockaddr_in client_addr;
 	int client_addr_size = sizeof(client_addr);
 	//接受客户端请求
-	SOCKET client_sock = ::accept(m_socket, (sockaddr*)&client_addr, (socklen_t*)&client_addr_size);
+	//SOCKET client_sock = ::accept(m_socket, (sockaddr*)&client_addr, (socklen_t*)&client_addr_size);
+	SOCKET client_sock = ::accept(m_socket, nullptr, nullptr);
 	if (client_sock == INVALID_SOCKET)
 	{
 		//int error = WSAGetLastError();
 		//Tools::report( "accept error: ", WSAGetLastError());
 		return nullptr;
 	}
-
 
 	u_long unblock = 1;    //非0为非阻塞模式
 	if (ioctlsocket(client_sock, FIONBIO, &unblock) == SOCKET_ERROR)

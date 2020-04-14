@@ -9,9 +9,9 @@ private:
 public:
 	HttpServerHandler(HttpClient* client);
 	~HttpServerHandler();
-	//´¦Àí¿Í»§
+	//处理客户
 	void handle_client();
-	//´¦ÀíÇëÇó
+	//处理请求
 	HttpResponse* handle_request(HttpRequest& request);
 };
 
