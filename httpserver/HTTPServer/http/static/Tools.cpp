@@ -30,6 +30,26 @@ void Tools::to_upper(rstring& s)
 	}
 }
 
+void Tools::json_read(const char* start, size_t len, Json::Value& json_object, Json::String& errs)
+{
+	Json::CharReaderBuilder read_builder;
+	std::unique_ptr<Json::CharReader> json_reader(read_builder.newCharReader());
+	
+	json_reader->parse(start, start + len, &json_object, &errs);
+
+}
+
+void Tools::json_write(Json::Value& root,rstring& res, bool beautify)
+{
+	Json::StreamWriterBuilder writer_builder;
+	if (!beautify)
+		writer_builder.settings_["indentation"] = "";
+	std::unique_ptr<Json::StreamWriter> json_writer(writer_builder.newStreamWriter());
+	std::ostringstream os;
+	json_writer->write(root, &os);
+	res = os.str();
+}
+
 size_t Tools::cal_len(const char* start, const char* end)
 {
 	return (size_t)(end - start);
@@ -37,7 +57,7 @@ size_t Tools::cal_len(const char* start, const char* end)
 
 const char* Tools::find_line(const char* start, const char* end)
 {
-	//²éÕÒ³¤¶ÈÎª2£¬¿ÉÒÔ-1ÅĞ¶Ï
+	//æŸ¥æ‰¾é•¿åº¦ä¸º2ï¼Œå¯ä»¥-1åˆ¤æ–­
 	for (const char* lstart = start; lstart < (end - 1); lstart++) {
 		if ('\r' == lstart[0] && '\n' == lstart[1])
 		{
@@ -67,7 +87,7 @@ const char* Tools::find_content(const char* start, const char* end, char c_end, 
 	{
 		if (content_start == nullptr)
 		{
-			//ÕÒµ½·Ç¿Õ¸ñµÄ¿ªÊ¼
+			//æ‰¾åˆ°éç©ºæ ¼çš„å¼€å§‹
 			if (*_start != ' ')
 			{
 				content_start = _start;
@@ -76,7 +96,7 @@ const char* Tools::find_content(const char* start, const char* end, char c_end, 
 		}
 		else
 		{
-			//±éÀúµ½½áÎ²
+			//éå†åˆ°ç»“å°¾
 			if (*_start == c_end)
 			{
 				content_len = _content_len;
