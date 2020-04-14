@@ -3,17 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>樱花邮箱</title>
 </head>
 <body>
-    <!-- <transition>
-
-    </transition> -->
-    <div id="app">
-        <transition enter-active-class=" bounceIn" leave-active-class="bounceOut" v-bind="{enter:200,leave:400}">
-            <login class="animated"></login>   
-        </transition>
-           
+    <div id="background">
+        <div id="app">       
+           <router-view></router-view>
+           <!-- <login></login> -->
+        </div>
+        
     </div>
+    
 </body>
 </html>

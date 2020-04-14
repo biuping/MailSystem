@@ -5,11 +5,18 @@ import login from './components/Login.vue'
 import 'bootstrap/dist/css/bootstrap.css'
 import '../static/css/index.css'
 import animated from 'animate.css'
+import router from './router/loginRouter'
+import mainpage from './components/Main.vue'
 
 Vue.config.productionTip = false
 
 new Vue({
   store,
   // components:{login}
-  render: h => h(login)
+  // render: h => h(login),
+  components:{
+    mainpage:mainpage,
+    login:login
+  },
+  router
 }).$mount('#app')

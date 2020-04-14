@@ -24,7 +24,9 @@ public:
 	int close();
 	bool is_close();
 	//开始运行（包含初始化）
-	void run();
+	//默认非阻塞形式
+	void run(bool block=false);
+
 protected:
 	HttpClient* accept();
 

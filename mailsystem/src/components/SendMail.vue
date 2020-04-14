@@ -43,7 +43,7 @@
         top: 1%;
         left: 1%;
         width: 95%;
-        background-color: rgba(156, 122, 97, 0.1);
+        background-color: rgba(156, 122, 97, 0.3);
         border-radius: 2%;
     }
     ul{
@@ -64,8 +64,8 @@
     }
     .cutoff_line{
         width: 100%;
-        height: 1px;
-        background-color: blue;
+        height: 2px;
+        background-color: rgb(30, 31, 24);
     }
     .recive{
         position: relative;
