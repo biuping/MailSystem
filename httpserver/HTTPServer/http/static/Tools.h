@@ -4,6 +4,7 @@
 #include "config.h"
 #include "http_const.h"
 #include <map>
+#include "json/json.h"
 
 typedef std::string rstring;
 typedef std::map<rstring, rstring> HttpHead_t;
@@ -13,49 +14,65 @@ typedef std::pair<rstring, rstring> HttpHeadPair_t;
 class Tools
 {
 public:
-	//·â×°cout
+	//å°è£…cout
 	static void report(rstring info);
-	//·â×°cout+´íÎóÂë
+	//å°è£…cout+é”™è¯¯ç 
 	static void report(rstring info, int error_code);
 
-	//×ªĞ¡Ğ´
+	//è½¬å°å†™
 	static void to_lower(rstring& s);
-	//×ª´óĞ´
+	//è½¬å¤§å†™
 	static void to_upper(rstring& s);
 
 public:
 	/*
-	¼ÆËã¿ªÊ¼Ö¸ÕëÓë½áÊøÖ¸ÕëÖ®¼äµÄ³¤¶È
+	è§£æjsonå¯¹è±¡
+	start: éœ€è¦è§£æçš„å­—ç¬¦ä¸²èµ·å§‹ä½ç½®
+	len: éœ€è¦è§£æçš„å­—ç¬¦ä¸²çš„é•¿åº¦
+	json_object: å°†è§£æåçš„jsonå¯¹è±¡å­˜æ”¾åœ¨å…¶ä¸­
+	errsï¼šå‡ºé”™çš„ä¿¡æ¯
+	*/
+	static void json_read(const char* start,size_t len,Json::Value& json_object, Json::String& errs);
+	/*
+	ä»jsonå¯¹è±¡ç”Ÿæˆjsonå­—ç¬¦ä¸²
+	rootï¼šjsonå¯¹è±¡çš„æ ¹èŠ‚ç‚¹
+	resï¼šç”Ÿæˆåçš„å­—ç¬¦ä¸²
+	beautifyï¼šæ˜¯å¦ç¾åŒ–è¾“å‡ºï¼Œé»˜è®¤ä¸ºå¦
+	*/
+	static void json_write(Json::Value& root,rstring& res,bool beautify=false);
+public:
+	/*
+	è®¡ç®—å¼€å§‹æŒ‡é’ˆä¸ç»“æŸæŒ‡é’ˆä¹‹é—´çš„é•¿åº¦
 	*/
 	static size_t cal_len(const char* start, const char* end);
 
 	/*
-	ÕÒµ½×Ö·û´®ÖĞµÄÒ»ĞĞ£¨ÒÔ\r\n½áÎ²£©
-	start£º¿ªÊ¼Î»ÖÃÖ¸Õë
-	end£º½áÊøÎ»ÖÃÖ¸Õë
-	return£ºÕÒµ½ÕâÑùÒ»ĞĞ£¬·µ»Ø\nºóÒ»Î»×Ö·ûÖ¸Õë
-	ÕÒ²»µ½ÕâÑùÒ»ĞĞ£¬·µ»Ønullptr
+	æ‰¾åˆ°å­—ç¬¦ä¸²ä¸­çš„ä¸€è¡Œï¼ˆä»¥\r\nç»“å°¾ï¼‰
+	startï¼šå¼€å§‹ä½ç½®æŒ‡é’ˆ
+	endï¼šç»“æŸä½ç½®æŒ‡é’ˆ
+	returnï¼šæ‰¾åˆ°è¿™æ ·ä¸€è¡Œï¼Œè¿”å›\nåä¸€ä½å­—ç¬¦æŒ‡é’ˆ
+	æ‰¾ä¸åˆ°è¿™æ ·ä¸€è¡Œï¼Œè¿”å›nullptr
 	*/
 	static const char* find_line(const char* start, const char* end);
 
 	/*
-	ÕÒµ½ÇëÇóÖĞheaderÎ»ÖÃ£¨ÒÔ\r\n\r\n½áÎ², ºóÃæ¿ªÊ¼Îªbody²¿·Ö£©
-	start£º¿ªÊ¼Î»ÖÃÖ¸Õë
-	end£º½áÊøÎ»ÖÃÖ¸Õë
-	return£ºÕÒµ½ÕâÑùÒ»ĞĞ£¬·µ»Ø\nºóÒ»Î»×Ö·ûÖ¸Õë
-		ÕÒ²»µ½ÕâÑùÒ»ĞĞ£¬·µ»Ønullptr
+	æ‰¾åˆ°è¯·æ±‚ä¸­headerä½ç½®ï¼ˆä»¥\r\n\r\nç»“å°¾, åé¢å¼€å§‹ä¸ºbodyéƒ¨åˆ†ï¼‰
+	startï¼šå¼€å§‹ä½ç½®æŒ‡é’ˆ
+	endï¼šç»“æŸä½ç½®æŒ‡é’ˆ
+	returnï¼šæ‰¾åˆ°è¿™æ ·ä¸€è¡Œï¼Œè¿”å›\nåä¸€ä½å­—ç¬¦æŒ‡é’ˆ
+		æ‰¾ä¸åˆ°è¿™æ ·ä¸€è¡Œï¼Œè¿”å›nullptr
 	*/
 	static const char* find_head(const char* start, const char* end);
 
 	/*
-	µÚÒ»¸öÒÔend_c×Ö·û½áÊøµÄ´Óstartµ½endµÄÄÚÈİ
-	start£º¿ªÊ¼Î»ÖÃÖ¸Õë
-	end£º½áÊøÎ»ÖÃÖ¸Õë
-	c_end: ½áÊø×Ö·û
-	content_len: ÄÚÈİ³¤¶È
-	sum_len: ²éÕÒ¹ı³ÌÖĞ¼ô²Ãµô¿Õ¸ñ£¬ÄÚÈİ¼ÓÉÏ¿Õ¸ñµÄ³¤¶È
-	return£ºÕÒµ½ÕâÑùÒ»ĞĞ£¬·µ»Ø\nºóÒ»Î»×Ö·ûÖ¸Õë
-		ÕÒ²»µ½ÕâÑùÒ»ĞĞ£¬·µ»Ønullptr
+	ç¬¬ä¸€ä¸ªä»¥end_cå­—ç¬¦ç»“æŸçš„ä»startåˆ°endçš„å†…å®¹
+	startï¼šå¼€å§‹ä½ç½®æŒ‡é’ˆ
+	endï¼šç»“æŸä½ç½®æŒ‡é’ˆ
+	c_end: ç»“æŸå­—ç¬¦
+	content_len: å†…å®¹é•¿åº¦
+	sum_len: æŸ¥æ‰¾è¿‡ç¨‹ä¸­å‰ªè£æ‰ç©ºæ ¼ï¼Œå†…å®¹åŠ ä¸Šç©ºæ ¼çš„é•¿åº¦
+	returnï¼šæ‰¾åˆ°è¿™æ ·ä¸€è¡Œï¼Œè¿”å›\nåä¸€ä½å­—ç¬¦æŒ‡é’ˆ
+		æ‰¾ä¸åˆ°è¿™æ ·ä¸€è¡Œï¼Œè¿”å›nullptr
 	*/
 	static const char* find_content(const char* start, const char* end,
 		char c_end, size_t& content_len, size_t& sum_len);
