@@ -18,6 +18,8 @@ public:
 	SOCKET get_socket();
 	//初始化
 	int start(int backlog=BACKLOG_SIZE);
+	//非阻塞方式启动
+	int start_non_block(int backlog = BACKLOG_SIZE);
 	//关闭服务端
 	int close();
 	bool is_close();
