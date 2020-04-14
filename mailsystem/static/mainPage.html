@@ -8,16 +8,12 @@
 <body>
     <div id="nav">
         <div class="open_frame">
-            <!-- <button class="openBtn" @click="show">
-                <span class="glyphicon glyphicon-th-list" aria-hidden="true"></span>
-
-            </button> -->
-            <router-link to="/mailbox" class="myrouter" title="收件箱"><span class="glyphicon glyphicon-envelope icon_span fa-4x" aria-hidden="true"></span><span class="icon_span"></span></router-link>
+            <router-link to="/mailbox" class="myrouter" title="收件箱" ><span class="glyphicon glyphicon-envelope icon_span fa-4x" aria-hidden="true" @click='rebackMail'></span><span class="icon_span"></span></router-link>
             <router-link to="/sendmail" class="myrouter" title="发送邮件"><span class="glyphicon glyphicon-pencil icon_span fa-4x" aria-hidden="true"></span><span class="icon_span"></span></router-link>
             <router-link to="/draft" class="myrouter" title="草稿"><span class="glyphicon glyphicon-inbox icon_span" aria-hidden="true"></span><span class="icon_span"></span></router-link>
         </div>
 
-        <router-view class="router_view animated" ref="main_frame"></router-view>
+        <router-view class="router_view " ref="main_frame"></router-view>
 
     </div>
     <div id="app" >

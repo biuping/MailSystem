@@ -2,6 +2,7 @@ import Vue from 'vue'
 import 'bootstrap/dist/css/bootstrap.css'
 import sendmail from './components/SendMail.vue'
 import mailbox from './components/MailBox.vue'
+import mail from './components/Mail.vue'
 import '../static/css/page.css'
 import VueRouter from 'vue-router'
 import animated from 'animate.css'
@@ -24,13 +25,17 @@ var vm=new Vue({
     },
     methods:{
         show:function(){
-            if(this.flag){
-                this.flag=false
-                this.flag=true
-            }else{
-                this.flag=true
-            }
-            
+            // if(this.flag){
+            //     this.flag=false
+            //     this.flag=true
+            // }else{
+            //     this.flag=true
+            // }
+            console.log('click')
+        },
+        rebackMail:function(){
+            console.log('click')
+            this.$refs.main_frame.backMailBox()
         }
     },
     router:router

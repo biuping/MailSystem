@@ -1,18 +1,25 @@
 <template>
     <div class="mail_frame animated" ref="main_frame">
-        <div class="mailbox">
+        <div class="mailbox" v-if="flag">
             <ul class="mail_list">
                 <transition-group >
-                    <li v-for="(mail,index) in maillist" :key="mail.id" class="animated" >
-                        <div class="singleMail">
-                            <div class="mailTitle">
-                                <span class="label ">{{mail.title}}</span>
-                                <input type="checkbox" v-model="checkModel" :value="index">
-                            </div>
-                            
-                            <div class="cutoff_line"></div>
-                            <span class="label mailSender">发件人：{{mail.sender}}</span>
+					
+                    <li v-for="(mail,index) in maillist" :key="mail.id" class="animated">
+						
+                        <input type="checkbox" v-model="checkModel" :value="index">
+                        <div class="singleMail" @click="toMail(mail,index)">
+							<!-- <router-link :to="{path:'/mailbox/'+mail.id,params:{mail:mail.theme}}" > -->
+                                <div class="mailTitle">
+                                    <span class="label ">{{mail.theme}}</span>								                                
+                                </div>
+                                
+                                <div class="cutoff_line"></div>
+                                <span class="label mailSender">发件人：{{mail.sender}}</span>
+							<!-- </router-link>	 -->
+							
                         </div>
+						
+						
                     </li>
                 </transition-group>
                 
@@ -21,7 +28,10 @@
             <button type="button" class="btn btn-danger btn_delete" @click="deleteMail">
                 <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
             </button>
-        </div>       
+            
+        </div>
+        <!-- <router-view ref="mailshow" v-show="childFlag"></router-view> -->
+        <mailcom v-show="childFlag" ref="mailshow" @backMailBox='backMailBox' @deleteFromMail='deleteFromMail'></mailcom>
     </div>
 </template>
 
@@ -90,13 +100,18 @@
         padding: 0%;
         font-size: 20px;
         color: black;
+		
     }
-    .mailTitle input[type=checkbox]{
-        position: absolute;
+    input[type=checkbox]{
+        position: relative;
         width: 20px;
         height: 20px;
-        right: 10px;
-        margin: 0;
+        right: 2%;
+		margin-right: 0.625rem;
+		margin-top: 0.25rem;
+		top: 8%;
+		z-index: 1;
+		float: right;
     }
     .mailSender{
         position: relative;
@@ -131,18 +146,26 @@
     }
 </style>
 <script>
-export default {
+import mailcom from './Mail.vue'
+
+export default {   
     data(){
         return{
             flag:true,
-            maillist:[{id:1,title:'first mail',sender:'tom'},{id:2,title:'second mail',sender:'mike'},{id:3,title:'third mail',sender:'jay'},
-                {id:4,title:'first mail',sender:'tom'},{id:5,title:'second mail',sender:'mike'},{id:6,title:'third mail',sender:'jay'},
-                {id:7,title:'first mail',sender:'tom'},{id:8,title:'second mail',sender:'mike'},{id:9,title:'third mail',sender:'jay'}
+            maillist:[{id:1,theme:'firstmail',sender:'tom',content:'内容',attatchmentName:'',attatchment:''},
+			{id:2,theme:'second mail',sender:'mike'},{id:3,theme:'third mail',sender:'jay'},
+                {id:4,theme:'first mail',sender:'tom'},{id:5,theme:'second mail',sender:'mike'},{id:6,theme:'third mail',sender:'jay'},
+                {id:7,theme:'first mail',sender:'tom'},{id:8,theme:'second mail',sender:'mike'},{id:9,theme:'third mail',sender:'jay'}
             ],
             allchecked:false,   //是否全选判断
+            childFlag:false,
+			choosedMailindex:0,
             checkModel:[]       //双向绑定选取的数组
         }
     },
+	routes:[		
+        {children:[{path:'mailbox/:id',component:mailcom}]}
+	],
     methods:{
         show:function(){
             this.flag=!this.flag
@@ -174,8 +197,26 @@ export default {
                 this.maillist.splice(deleteIndex,1)
             })
             this.checkModel=[]
+        },
+        toMail:function(mailinfo,index){
+            this.flag=!this.flag
+            this.childFlag=!this.childFlag
+			this.choosedMailindex=index
+
+			this.$refs.mailshow.showMail(mailinfo)
+        },
+		backMailBox:function(){
+			this.flag=!this.flag
+            this.childFlag=!this.childFlag
+        },
+        deleteFromMail:function(){
+            this.maillist.splice(this.choosedMailindex,1)
+            this.backMailBox()
         }
     },
+	components:{
+		mailcom
+	},
     watch:{
         checkModel(){
             if(this.checkModel.length==this.maillist.length){
@@ -183,7 +224,19 @@ export default {
             }else{
                 this.allchecked=false
             }
-        }
-    }
+        },
+		$route:{
+			
+			handler(val,oldval){
+			
+				this.flag=true
+				console.log(this.$route.params.deleteFlag)
+			},
+			// deep:true
+		}
+    },
+	mounted() {
+		this.flag=true
+	}
 }
 </script>

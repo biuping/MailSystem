@@ -1,5 +1,6 @@
 #pragma once
 #include "..\server\HttpServer.h"
+
 class HttpServerHandler
 {
 private:
@@ -8,9 +9,9 @@ private:
 public:
 	HttpServerHandler(HttpClient* client);
 	~HttpServerHandler();
-	//处理客户
+	//麓娄脌铆驴脥禄搂
 	void handle_client();
-	//处理请求
+	//麓娄脌铆脟毛脟贸
 	HttpResponse* handle_request(HttpRequest& request);
 };
 

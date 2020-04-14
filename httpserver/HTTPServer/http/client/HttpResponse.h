@@ -1,30 +1,36 @@
 #pragma once
 #include "..\static\Tools.h"
-#include "json/json.h"
 
 class HttpResponse
 {
 public:
 	HttpResponse();
 	~HttpResponse();
-	int set_version(const rstring& version);
-	int set_status(const rstring& status, const rstring& reason);
+
+	//设置版本号
+	void set_version(const rstring& version);
+	//设置状态码和短语
+	void set_status(const rstring& code, const rstring& phrase);
+	//添加头字段
 	int add_head(const rstring& name, const rstring& attr);
+	//删除头字段
 	int del_head(const rstring& name);
+	//设置响应体
 	int set_body(const char* body, size_t bodylen);
 	size_t size();
-	//���л�����
+	//序列化报文为正确的响应格式
 	const char* serialize();
 
-private:
-	size_t startline_stringsize();
-	size_t headers_stringsize();
 
 private:
+	enum Config {
+		MAXLINE = 1024,
+		BODY_MAXSIZE = 64 * 1024,
+	};
 	typedef struct {
 		rstring version;
-		rstring status;
-		rstring reason;
+		rstring code;
+		rstring phrase;
 		HttpHead_t headers;
 		char* body;
 		size_t bodylen;
@@ -36,4 +42,19 @@ private:
 
 private:
 	respose_package_t m_package;
+
+public:
+	void set_common();
+
+	//将传递来的字符串设置成body
+	void build_body(rstring& body);
+
+	//200 ok
+	void build_ok();
+
+	//500 server error
+	void build_err();
+
+	//404 not found
+	void build_not_found();
 };

@@ -28,8 +28,7 @@ int HttpClient::recv(char* buf, int len, int flags)
 	if (m_socket == INVALID_SOCKET)
 		return -1;
 	int res = ::recv(m_socket, buf, len, flags);
-	if (SOCKET_ERROR == res)
-		Tools::report("recv error: " + std::to_string(WSAGetLastError()));
+
 	return res;
 }
 
