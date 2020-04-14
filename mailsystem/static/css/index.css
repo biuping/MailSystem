@@ -4,8 +4,21 @@ html,body{
     height: 100%;
     
 }
-body{
-    background-image: url('../img/bg1.jpg');
+#background{
+    position: absolution;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('../img/bg.jpg');
     background-repeat: no-repeat;
     background-size: 100% 100%;
+}
+#app{
+    position: absolute;
+    top: 0;
+    left: 0;
+    margin: 0;
+    width: 100%;
+    height: 100%;
 }
