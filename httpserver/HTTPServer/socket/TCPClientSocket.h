@@ -17,7 +17,7 @@ public:
 	TCPClientSocket(const char* addr, USHORT port, int tmo = DEFAULT_WRITE_TIMEOUT);
 	virtual ~TCPClientSocket();
 
-	virtual bool connect2Server(const char* addr, USHORT port, int tmo = DEFAULT_WRITE_TIMEOUT);
+	virtual bool connect(const char* addr, USHORT port, int tmo = DEFAULT_WRITE_TIMEOUT);
 	const sockaddr& getServerAddr();
 	
 	void closeSocket();

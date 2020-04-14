@@ -32,23 +32,25 @@ public:
 	virtual ~Mail();
 
 	/* static methods for parsing */
-	static Mail* parse(rstring raw);
 	static bool parseHeader(rstring raw, mail_header_t& header);
 	static bool parseBody(rstring raw, mail_body_t& body);
 
 	/* get methods */
 	const mail_header_t& getHeader();
 	const mail_body_t& getBody();
-
-	void setHeader(mail_header_t header);
-	void setBody(mail_body_t body);
-
 	int getSize();
+	rstring getUID();
 
+	void setHeader(const mail_header_t& header);
+	void setBody(const mail_body_t& body);
+	void setSize(const size_t mailsize);
+	void setUID(const rstring& mailUID);
 
+private:
 	mail_header_t mHeader;
 	mail_body_t mBody;
-	int mSize;
+	rstring mUID;
+	size_t mSize;
 };
 
 

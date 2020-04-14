@@ -11,7 +11,9 @@ POP3Client::POP3Client(const POP3Client& pop3cli) : mConn(pop3cli.mConn), mState
 
 POP3Client::~POP3Client()
 {
-	this->quit();
+	if (alive()) {
+		this->quit();
+	}
 
 	delete mConn;
 	mConn = nullptr;
@@ -21,7 +23,7 @@ POP3Client::~POP3Client()
 // at: 邮件地址中的主机名
 bool POP3Client::open(const rstring& at)
 {
-	return open(at, RESERVED_POP3_PORT);
+	return this->open(at, RESERVED_POP3_PORT);
 }
 
 // 进行连接
@@ -30,20 +32,44 @@ bool POP3Client::open(const rstring& at)
 bool POP3Client::open(const rstring& at, USHORT port)
 {
 	char* addr = prefix(at.c_str());		// 加上前缀
-	mConn->connect2Server(addr, port);		// 连接到服务器
-
-	if (mConn->connected()) {
-		// 已连接
-		report("connection opened");
-		mState = POP3State::Authorization;	// 进入验证状态
-		return true;
-	}
-	else {
-		// 打开连接失败
+	char* reply = nullptr;		// 接收回复
+	int replyLen = 0;		// 接收回复串所占空间长度
+	int connRet = 0;		// 连接操作状态
+	bool ret = false;		// 返回值
+	
+	if ( (connRet = conn(addr, port, &reply, &replyLen)) < 0 ) {
+		// 连接失败
 		report("cannot open connection");
 		mState = POP3State::Unconnected;
-		return false;
+		ret = false;
 	}
+	else {
+		// 连接成功
+		mState = POP3State::Authorization;
+		ret = true;
+
+		rstring infostr = "connection opened";
+		if (connRet > 0) {
+			// 服务器返回 ERR
+			infostr.append(" but server returned ");
+			infostr.append(reply);
+		}
+		report(infostr);
+	}
+
+	// 清理资源
+	delete addr;
+	delete reply;
+
+	// 获取兼容性列表
+	getCapabilities();
+
+	return ret;
+}
+
+void POP3Client::close()
+{
+	return;
 }
 
 // 验证身份
@@ -64,8 +90,8 @@ bool POP3Client::authenticate(const rstring& usr, const rstring& passwd)
 	int usrReplyLen, passReplyLen, usrRet, passRet;
 	usrReply = passReply = nullptr;
 	usrRet = passRet = -1;
-	if ((usrRet =  this->user(usr.c_str(), &usrReply, &usrReplyLen)) == 0
-		&& (passRet = this->pass(passwd.c_str(), &passReply, &passReplyLen)) == 0) {
+	if ( (usrRet =  this->user(usr.c_str(), &usrReply, &usrReplyLen)) == 0
+		&& (passRet = this->pass(passwd.c_str(), &passReply, &passReplyLen)) == 0 ) {
 		// user命令和pass命令正确回复
 		mState = POP3State::Transaction;		// 进入事务状态
 		report("authenticated");
@@ -74,7 +100,7 @@ bool POP3Client::authenticate(const rstring& usr, const rstring& passwd)
 		// 身份验证失败，状态不变
 		rstring errstr = "authentication failed: ";
 		// 添加对应错误信息
-		errstr.append(usrRet != 0 ? usrReply : passReply);
+		errstr.append( usrRet <= 0 ? ( (usrRet < 0 || passRet < 0) ? "IO error" : passReply ) : usrReply );
 		report(errstr);
 	}
 
@@ -82,6 +108,200 @@ bool POP3Client::authenticate(const rstring& usr, const rstring& passwd)
 	delete passReply;
 
 	return (usrRet == 0) && (passRet == 0);
+}
+
+// 获取兼容指令列表（不强制获取）
+// return: list<string> 字符串链表
+slist& POP3Client::getCapabilities()
+{
+	// 已连接且兼容指令列表为空
+	if (this->capabilities.size() == 0 && mState != POP3State::Unconnected) {
+		// 未获取兼容性列表
+		char* reply = nullptr, * p;
+		int len, capaRet = 0;
+
+		// 发送 CAPA 命令
+		if ((capaRet = this->capa(&reply, &len)) == 0) {
+			p = strstr(reply, "\r\n");		// 跳过确认信息
+
+			// 加入每一行中兼容命令
+			while (*p != '\0') {
+				p += 2;		// 跳过换行符
+				char cmd[50];
+				int i = 0;
+
+				// 拷贝一行命令
+				while (*p != '\0') {
+					if (*p == '\r' && *(p + 1) == '\n') {
+						// 换行
+						break;
+					}
+					cmd[i++] = *p++;
+				}
+				cmd[i] = '\0';
+
+				this->capabilities.emplace_back(cmd);
+			}
+		}
+	}
+
+	return this->capabilities;
+}
+
+// 返回连接是否保持
+bool POP3Client::alive()
+{
+	return this->noop() == 0;
+}
+
+// 返回邮箱状态
+bool POP3Client::getStatus(size_t& mailnum, size_t& totsize)
+{
+	char* reply = nullptr;		// 回复
+	char buf[10];				// 回复OK缓冲区
+	int replyLen, statRet;		// 回复使用的内存大小，stat返回值
+	bool ret = false;
+
+	if ( (statRet = this->stat(&reply, &replyLen)) == 0) {
+		sscanf(reply, "%s %u %u", buf, &mailnum, &totsize);
+
+		ret = true;
+	}
+	else {
+		// 报告错误信息
+		rstring errstr = "get status failed: ";
+		errstr.append(statRet > 0 ? reply : "IO error");
+		report(errstr);
+	}
+
+	delete reply;
+	return ret;
+}
+
+// 获取邮件列表并为每封邮件设置大小
+// mails: 邮件列表，为空则进行扩展，否则需要与邮件总数保持一致
+bool POP3Client::getMailListWithSize(std::vector<Mail*>& mails)
+{
+	char* reply;
+	char buf[10];
+	int replyLen, listRet;
+	size_t mailnum, totsize;
+	bool ret = false;
+
+
+	if ((listRet = this->list(&reply, &replyLen)) == 0) {
+		ret = true;
+
+		// 解析命令返回字符串
+		char* p = strstr(reply, "\r\n");		// 第一行状态行
+		_snscanf(reply, p - reply, "%s %u %u", buf, &mailnum, &totsize);
+
+		// 检查邮件列表，size不等于当前邮件数目则clear，capacity不足则进行适当的reserve
+		if (mails.size() != mailnum) {
+			// 释放原邮件资源
+			for (Mail* m : mails) {
+				delete m;
+				m = nullptr;
+			}
+			mails.clear();
+			// 扩容
+			if (mails.capacity() < mailnum) {
+				mails.reserve(mailnum);
+			}
+			// 分配新资源
+			for (size_t i = 0; i < mailnum; ++i) {
+				mails[i] = new Mail();
+			}
+		}
+
+		size_t no, eachsize;
+		p += 2;
+		// 读取每一行的数据
+		for (size_t i = 0; i < mailnum; ++i) {
+			// 获取下一行的
+			char* ptemp = strstr(p + 2, "\r\n");
+			_snscanf(p, ptemp - p, "%u %u", &no, &eachsize);
+			no = no > 0 ? no - 1 : no;		// for safety
+			mails[no]->setSize(eachsize);
+
+			p = ptemp + 2;		// 下一行
+		}
+	}
+	else {
+		// 报告错误信息
+		rstring errstr = "get list failed: ";
+		errstr.append(listRet > 0 ? reply : "IO error");
+		report(errstr);
+	}
+
+	delete reply;
+	return ret;
+}
+
+// 获取邮件列表并为每封邮件设置 UID
+// mails: 邮件列表，为空则进行扩展，否则需要与邮件总数保持一致
+bool POP3Client::getMailListWithUID(std::vector<Mail*>& mails)
+{
+	char* reply;
+	char buf[10];
+	int replyLen, uidlRet;
+	size_t mailnum, totsize;
+	bool ret = false;
+
+
+	if ((uidlRet = this->uidl(&reply, &replyLen)) == 0) {
+		ret = true;
+
+		// 解析命令返回字符串
+		char* p = strstr(reply, "\r\n");		// 第一行状态行
+		_snscanf(reply, p - reply, "%s %u %u", buf, &mailnum, &totsize);
+
+		// 检查邮件列表，size不等于当前邮件数目则clear，capacity不足则进行适当的reserve
+		if (mails.size() != mailnum) {
+			// 释放原邮件资源
+			for (Mail* m : mails) {
+				delete m;
+				m = nullptr;
+			}
+			mails.clear();
+			// 扩容
+			if (mails.capacity() < mailnum) {
+				mails.reserve(mailnum);
+			}
+			// 分配新资源
+			for (size_t i = 0; i < mailnum; ++i) {
+				mails[i] = new Mail();
+			}
+		}
+
+		size_t no;
+		char uid[BUFFER_SIZE];
+		p += 2;
+		// 读取每一行的数据
+		for (size_t i = 0; i < mailnum; ++i) {
+			// 获取下一行的
+			char* ptemp = strstr(p + 2, "\r\n");
+			_snscanf(p, ptemp - p, "%u %s", &no, uid);
+			no = no > 0 ? no - 1 : no;		// for safety
+			mails[no]->setUID(uid);
+
+			p = ptemp + 2;		// 下一行
+		}
+	}
+	else {
+		// 报告错误信息
+		rstring errstr = "get uid list failed: ";
+		errstr.append(uidlRet > 0 ? reply : "IO error");
+		report(errstr);
+	}
+
+	delete reply;
+	return ret;
+}
+
+bool POP3Client::retrMail(int i, Mail* mail)
+{
+	return false;
 }
 
 // 在主机域名前加上 pop 前缀
@@ -92,7 +312,7 @@ char* POP3Client::prefix(const char* host)
 	int prefixlen = strlen(RESERVED_POP3_PREFIX);
 	int hostlen = strlen(host);
 	// 分配内存
-	char* outs = new char[hostlen + prefixlen + 1];
+	char* outs = new char[hostlen + prefixlen + 2];
 	// 拼接
 	strncpy(outs, RESERVED_POP3_PREFIX, prefixlen);
 	outs[prefixlen] = '.';
@@ -219,10 +439,46 @@ int inline POP3Client::cmdWithMultiLinesReply(
 		*outlen = 0;
 	}
 	else {
-		ret = cmdOK(*reply);
+		ret = cmdOK(*reply) ? 0 : 1;
 	}
 
 	return ret;
+}
+
+// 连接到 POP3 服务器
+// addr: 服务器地址
+// port: POP3 服务端口号
+// reply: 传入 nullptr(默认) 表示不关心回复；
+//		  非空时为指向字符指针的指针，若结果返回0，则将reply指向的指针指向一块新的内存
+// outlen: 配合 reply 输出新分配空间的大小
+// 正常回复返回 0，命令回复错误返回 1，读写错误或无回复或内存分配失败返回 -1
+int POP3Client::conn(const char* addr, USHORT port, char** reply, int* outlen)
+{
+	this->mConn->connect(addr, port);
+
+	char buf[BUFFER_SIZE];		// 读缓冲区
+
+	int r = mConn->readline(buf, BUFFER_SIZE);		// 读取回复
+
+	// 检查读错误或无回复
+	if (r <= 0) {
+		this->mConn->closeSocket();		// 关闭套接字
+		return -1;
+	}
+
+	if (reply != nullptr) {
+		// 返回回复
+		int newlen = strlen(buf) + 1;
+		*reply = (char*)calloc(newlen, sizeof(char));
+		if (*reply == nullptr) {
+			// 内存分配失败
+			return -1;
+		}
+		strncpy(*reply, buf, newlen);
+		*outlen = newlen;
+	}
+
+	return cmdOK(buf) ? 0 : 1;
 }
 
 // POP3 USER 命令，指定用户名

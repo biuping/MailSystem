@@ -17,7 +17,7 @@ TCPClientSocket::TCPClientSocket(const TCPClientSocket& tcpcliSocket)
 // tmo 为超时时间（单位秒），为0时无限等待
 TCPClientSocket::TCPClientSocket(const char* addr, USHORT port, int tmo) : TCPClientSocket()
 {
-	connect2Server(addr, port, tmo);
+	connect(addr, port, tmo);
 }
 
 TCPClientSocket::~TCPClientSocket() {
@@ -68,7 +68,7 @@ bool TCPClientSocket::createNBSocketAndConnect(addrinfo* info, int tmo)
 		ioctlsocket(mSocket, FIONBIO, &arg);  // 设置非阻塞模式
 
 		// 连接到服务器地址
-		int iRet = connect(mSocket, info->ai_addr, (int)info->ai_addrlen);
+		int iRet = ::connect(mSocket, info->ai_addr, (int)info->ai_addrlen);
 		if (iRet == SOCKET_ERROR) {
 			// 尝试连接失败
 			int error = WSAGetLastError();
@@ -129,7 +129,7 @@ bool TCPClientSocket::createNBSocketAndConnect(addrinfo* info, int tmo)
 // 给定服务器地址（ip或域名）和端口，创建套接字并连接到服务器地址
 // addr 可以为域名或ip地址
 // 返回是否连接成功
-bool TCPClientSocket::connect2Server(const char* addr, USHORT port, int tmo)
+bool TCPClientSocket::connect(const char* addr, USHORT port, int tmo)
 {
 	closeSocket();  // 如果之前存在已建立的套接字则关闭
 
@@ -332,6 +332,8 @@ int TCPClientSocket::write(const char* buf, int len, int tmo)
 			rstring errstr = "write failed: send returned ";
 			errstr.append(std::to_string(WSAGetLastError()));
 			report(errstr);
+
+			return -1;
 		}
 
 		sz += r;
