@@ -58,8 +58,8 @@ bool POP3Client::open(const rstring& at, USHORT port)
 	}
 
 	// 清理资源
-	delete addr;
-	delete reply;
+	delete[] addr;
+	free(reply);
 
 	// 获取兼容性列表
 	getCapabilities();
@@ -295,7 +295,7 @@ bool POP3Client::getMailListWithUID(std::vector<Mail*>& mails)
 		report(errstr);
 	}
 
-	delete[] reply;
+	delete reply;
 	return ret;
 }
 
@@ -334,7 +334,8 @@ bool POP3Client::cmdOK(const char* resp)
 // 回复单行内容的命令
 // cmd: 命令字符串
 // reply: 传入 nullptr(默认) 表示不关心回复；
-//		  非空时为指向字符指针的指针，若结果返回0，则将reply指向的指针指向一块新的内存
+//		  非空时为指向字符指针的指针，若结果返回0，则将reply指向的指针指向一块新的内存；
+//		  使用完毕应使用free()清除
 // outlen: 配合 reply 输出新分配空间的大小
 // return: 正常回复 0，回复错误 1，读写错误或内存分配失败 -1
 int inline POP3Client::cmdWithSingLineReply(const char* cmd, char** reply, int* outlen)
@@ -372,7 +373,8 @@ int inline POP3Client::cmdWithSingLineReply(const char* cmd, char** reply, int* 
 // 回复多行内容的命令
 // cmd: 命令
 // ends: 结束标志字符串，返回的回复内容遇到 ends 后结束，不包含 ends
-// reply: 指向字符指针的指针，若结果返回0，则将reply指向的指针指向一块新的内存
+// reply: 指向字符指针的指针，若结果返回0，则将reply指向的指针指向一块新的内存；
+//		  使用完毕应使用free()清除
 // outlen: 给 reply 分配的内存空间的大小，一定为 BUFFER_SIZE 的倍数 + 1（可能多余实际长度）
 // 正常回复返回0，回复错误返回1，读写错误及内存分配失败返回-1
 int inline POP3Client::cmdWithMultiLinesReply(
