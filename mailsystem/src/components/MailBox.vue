@@ -42,7 +42,7 @@
         top: 1%;
         left: 1%;
         width: 95%;
-        background-color: rgba(156, 122, 97, 0.1);
+        background-color: rgba(68, 68, 67, 0.2);
         border-radius: 2%;
         padding: 0%;
     }
@@ -76,11 +76,11 @@
         flex-direction: column;
         height: 100%;
         margin-top: 1%;
-        background-color:  rgba(80, 159, 190, 0.1);
+        background-color:  rgba(228, 235, 238, 0.8);
         cursor: pointer;
     }
     .singleMail:hover{
-        background-color:  rgba(80, 159, 190, 0.3);
+        background-color:  rgba(105, 165, 189, 0.5);
     }
     .cutoff_line{
         position: relative;
@@ -119,7 +119,7 @@
         margin: 0 1% 5px 1%;
         text-align: left;
         font-size: 15px;
-        color: rgb(93, 168, 137);
+        color: rgb(218, 51, 22);
         padding: 0%;
     }
     .btn_checkall{
