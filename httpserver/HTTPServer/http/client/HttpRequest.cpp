@@ -1,5 +1,6 @@
 #include "HttpRequest.h"
 
+
 HttpRequest::HttpRequest() :m_body(nullptr), m_bodylen(0)
 {
 
@@ -13,39 +14,39 @@ HttpRequest::~HttpRequest()
 
 int HttpRequest::load_packet(const char* msg, size_t msglen)
 {
-	//±£´æÊ£ÓàÎ´´¦ÀíÏûÏ¢
+	//ä¿å­˜å‰©ä½™æœªå¤„ç†æ¶ˆæ¯
 	const char* remain_msg = msg;
-	//±£´æÏûÏ¢µÄÄ©Î²'\0'
+	//ä¿å­˜æ¶ˆæ¯çš„æœ«å°¾'\0'
 	const char* end_msg = msg + msglen;
-	//ÕÒµ½ÆğÊ¼ĞĞ½áÊøÎ»ÖÃ
+	//æ‰¾åˆ°èµ·å§‹è¡Œç»“æŸä½ç½®
 	const char* start_line_end = Tools::find_line(remain_msg, end_msg);
 	if (start_line_end == nullptr) {
 		Tools::report("ERROR: Can't find request header line.");
 	}
 
-	//½âÎöÆğÊ¼ÇëÇóĞĞ
+	//è§£æèµ·å§‹è¯·æ±‚è¡Œ
 	if (parse_startline(remain_msg, start_line_end) < 0) {
 		Tools::report("ERROR: Invalid startline");
 		return -1;
 	}
-	//ºóÒÆÒ»ĞĞ
+	//åç§»ä¸€è¡Œ
 	//remain_msg = start_line_end;
 
-	//ÕÒµ½Í·²¿ĞĞ½áÊøÎ»ÖÃ
+	//æ‰¾åˆ°å¤´éƒ¨è¡Œç»“æŸä½ç½®
 	const char* head_line_end = Tools::find_head(remain_msg, end_msg);
 	if (head_line_end == nullptr) {
 		Tools::report("ERROR: Head line not found");
 		return -1;
 	}
-	//½âÎöÍ·²¿
+	//è§£æå¤´éƒ¨
 	if (parse_headers(start_line_end, head_line_end) < 0) {
 		Tools::report("ERROR: Parse headers error");
 		return -1;
 	}
 
-	//ºóÒÆ
+	//åç§»
 	//remain_msg = head_line_end;
-	//½âÎöbody
+	//è§£æbody
 	if (parse_body(head_line_end, end_msg) < 0) {
 		Tools::report("ERROR: Parse body error");
 		return -1;
@@ -56,28 +57,29 @@ int HttpRequest::load_packet(const char* msg, size_t msglen)
 int HttpRequest::parse_startline(const char* start, const char* end)
 {
 	size_t content_len = 0, sum_len = 0;
+
 	const char* remain = start, * content_start = nullptr;
 	content_start = Tools::find_content(remain, end, '\r', content_len, sum_len);
 	if (content_start == nullptr)
 		return -1;
-	m_startline = rstring(remain, content_len); //Í·²¿ĞĞ
+	m_startline = rstring(remain, content_len); //å¤´éƒ¨è¡Œ
 
 	content_start = Tools::find_content(remain, end, ' ', content_len, sum_len);
 	if (content_start == nullptr)
 		return -1;
-	m_method = rstring(content_start, content_len); //ÇëÇó·½·¨
+	m_method = rstring(content_start, content_len); //è¯·æ±‚æ–¹æ³•
 	remain += sum_len;
 
 	content_start = Tools::find_content(remain, end, ' ', content_len, sum_len);
 	if (content_start == nullptr)
 		return -1;
-	m_url = rstring(content_start, content_len); //ÇëÇóurl
+	m_url = rstring(content_start, content_len); //è¯·æ±‚url
 	remain += sum_len;
 
 	content_start = Tools::find_content(remain, end, '\r', content_len, sum_len);
 	if (content_start == nullptr)
 		return -1;
-	m_version = rstring(content_start, content_len); //ÇëÇóurl
+	m_version = rstring(content_start, content_len); //è¯·æ±‚url
 	return 0;
 }
 
@@ -93,17 +95,17 @@ int HttpRequest::parse_headers(const char* start, const char* end)
 		const char* line_end = Tools::find_line(line_start, end);
 		if (line_end == nullptr)
 			return -1;
-		else if (line_end == end)//½áÊø
+		else if (line_end == end)//ç»“æŸ
 			break;
 
-		//ÕÒµ½':'Ç°µÄhead
+		//æ‰¾åˆ°':'å‰çš„head
 		const char* head_start = Tools::find_content(line_start, line_end, ':', content_len, sum_len);
 		if (head_start == NULL)
 			return -1;
 		head = rstring(head_start, content_len);
-		Tools::to_upper(head);//Í³Ò»×ªÎª´óĞ´
+		Tools::to_upper(head);//ç»Ÿä¸€è½¬ä¸ºå¤§å†™
 
-		//ÕÒµ½':'ºóµÄattrbute, +0x01ÊÇÒòÎªÈ¥µô':'ºóµÄÒ»¸ö¿Õ¸ñ
+		//æ‰¾åˆ°':'åçš„attrbute, +0x01æ˜¯å› ä¸ºå»æ‰':'åçš„ä¸€ä¸ªç©ºæ ¼
 		const char* attr_start = line_start + sum_len + 0x01;
 		attr_start = Tools::find_content(attr_start, line_end, '\r', content_len, sum_len);
 		if (attr_start == NULL)
@@ -111,7 +113,7 @@ int HttpRequest::parse_headers(const char* start, const char* end)
 		attr = rstring(attr_start, content_len);
 
 		line_start = line_end;
-		//°Ñ¼üÖµ¶Ô¼ÓÈëmap
+		//æŠŠé”®å€¼å¯¹åŠ å…¥map
 		m_headers[head] = attr;
 	}
 	return 0;
@@ -123,14 +125,16 @@ int HttpRequest::parse_body(const char* start, const char* end)
 	if (body_len == 0x00)
 		return 0;
 
+
 	char* buff = new char[body_len + 1];
+
 	if (buff == nullptr)
 		return -1;
-	//½«body¿½±´½ø»º³å
+	//å°†bodyæ‹·è´è¿›ç¼“å†²
 	memcpy(buff, start, body_len);
-	//ÉèÖÃÖÕÖ¹Î»ÖÃ
+	//è®¾ç½®ç»ˆæ­¢ä½ç½®
 	buff[body_len] = 0x00;
-	//²»Îª¿Õ£¬Çå³ı
+	//ä¸ä¸ºç©ºï¼Œæ¸…é™¤
 	if (m_body != nullptr)
 		delete m_body;
 

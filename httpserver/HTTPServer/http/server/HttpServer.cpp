@@ -21,10 +21,10 @@ int HttpServer::start(int backlog)
 	if (m_socket != INVALID_SOCKET)
 		return 0;
 
-	//½¨Á¢Ì×½Ó×Ö£¬Ê§°Ü·µ»Ø-1
-	//Á÷Ê½Ì×½Ó×Ö: Êı¾İÔÚ¿Í»§¶ËÊÇË³Ğò·¢ËÍµÄ£¬²¢ÇÒµ½´ïµÄË³ĞòÊÇÒ»ÖÂµÄ¡£
-	//±ÈÈçÄãÔÚ¿Í»§¶ËÏÈ·¢ËÍ1£¬ÔÙ·¢ËÍ2£¬ÄÇÃ´ÔÚ·şÎñÆ÷¶ËµÄ½ÓÊÕË³ĞòÊÇÏÈ½ÓÊÕµ½1£¬
-	//ÔÙ½ÓÊÕµ½2£¬Á÷Ê½Ì×½Ó×ÖÊÇ¿É¿¿µÄ£¬ÊÇÃæÏòÁ¬½ÓµÄ
+	//å»ºç«‹å¥—æ¥å­—ï¼Œå¤±è´¥è¿”å›-1
+	//æµå¼å¥—æ¥å­—: æ•°æ®åœ¨å®¢æˆ·ç«¯æ˜¯é¡ºåºå‘é€çš„ï¼Œå¹¶ä¸”åˆ°è¾¾çš„é¡ºåºæ˜¯ä¸€è‡´çš„ã€‚
+	//æ¯”å¦‚ä½ åœ¨å®¢æˆ·ç«¯å…ˆå‘é€1ï¼Œå†å‘é€2ï¼Œé‚£ä¹ˆåœ¨æœåŠ¡å™¨ç«¯çš„æ¥æ”¶é¡ºåºæ˜¯å…ˆæ¥æ”¶åˆ°1ï¼Œ
+	//å†æ¥æ”¶åˆ°2ï¼Œæµå¼å¥—æ¥å­—æ˜¯å¯é çš„ï¼Œæ˜¯é¢å‘è¿æ¥çš„
 	SOCKET sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (sock == SOCKET_ERROR)
 	{
@@ -34,21 +34,21 @@ int HttpServer::start(int backlog)
 
 
 	sockaddr_in sock_addr = { 0 };
-	//Ö¸¶¨µØÖ·×å
+	//æŒ‡å®šåœ°å€æ—
 	sock_addr.sin_family = AF_INET;
-	//³õÊ¼»¯IPµØÖ·
+	//åˆå§‹åŒ–IPåœ°å€
 	sock_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-	//³õÊ¼»¯¶Ë¿ÚºÅ
+	//åˆå§‹åŒ–ç«¯å£å·
 	sock_addr.sin_port = htons(m_port);
 
-	//°ó¶¨
+	//ç»‘å®š
 	if (::bind(sock, (sockaddr*)&sock_addr, sizeof(sock_addr)) == SOCKET_ERROR) {
 		::closesocket(sock);
 		Tools::report("bind error: ", WSAGetLastError());
 		return -1;
 	}
 
-	//¼àÌı
+	//ç›‘å¬
 	if (::listen(sock, backlog) < 0) {
 		::closesocket(sock);
 		Tools::report("listen error: ", WSAGetLastError());
@@ -57,7 +57,7 @@ int HttpServer::start(int backlog)
 
 	m_socket = sock;
 
-	// ÉèÖÃ·Ç×èÈûÄ£Ê½
+	// è®¾ç½®éé˜»å¡æ¨¡å¼
 	/*DWORD arg = 1;
 	int nRet = ::ioctlsocket(m_socket, FIONBIO, &arg);
 	if (nRet == SOCKET_ERROR)
@@ -127,10 +127,10 @@ HttpClient* HttpServer::accept()
 {
 	if (m_socket == INVALID_SOCKET)
 		return nullptr;
-	//ÉèÖÃ¿Í»§¶Ë
+	//è®¾ç½®å®¢æˆ·ç«¯
 	sockaddr_in client_addr;
 	int client_addr_size = sizeof(client_addr);
-	//½ÓÊÜ¿Í»§¶ËÇëÇó
+	//æ¥å—å®¢æˆ·ç«¯è¯·æ±‚
 	SOCKET client_sock = ::accept(m_socket, (sockaddr*)&client_addr, (socklen_t*)&client_addr_size);
 	if (client_sock == INVALID_SOCKET)
 	{
@@ -139,7 +139,8 @@ HttpClient* HttpServer::accept()
 		return nullptr;
 	}
 
-	u_long unblock = 1;    //·Ç0Îª·Ç×èÈûÄ£Ê½
+
+	u_long unblock = 1;    //é0ä¸ºéé˜»å¡æ¨¡å¼
 	if (ioctlsocket(client_sock, FIONBIO, &unblock) == SOCKET_ERROR)
 	{
 		Tools::report("set client unblock error: ", WSAGetLastError());

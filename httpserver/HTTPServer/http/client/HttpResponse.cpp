@@ -2,6 +2,7 @@
 
 HttpResponse::HttpResponse()
 {
+
 	m_package.body = nullptr;
 	m_package.bodylen = 0x00;
 	m_package.data = nullptr;
@@ -68,12 +69,12 @@ size_t HttpResponse::size()
 const char* HttpResponse::serialize()
 {
 	rstring builder;
-	//Í·²¿µÚÒ»ĞĞ
+	//å¤´éƒ¨ç¬¬ä¸€è¡Œ
 	builder.append(m_package.version).append(" ")
 		.append(m_package.code).append(" ")
 		.append(m_package.phrase).append("\r\n");
 
-	//Ìí¼Ó¸÷×Ö¶Î
+	//æ·»åŠ å„å­—æ®µ
 	for (HttpHead_t::iterator itor = m_package.headers.begin(); 
 		itor != m_package.headers.end(); 
 		itor++) 
@@ -84,11 +85,11 @@ const char* HttpResponse::serialize()
 		builder.append(name).append(": ")
 			.append(attr).append("\r\n");
 	}
-	//body·Ö¸îĞĞ
+	//bodyåˆ†å‰²è¡Œ
 	builder.append("\r\n");
 	builder.append(m_package.body, m_package.bodylen);
 	
-	//¿½±´ÄÚ´æ
+	//æ‹·è´å†…å­˜
 	size_t len = builder.size();
 	m_package.data = new char[len +1];
 	memcpy(m_package.data, &builder[0], len);

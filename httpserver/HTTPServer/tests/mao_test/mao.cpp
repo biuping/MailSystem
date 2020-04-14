@@ -1,5 +1,6 @@
 #include "../test.h"
 #include "mao.h"
+
 void start_mao() {
 
 	//json_test();
@@ -25,11 +26,11 @@ void json_test()
 
 	rstring write_res;
 	Json::Value root;
-	root["null"] = NULL;			//×¢Òâ´Ë´¦ÔÚÊä³öÊÇÏÔÊ¾Îª0£¬¶ø·Çnull
+	root["null"] = NULL;			//æ³¨æ„æ­¤å¤„åœ¨è¾“å‡ºæ˜¯æ˜¾ç¤ºä¸º0ï¼Œè€Œénull
 	root["message"] = "OK";
 	root["age"] = 52;
-	root["array"].append("arr");	// ĞÂ½¨Ò»¸ökeyÎªarray£¬ÀàĞÍÎªÊı×é£¬¶ÔµÚÒ»¸öÔªËØ¸³ÖµÎª×Ö·û´®¡°arr¡±
-	root["array"].append(123);		// ÎªÊı×é key_array ¸³Öµ£¬¶ÔµÚ¶ş¸öÔªËØ¸³ÖµÎª£º123
+	root["array"].append("arr");	// æ–°å»ºä¸€ä¸ªkeyä¸ºarrayï¼Œç±»å‹ä¸ºæ•°ç»„ï¼Œå¯¹ç¬¬ä¸€ä¸ªå…ƒç´ èµ‹å€¼ä¸ºå­—ç¬¦ä¸²â€œarrâ€
+	root["array"].append(123);		// ä¸ºæ•°ç»„ key_array èµ‹å€¼ï¼Œå¯¹ç¬¬äºŒä¸ªå…ƒç´ èµ‹å€¼ä¸ºï¼š123
 
 	Tools::json_write(root, write_res);
 	std::cout << write_res << std::endl;

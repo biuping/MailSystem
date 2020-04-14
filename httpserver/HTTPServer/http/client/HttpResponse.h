@@ -6,18 +6,19 @@ class HttpResponse
 public:
 	HttpResponse();
 	~HttpResponse();
-	//ÉèÖÃ°æ±¾ºÅ
+
+	//è®¾ç½®ç‰ˆæœ¬å·
 	void set_version(const rstring& version);
-	//ÉèÖÃ×´Ì¬ÂëºÍ¶ÌÓï
+	//è®¾ç½®çŠ¶æ€ç å’ŒçŸ­è¯­
 	void set_status(const rstring& code, const rstring& phrase);
-	//Ìí¼ÓÍ·×Ö¶Î
+	//æ·»åŠ å¤´å­—æ®µ
 	int add_head(const rstring& name, const rstring& attr);
-	//É¾³ıÍ·×Ö¶Î
+	//åˆ é™¤å¤´å­—æ®µ
 	int del_head(const rstring& name);
-	//ÉèÖÃÏìÓ¦Ìå
+	//è®¾ç½®å“åº”ä½“
 	int set_body(const char* body, size_t bodylen);
 	size_t size();
-	//ĞòÁĞ»¯±¨ÎÄÎªÕıÈ·µÄÏìÓ¦¸ñÊ½
+	//åºåˆ—åŒ–æŠ¥æ–‡ä¸ºæ­£ç¡®çš„å“åº”æ ¼å¼
 	const char* serialize();
 
 
@@ -45,7 +46,7 @@ private:
 public:
 	void set_common();
 
-	//½«´«µİÀ´µÄ×Ö·û´®ÉèÖÃ³Ébody
+	//å°†ä¼ é€’æ¥çš„å­—ç¬¦ä¸²è®¾ç½®æˆbody
 	void build_body(rstring& body);
 
 	//200 ok

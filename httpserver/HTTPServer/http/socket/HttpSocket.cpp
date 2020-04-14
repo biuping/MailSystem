@@ -16,6 +16,7 @@ HttpSocket::~HttpSocket()
 	int err = WSACleanup();
 	if (err != 0)
 	{
+
 		std::cout << "Clean error: " << std::to_string(WSAGetLastError()) << std::endl;
 		return;
 	}

@@ -1,5 +1,6 @@
 #include "HttpServerHandler.h"
 
+
 HttpServerHandler::HttpServerHandler(HttpClient* client) :
 	m_client(client)
 {
@@ -10,6 +11,7 @@ HttpServerHandler::~HttpServerHandler()
 {
 	delete m_client;
 	m_client = nullptr;
+
 
 	if (m_readbuff != nullptr)
 	{
@@ -34,7 +36,7 @@ void HttpServerHandler::handle_client()
 			break;
 		}
 		else if (len == SOCKET_ERROR)
-		{	//wouldblockËµÃ÷×ÊÔ´ÔÝÊ±²»¿ÉÓÃ£¬ÒÑ¶ÁÈ¡Íê±Ï
+		{	//wouldblockè¯´æ˜Žèµ„æºæš‚æ—¶ä¸å¯ç”¨ï¼Œå·²è¯»å–å®Œæ¯•
 			if (WSAGetLastError() != WSAEWOULDBLOCK)
 			{
 				Tools::report("ERROR: receive error, ", WSAGetLastError());
@@ -49,7 +51,7 @@ void HttpServerHandler::handle_client()
 		}
 	} while (len > 0);
 
-	//ÉèÖÃÄ©Î²0
+	//è®¾ç½®æœ«å°¾0
 	m_readbuff = new char[size + 1];
 	m_readbuff = &temp_str[0];
 	m_readbuff[size] = 0x00;
@@ -64,15 +66,18 @@ void HttpServerHandler::handle_client()
 	HttpResponse* response = handle_request(request);
 	if (nullptr != response)
 	{
+
 		const char* buff = response->serialize();
 		size_t len = strlen(buff);
 		m_client->send(buff, len, 0);
 		delete response;
+
 	}
 }
 
 HttpResponse* HttpServerHandler::handle_request(HttpRequest& request)
 {
+
 	const rstring& method = request.method();
 	const rstring& url = request.url();
 
@@ -80,11 +85,11 @@ HttpResponse* HttpServerHandler::handle_request(HttpRequest& request)
 
 	rstring write_res;
 	Json::Value root;
-	root["null"] = NULL;			//×¢Òâ´Ë´¦ÔÚÊä³öÊÇÏÔÊ¾Îª0£¬¶ø·Çnull
+	root["null"] = NULL;			//æ³¨æ„æ­¤å¤„åœ¨è¾“å‡ºæ˜¯æ˜¾ç¤ºä¸º0ï¼Œè€Œéžnull
 	root["message"] = "OK";
 	root["age"] = 52;
-	root["array"].append("arr");	// ÐÂ½¨Ò»¸ökeyÎªarray£¬ÀàÐÍÎªÊý×é£¬¶ÔµÚÒ»¸öÔªËØ¸³ÖµÎª×Ö·û´®¡°arr¡±
-	root["array"].append(123);		// ÎªÊý×é key_array ¸³Öµ£¬¶ÔµÚ¶þ¸öÔªËØ¸³ÖµÎª£º123
+	root["array"].append("arr");	// æ–°å»ºä¸€ä¸ªkeyä¸ºarrayï¼Œç±»åž‹ä¸ºæ•°ç»„ï¼Œå¯¹ç¬¬ä¸€ä¸ªå…ƒç´ èµ‹å€¼ä¸ºå­—ç¬¦ä¸²â€œarrâ€
+	root["array"].append(123);		// ä¸ºæ•°ç»„ key_array èµ‹å€¼ï¼Œå¯¹ç¬¬äºŒä¸ªå…ƒç´ èµ‹å€¼ä¸ºï¼š123
 	Tools::json_write(root, write_res);
 
 	response->build_ok();
@@ -92,8 +97,4 @@ HttpResponse* HttpServerHandler::handle_request(HttpRequest& request)
 
 	return response;
 }
-
-
-
-
 
