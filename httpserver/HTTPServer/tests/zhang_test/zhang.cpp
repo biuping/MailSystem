@@ -1,11 +1,12 @@
 #include "../test.h"
-#include "zhang.h"
+#ifdef ZHANG_TEST
 
+#include "zhang.h"
 
 void start_zhang()
 {
 	HttpSocket socketInit;
-	
+
 	POP3Client* popcli = new POP3Client();
 	rstring mailaddr = TEST_MAIL_ADDR;
 	rstring passwd = TEST_MAIL_PASSWD;
@@ -16,7 +17,7 @@ void start_zhang()
 	/* open and authenticate */
 	if (popcli->open(at) && popcli->authenticate(usr, passwd)) {
 		LogUtil::report("Done");
-		
+
 		/* capa */
 		LogUtil::report("Capabilities: ");
 		slist& capas = popcli->getCapabilities();
@@ -60,3 +61,6 @@ void start_zhang()
 
 	delete popcli;
 }
+
+
+#endif // ZHANG_TEST

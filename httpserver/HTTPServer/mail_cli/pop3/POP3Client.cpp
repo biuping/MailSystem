@@ -210,7 +210,7 @@ bool POP3Client::getMailListWithSize(std::vector<Mail*>& mails)
 			}
 			// 分配新资源
 			for (size_t i = 0; i < mailnum; ++i) {
-				mails[i] = new Mail();
+				mails.push_back(new Mail());
 			}
 		}
 
@@ -270,7 +270,7 @@ bool POP3Client::getMailListWithUID(std::vector<Mail*>& mails)
 			}
 			// 分配新资源
 			for (size_t i = 0; i < mailnum; ++i) {
-				mails[i] = new Mail();
+				mails.push_back(new Mail());
 			}
 		}
 

@@ -19,14 +19,14 @@ void Mail::setUID(const rstring& mailUID)
 	this->mUID = mailUID;
 }
 
-size_t Mail::getSize()
+const size_t Mail::getSize()
 {
 	return this->mSize;
 }
 
-rstring Mail::getUID()
+const rstring& Mail::getUID()
 {
-	return this->getUID();
+	return this->mUID;
 }
 
 void Mail::setHeader(const mail_header_t& header)
