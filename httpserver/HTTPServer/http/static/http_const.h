@@ -9,6 +9,8 @@
 #define HTTP_HEAD_KEEP_ALIVE	"KEEP-ALIVE"
 #define HTTP_HEAD_CLOSE			"CLOSE"
 
+#define HTTP_HEAD_JSON_TYPE		"application/json"
+#define HTTP_HEAD_FORM_TYPR		"multipart/form-data"
 #define HTTP_HEAD_HTML_TYPE		"text/html"
 #define HTTP_HEAD_CSS_TYPE		"text/css"
 #define HTTP_HEAD_GIF_TYPE		"image/gif"

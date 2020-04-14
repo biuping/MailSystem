@@ -83,6 +83,12 @@ HttpResponse* HttpServerHandler::handle_request(HttpRequest& request)
 
 	HttpResponse* response = new HttpResponse();
 
+	const rstring& content_type = request.head_content(HTTP_HEAD_CONTENT_TYPE);
+	if (content_type.find(HTTP_HEAD_JSON_TYPE) != content_type.npos)
+	{
+
+	}
+
 	rstring write_res;
 	Json::Value root;
 	root["null"] = NULL;			//注意此处在输出是显示为0，而非null
