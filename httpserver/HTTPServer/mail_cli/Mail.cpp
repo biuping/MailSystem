@@ -9,6 +9,7 @@ Mail::~Mail()
 {
 }
 
+// mailsize
 void Mail::setSize(const size_t mailsize)
 {
 	this->mSize = mailsize;

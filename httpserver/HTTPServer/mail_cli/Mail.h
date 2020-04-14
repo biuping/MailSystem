@@ -17,7 +17,7 @@ typedef struct {
 	rstring date;
 	rstring content_type;
 	slist to;
-	str_kvmap xfields;		// extended fields
+	str_kvmap xfields;		// other extended fields
 } mail_header_t;
 
 typedef struct {
@@ -31,16 +31,13 @@ public:
 	Mail();
 	virtual ~Mail();
 
-	/* static methods for parsing */
-	static bool parseHeader(rstring raw, mail_header_t& header);
-	static bool parseBody(rstring raw, mail_body_t& body);
-
 	/* get methods */
 	const mail_header_t& getHeader();
 	const mail_body_t& getBody();
 	const size_t getSize();
 	const rstring& getUID();
 
+	/* set methods */
 	void setHeader(const mail_header_t& header);
 	void setBody(const mail_body_t& body);
 	void setSize(const size_t mailsize);
