@@ -37,7 +37,7 @@ void start_zhang()
 		/* list */
 		std::vector<Mail*> mails;
 		if (popcli->getMailListWithSize(mails)) {
-			for (int i = 0; i < mails.size(); ++i) {
+			for (size_t i = 0; i < mails.size(); ++i) {
 				rstring info = "mail ";
 				info += std::to_string(i + 1) + ": size " + std::to_string(mails[i]->getSize());
 
@@ -47,12 +47,19 @@ void start_zhang()
 
 		/* uidl */
 		if (popcli->getMailListWithUID(mails)) {
-			for (int i = 0; i < mails.size(); ++i) {
+			for (size_t i = 0; i < mails.size(); ++i) {
 				rstring info = "mail ";
 				info += std::to_string(i + 1) + ": uid " + mails[i]->getUID();
 
 				LogUtil::report(info);
 			}
+		}
+
+		/* retr */
+		if (popcli->retrMail(0, mails[0])) {
+			LogUtil::report("Mail 1 subject: ");
+			LogUtil::report(mails[0]->getHeader().subject);
+			LogUtil::report(mails[0]->getBody().message);
 		}
 	}
 	else {

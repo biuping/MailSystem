@@ -13,10 +13,10 @@ class POP3Client : public MailReceiver
 {
 public:
 	enum class POP3State {
-		Unconnected,		// Î´Á¬½Óµ½·şÎñÆ÷
-		Authorization,		// ÑéÖ¤×´Ì¬
-		Transaction,		// ÊÂÎñ×´Ì¬
-		Update				// ¸üĞÂ×´Ì¬
+		Unconnected,		// æœªè¿æ¥åˆ°æœåŠ¡å™¨
+		Authorization,		// éªŒè¯çŠ¶æ€
+		Transaction,		// äº‹åŠ¡çŠ¶æ€
+		Update				// æ›´æ–°çŠ¶æ€
 	};
 
 	POP3Client();
@@ -32,14 +32,14 @@ public:
 	virtual bool getStatus(size_t& mailnum, size_t& totsize);
 	virtual bool getMailListWithSize(std::vector<Mail*>& mails);
 	virtual bool getMailListWithUID(std::vector<Mail*>& mails);
-	virtual bool retrMail(int i, Mail* mail);
+	virtual bool retrMail(size_t i, Mail* mail);
 
 	slist& getCapabilities();
 
 private:
-	TCPClientSocket* mConn;		// Ì×½Ó×Ö
-	POP3State mState;			// »á»°×´Ì¬
-	slist capabilities;			// ¼æÈİĞÔ
+	TCPClientSocket* mConn;		// å¥—æ¥å­—
+	POP3State mState;			// ä¼šè¯çŠ¶æ€
+	slist capabilities;			// å…¼å®¹æ€§
 
 
 	inline char* prefix(const char* host);
@@ -65,7 +65,7 @@ private:
 	int uidl(char** reply, int* outlen, int no = -1);
 	int capa(char** reply, int* outlen);
 
-	// ±¨¸æĞÅÏ¢
+	// æŠ¥å‘Šä¿¡æ¯
 	virtual void report(const rstring& msg);
 };
 

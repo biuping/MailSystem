@@ -99,6 +99,9 @@
     <ClCompile Include="tests\mao_test\mao.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="mail_cli\mime\MIMEParser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="tools\EncodeUtils.h">
@@ -162,6 +165,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="tests\my.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mail_cli\mime\MIMEParser.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

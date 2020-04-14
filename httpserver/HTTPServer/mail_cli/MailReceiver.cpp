@@ -28,7 +28,7 @@ bool MailReceiver::getMailListWithUID(std::vector<Mail*>& mails)
 	return false;
 }
 
-bool MailReceiver::retrMail(int i, Mail* mail)
+bool MailReceiver::retrMail(size_t i, Mail* mail)
 {
 	report("retrMail not implemented");
 	return false;

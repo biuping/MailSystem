@@ -24,7 +24,7 @@ public:
 	virtual bool getStatus(int& mailnum, int& totsize);
 	virtual bool getMailListWithSize(std::vector<Mail*>& mails);
 	virtual bool getMailListWithUID(std::vector<Mail*>& mails);
-	virtual bool retrMail(int i, Mail* mail);
+	virtual bool retrMail(size_t i, Mail* mail);
 
 private:
 	virtual void report(const rstring& msg);
