@@ -9,11 +9,6 @@ HttpServerHandler::HttpServerHandler(HttpClient* client) :
 
 HttpServerHandler::~HttpServerHandler()
 {
-	if (m_client != nullptr)
-	{
-		m_client->close();
-		m_client = nullptr;
-	}
 	
 	if (m_readbuff != nullptr)
 	{
