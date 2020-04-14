@@ -38,8 +38,8 @@ public:
 	/* get methods */
 	const mail_header_t& getHeader();
 	const mail_body_t& getBody();
-	int getSize();
-	rstring getUID();
+	const size_t getSize();
+	const rstring& getUID();
 
 	void setHeader(const mail_header_t& header);
 	void setBody(const mail_body_t& body);

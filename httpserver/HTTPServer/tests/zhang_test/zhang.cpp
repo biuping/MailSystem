@@ -1,11 +1,12 @@
 #include "../test.h"
-#include "zhang.h"
+#ifdef ZHANG_TEST
 
+#include "zhang.h"
 
 void start_zhang()
 {
 	HttpSocket socketInit;
-	
+
 	POP3Client* popcli = new POP3Client();
 	rstring mailaddr = TEST_MAIL_ADDR;
 	rstring passwd = TEST_MAIL_PASSWD;
@@ -16,7 +17,7 @@ void start_zhang()
 	/* open and authenticate */
 	if (popcli->open(at) && popcli->authenticate(usr, passwd)) {
 		LogUtil::report("Done");
-		
+
 		/* capa */
 		LogUtil::report("Capabilities: ");
 		slist& capas = popcli->getCapabilities();
@@ -26,12 +27,32 @@ void start_zhang()
 
 		/* stat */
 		size_t mailnum, totsize;
-
 		if (popcli->getStatus(mailnum, totsize)) {
 			rstring info = "mails: ";
 			info += std::to_string(mailnum) + " total size: " + std::to_string(totsize);
 
 			LogUtil::report(info);
+		}
+
+		/* list */
+		std::vector<Mail*> mails;
+		if (popcli->getMailListWithSize(mails)) {
+			for (int i = 0; i < mails.size(); ++i) {
+				rstring info = "mail ";
+				info += std::to_string(i + 1) + ": size " + std::to_string(mails[i]->getSize());
+
+				LogUtil::report(info);
+			}
+		}
+
+		/* uidl */
+		if (popcli->getMailListWithUID(mails)) {
+			for (int i = 0; i < mails.size(); ++i) {
+				rstring info = "mail ";
+				info += std::to_string(i + 1) + ": uid " + mails[i]->getUID();
+
+				LogUtil::report(info);
+			}
 		}
 	}
 	else {
@@ -40,3 +61,6 @@ void start_zhang()
 
 	delete popcli;
 }
+
+
+#endif // ZHANG_TEST

@@ -4,7 +4,7 @@
 #ifdef _DEBUG
 bool LogUtil::_trace(const rstring& msg)
 {
-	rstring output = "\n Log ===>" + msg + '\n';
+	rstring output = "\nLog ===> " + msg + '\n';
 	OutputDebugStringA(output.c_str());
 
 	return true;
