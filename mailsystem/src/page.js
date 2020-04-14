@@ -13,9 +13,7 @@ Vue.use(VueRouter)
 var router = new VueRouter({
     routes:[
         {path:'/sendmail',component:sendmail},
-        {path:'/mailbox',component:mailbox,children:[
-            {path:'/:id',component:mail}
-        ]},
+        {path:'/mailbox',component:mailbox},
         {path:'/draft',component:draft}
     ]
 })
@@ -27,13 +25,17 @@ var vm=new Vue({
     },
     methods:{
         show:function(){
-            if(this.flag){
-                this.flag=false
-                this.flag=true
-            }else{
-                this.flag=true
-            }
-            
+            // if(this.flag){
+            //     this.flag=false
+            //     this.flag=true
+            // }else{
+            //     this.flag=true
+            // }
+            console.log('click')
+        },
+        rebackMail:function(){
+            console.log('click')
+            this.$refs.main_frame.backMailBox()
         }
     },
     router:router
