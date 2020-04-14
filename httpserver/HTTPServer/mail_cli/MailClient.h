@@ -1,6 +1,7 @@
 #ifndef _MAIL_CLIENT_H_
 #define _MAIL_CLIENT_H_
 
+#include <vector>
 #include "MailReceiver.h"
 #include "MailSender.h"
 
@@ -20,9 +21,10 @@ public:
 	MailSender* getSender();
 
 	/* mail interfaces */
-	std::list<Mail*>& recvAll();
-	std::list<mail_header_t&>& recvHeaders();
-	bool sendMail(Mail* mail);
+	// std::vector<Mail*>& recvAll();
+	// std::vector<mail_header_t&>& recvHeaders();
+	// bool sendMail(Mail* mail);
+
 private:
 	MailReceiver* mReceiver;
 	MailSender* mSender;

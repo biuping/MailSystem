@@ -23,15 +23,23 @@ public:
 	POP3Client(const POP3Client& pop3cli);
 	virtual ~POP3Client();
 
-	bool open(const rstring& at);
-	bool open(const rstring& at, USHORT port);
-	bool authenticate(const rstring& usr, const rstring& passwd);
-	void collectmail();
-	void logout();
+	/* interfaces implemented */
+	virtual bool open(const rstring& at);
+	virtual bool open(const rstring& at, USHORT port);
+	virtual void close();
+	virtual bool alive();
+	virtual bool authenticate(const rstring& usr, const rstring& passwd);
+	virtual bool getStatus(size_t& mailnum, size_t& totsize);
+	virtual bool getMailListWithSize(std::vector<Mail*>& mails);
+	virtual bool getMailListWithUID(std::vector<Mail*>& mails);
+	virtual bool retrMail(int i, Mail* mail);
+
+	slist& getCapabilities();
 
 private:
 	TCPClientSocket* mConn;		// 套接字
-	POP3State mState;			// 会话状态	
+	POP3State mState;			// 会话状态
+	slist capabilities;			// 兼容性
 
 
 	inline char* prefix(const char* host);
@@ -41,6 +49,7 @@ private:
 	inline int cmdWithSingLineReply(const char* cmd, char** reply, int* outlen);
 	inline int cmdWithMultiLinesReply(const char* cmd, const char* ends, char** reply, int* outlen);
 
+	int conn(const char* addr, USHORT port, char** reply = nullptr, int* outlen = nullptr);
 	/* command list */
 	int user(const char* usr, char** reply = nullptr, int* outlen = nullptr);
 	int pass(const char* passwd, char** reply = nullptr, int* outlen = nullptr);
