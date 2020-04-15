@@ -78,7 +78,7 @@ int HttpServer::start_non_block(int backlog)
 	}
 
 	HttpClient* client;
-	HttpServerHandler* handler;
+	HttpServerHandler handler;
 
 	SOCKET max_sd, new_sd; //记录最大描述符和新建描述符
 	int  desc_ready, rc = 0;
@@ -120,7 +120,6 @@ int HttpServer::start_non_block(int backlog)
 			{
 				//可用数量-1
 				desc_ready -= 1;
-				close_conn = false;
 
 				//有可用连接
 				if (i == listen_sd)
@@ -152,12 +151,10 @@ int HttpServer::start_non_block(int backlog)
 				else
 				{
 					client = new HttpClient(i);
-					handler = new HttpServerHandler(client);
-					handler->handle_client();
-					close_conn = true;
+					handler.set_client(client);
+					handler.handle_client();
 
 					client->close();
-					delete handler;
 					FD_CLR(i, &master_set);
 					if (i == max_sd)
 					{

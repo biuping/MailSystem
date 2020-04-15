@@ -1,6 +1,12 @@
 #include "HttpServerHandler.h"
 
 
+HttpServerHandler::HttpServerHandler()
+{
+	m_client = nullptr;
+	m_readbuff = nullptr;
+}
+
 HttpServerHandler::HttpServerHandler(HttpClient* client) :
 	m_client(client)
 {
@@ -29,7 +35,7 @@ void HttpServerHandler::handle_client()
 		len = m_client->recv(temp_buff, DEFAULT_BUFF_SIZE, 0);
 		if (len == 0)
 		{
-			Tools::report("connection closed");
+			Tools::report("Connection Closed");
 			break;
 		}
 		else if (len == SOCKET_ERROR)
@@ -74,41 +80,68 @@ void HttpServerHandler::handle_client()
 	}
 }
 
+void HttpServerHandler::set_client(HttpClient* client)
+{
+	m_client = client;
+}
+
 HttpResponse* HttpServerHandler::handle_request(HttpRequest& request)
 {
 
 	const rstring& method = request.method();
 	const rstring& url = request.url();
-
-	const rstring& content_type = request.head_content(HTTP_HEAD_CONTENT_TYPE);
-	if (content_type.find(HTTP_HEAD_JSON_TYPE) != content_type.npos)
-	{
-		Tools::report(HTTP_HEAD_JSON_TYPE);
-	}
-	else if (content_type.find(HTTP_HEAD_FORM_TYPE) != content_type.npos)
-	{
-		Tools::report(HTTP_HEAD_FORM_TYPE);
-	}
-	else
-	{
-		Tools::report("Unknown content type");
-		return nullptr;
-	}
+	
 
 	HttpResponse* response = new HttpResponse();
+	Json::Value object;
+	Json::String err;
 
-	rstring write_res;
-	Json::Value root;
-	root["null"] = NULL;			//注意此处在输出是显示为0，而非null
-	root["message"] = "OK";
-	root["age"] = 52;
-	root["array"].append("arr");	// 新建一个key为array，类型为数组，对第一个元素赋值为字符串“arr”
-	root["array"].append(123);		// 为数组 key_array 赋值，对第二个元素赋值为：123
-	Tools::json_write(root, write_res);
+	if (method.compare("POST") == 0)
+	{	
+		const rstring& content_type = request.head_content(HTTP_HEAD_CONTENT_TYPE);
+		//处理post消息体
+		if (content_type.find(HTTP_HEAD_JSON_TYPE) != content_type.npos)
+		{
+			
+			Tools::json_read(request.body(), request.body_len(), object, err);
+			
+		}
+		else if (content_type.find(HTTP_HEAD_FORM_TYPE) != content_type.npos)
+		{
+			//TODO： 处理form-data
+			Tools::report(HTTP_HEAD_FORM_TYPE);
+		}
+		else
+		{
+			response->set_common();
+			response->set_status("400", "Unknown content type");
+		}
+	}
 
-	response->build_ok();
-	response->build_body(write_res);
-	response->add_head(HTTP_HEAD_CONTENT_TYPE, HTTP_HEAD_JSON_TYPE);
+	//处理url
+	if (url.compare(HTTP_URL_LOGIN)==0)
+	{
+
+		response->build_ok();
+		response->add_head(HTTP_HEAD_CONTENT_TYPE, HTTP_HEAD_JSON_TYPE);
+	}
+	else if (url.compare(HTTP_URL_SEND_NO_ATTACH) == 0)
+	{
+
+	}
+	else if (url.compare(HTTP_URL_RECV_NO_ATTACH) == 0)
+	{
+
+	}
+	else if (url.compare(HTTP_URL_DELETE_MAIL) == 0)
+	{
+
+	}
+	else 
+	{
+		response->build_not_found();
+	}
+
 
 	return response;
 }

@@ -48,6 +48,7 @@ void Tools::json_write(Json::Value& root,rstring& res, bool beautify)
 	std::ostringstream os;
 	json_writer->write(root, &os);
 	res = os.str();
+
 }
 
 size_t Tools::cal_len(const char* start, const char* end)
