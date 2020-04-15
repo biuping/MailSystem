@@ -11,6 +11,7 @@ MIMEParser::~MIMEParser()
 {
 }
 
+// singleton
 MIMEParser* MIMEParser::instance()
 {
 	if (MIMEParser::mInstance == nullptr) {
@@ -20,6 +21,9 @@ MIMEParser* MIMEParser::instance()
 	return MIMEParser::mInstance;
 }
 
+// 解析邮件原始字符串，返回邮件内容
+// raw: 邮件原始字符串
+// mail: 邮件指针
 void MIMEParser::parseMail(const rstring& raw, Mail* mail)
 {
 	// 寻找信头信体空行分隔
@@ -38,19 +42,24 @@ void MIMEParser::parseMail(const rstring& raw, Mail* mail)
 	}
 	// 解析信体部分
 	size_t endpos = raw.find("\r\n.\r\n");
+	// 去掉结尾点之后的内容
 	parseBody(begin + pos + 4, endpos == rstring::npos ? end : begin + endpos + 2, body);
 
 	mail->setHeader(header);
 	mail->setBody(body);
 }
 
+// 解析信头
+// begin: 字符串开始位置const_iterator
+// end: 字符串结束位置const_iterator
+// header: 信头结构引用
 void MIMEParser::parseHeader(const str_citer& begin, const str_citer& end, mail_header_t& header)
 {
-	kv_t field;
-	size_t sz = 0;
+	str_kv_t field;			// 字段
+	size_t sz = 0;		// 辅助迭代器进行定位，已读字符数
 
 	while (begin + sz < end) {
-		// 取出一对字段
+		// 取出一个字段
 		size_t temp = extractField(begin + sz, end, field);
 		if (temp == 0) {
 			break;
@@ -60,11 +69,19 @@ void MIMEParser::parseHeader(const str_citer& begin, const str_citer& end, mail_
 	}
 }
 
+// 解析信体
+// begin: 字符串开始位置const_iterator
+// end: 字符串结束位置const_iterator
+// body: 信体结构引用
 void MIMEParser::parseBody(const str_citer& begin, const str_citer& end, mail_body_t& body)
 {
 	body.message = rstring(begin, end);
 }
 
+// 跳过空白字符
+// begin: 字符串开始位置const_iterator
+// end: 字符串结束位置const_iterator
+// return: 跳过的字符数
 size_t MIMEParser::skipWhiteSpaces(const str_citer& begin, const str_citer& end)
 {
 	size_t tot = 0;
@@ -79,7 +96,7 @@ size_t MIMEParser::skipWhiteSpaces(const str_citer& begin, const str_citer& end)
 // begin: 原始字符串
 // field: 将字段放入该结构内
 // return: 返回该字段在原始字符串中的长度
-size_t MIMEParser::extractField(const str_citer& begin, const str_citer& end, kv_t& field)
+size_t MIMEParser::extractField(const str_citer& begin, const str_citer& end, str_kv_t& field)
 {
 	if (*begin == '\r') {
 		// 出现空行
@@ -107,9 +124,9 @@ size_t MIMEParser::extractField(const str_citer& begin, const str_citer& end, kv
 		char ch = *(begin + keysz + valsz);
 		if (ch == '\r') {
 			field.second.append(rstring(begin + keysz, begin + keysz + valsz));
-			// 跳过换行符
+			// unfolding，跳过换行符
 			valsz += 2;
-
+			// 包含空白符则表示有多行值
 			if (skipWhiteSpaces(begin + keysz + valsz, end) > 0) {
 				continue;
 			}
@@ -124,7 +141,10 @@ size_t MIMEParser::extractField(const str_citer& begin, const str_citer& end, kv
 	return keysz + valsz;
 }
 
-void MIMEParser::setHeaderField(mail_header_t& header, const kv_t& field)
+// 通过字段名设置信头不同属性
+// header: 信头结构引用
+// field: 字段键值对
+void MIMEParser::setHeaderField(mail_header_t& header, const str_kv_t& field)
 {
 	// 字段名
 	rstring key = field.first;
@@ -142,26 +162,41 @@ void MIMEParser::setHeaderField(mail_header_t& header, const kv_t& field)
 	else if (_strnicmp(key.c_str(), "To", 2) == 0) {
 		setTo(header, field.second);
 	}
+	else if (_strnicmp(key.c_str(), "Content-Type", 12) == 0) {
+		setContentType(header, field.second);
+	}
 	else {
 		setOthers(header, key, field.second);
 	}
 }
 
+// 根据原始主题字符串设置信头主题属性
+// header: 信头结构引用
+// subject: 主题原始字符串
 void MIMEParser::setSubject(mail_header_t& header, const rstring& subject)
 {
 	header.subject = subject;
 }
 
+// 根据原始日期字符串设置信头日期属性
+// header: 信头结构引用
+// date: 日期原始字符串
 void MIMEParser::setDate(mail_header_t& header, const rstring& date)
 {
 	header.date = date;
 }
 
+// 根据原始发件人字符串设置信头发件人属性
+// header: 信头结构引用
+// from: 发件人原始字符串
 void MIMEParser::setFrom(mail_header_t& header, const rstring& from)
 {
 	header.from = from;
 }
 
+// 根据原始收件人字符串设置信头收件人属性
+// header: 信头结构引用
+// to: 收件人原始字符串
 void MIMEParser::setTo(mail_header_t& header, const rstring& to)
 {
 	// TODO: to 可能有多个
@@ -169,6 +204,15 @@ void MIMEParser::setTo(mail_header_t& header, const rstring& to)
 	header.to.push_back(to);
 }
 
+void MIMEParser::setContentType(mail_header_t& header, const rstring& contentType)
+{
+	header.content_type = contentType;
+}
+
+// 根据原始其他字段的字段名和值字符串设置信头属性
+// header: 信头结构引用
+// key: 字段名
+// val: 字段值原始字符串
 void MIMEParser::setOthers(mail_header_t& header, const rstring & key, const rstring & val)
 {
 	header.xfields.insert(std::make_pair(key, val));

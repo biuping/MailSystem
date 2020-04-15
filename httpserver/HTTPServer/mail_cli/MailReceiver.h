@@ -25,6 +25,8 @@ public:
 	virtual bool getMailListWithSize(std::vector<Mail*>& mails);
 	virtual bool getMailListWithUID(std::vector<Mail*>& mails);
 	virtual bool retrMail(size_t i, Mail* mail);
+	virtual bool deleteMail(size_t i);
+	virtual bool deleteMail(rstring uid);
 
 private:
 	virtual void report(const rstring& msg);

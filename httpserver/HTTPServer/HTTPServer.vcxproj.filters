@@ -102,6 +102,15 @@
     <ClCompile Include="mail_cli\mime\MIMEParser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="mail_cli\mime\MIMEDecoder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="tools\CharsetUtils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="tools\GeneralUtils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="tools\EncodeUtils.h">
@@ -168,6 +177,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="mail_cli\mime\MIMEParser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mail_cli\mime\MIMEDecoder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="tools\CharsetUtils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="tools\GeneralUtils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

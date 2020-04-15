@@ -4,7 +4,7 @@
 #include "../Mail.h"
 #include <utility>
 
-typedef std::pair<rstring, rstring> kv_t;
+typedef std::pair<rstring, rstring> str_kv_t;
 typedef rstring::const_iterator str_citer;
 
 
@@ -23,13 +23,14 @@ private:
 	~MIMEParser();
 
 	static MIMEParser* mInstance;
+	/* constants */
 	const char* illegalChars = "\"*?<>:\\/|";
 	const char* whitespaces = " \t";
 
 	size_t skipWhiteSpaces(const str_citer& begin, const str_citer& end);
 
-	size_t extractField(const str_citer& begin, const str_citer& end, kv_t& field);
-	void setHeaderField(mail_header_t& header, const kv_t& field);
+	size_t extractField(const str_citer& begin, const str_citer& end, str_kv_t& field);
+	void setHeaderField(mail_header_t& header, const str_kv_t& field);
 
 	/* header fields setters */
 	/* set specific fields */
@@ -37,6 +38,7 @@ private:
 	void setDate(mail_header_t& header, const rstring& date);
 	void setFrom(mail_header_t& header, const rstring& from);
 	void setTo(mail_header_t& header, const rstring& to);
+	void setContentType(mail_header_t& header, const rstring& contentType);
 	/* set non-standard(extended) fields */
 	void setOthers(mail_header_t& header, const rstring & key, const rstring & val);
 };

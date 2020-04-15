@@ -34,6 +34,18 @@ bool MailReceiver::retrMail(size_t i, Mail* mail)
 	return false;
 }
 
+bool MailReceiver::deleteMail(size_t i)
+{
+	report("deleteMail i not implemented");
+	return false;
+}
+
+bool MailReceiver::deleteMail(rstring uid)
+{
+	report("deleteMail uid not implemented");
+	return false;
+}
+
 void MailReceiver::report(const rstring& msg)
 {
 	LogUtil::report("MailReceiver " + msg);
