@@ -29,10 +29,13 @@ public:
 	virtual void close();
 	virtual bool alive();
 	virtual bool authenticate(const rstring& usr, const rstring& passwd);
+
 	virtual bool getStatus(size_t& mailnum, size_t& totsize);
 	virtual bool getMailListWithSize(std::vector<Mail*>& mails);
 	virtual bool getMailListWithUID(std::vector<Mail*>& mails);
 	virtual bool retrMail(size_t i, Mail* mail);
+	virtual bool deleteMail(size_t i);
+	virtual bool deleteMail(rstring uid);
 
 	slist& getCapabilities();
 
@@ -41,6 +44,7 @@ private:
 	POP3State mState;			// 会话状态
 	slist capabilities;			// 兼容性
 
+	size_t getNo(const rstring& uid);
 
 	inline char* prefix(const char* host);
 	
@@ -58,9 +62,9 @@ private:
 	int noop(char** reply = nullptr, int* outlen = nullptr);
 	int stat(char** reply, int* outlen);
 	int list(char** reply, int* outlen, int no = -1);
-	int retr(char** reply, int* outlen, int no);
-	int top(char** reply, int* outlen, int no, int lines = 0);
-	int dele(int no, char** reply = nullptr, int* outlen = nullptr);
+	int retr(char** reply, int* outlen, size_t no);
+	int top(char** reply, int* outlen, size_t no, size_t lines = 0);
+	int dele(size_t no, char** reply = nullptr, int* outlen = nullptr);
 	int rest(char** reply = nullptr, int* outlen = nullptr);
 	int uidl(char** reply, int* outlen, int no = -1);
 	int capa(char** reply, int* outlen);

@@ -23,6 +23,7 @@ private:
 	~MIMEParser();
 
 	static MIMEParser* mInstance;
+	/* constants */
 	const char* illegalChars = "\"*?<>:\\/|";
 	const char* whitespaces = " \t";
 
@@ -37,6 +38,7 @@ private:
 	void setDate(mail_header_t& header, const rstring& date);
 	void setFrom(mail_header_t& header, const rstring& from);
 	void setTo(mail_header_t& header, const rstring& to);
+	void setContentType(mail_header_t& header, const rstring& contentType);
 	/* set non-standard(extended) fields */
 	void setOthers(mail_header_t& header, const rstring & key, const rstring & val);
 };

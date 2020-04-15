@@ -154,12 +154,26 @@ slist& POP3Client::getCapabilities()
 // 返回连接是否保持
 bool POP3Client::alive()
 {
+    if (mState != POP3State::Transaction) {
+        // 不处于事务状态
+        rstring errstr = "noop not available in state ";
+        errstr += static_cast<int>(mState);
+        report(errstr);
+    }
+
     return this->noop() == 0;
 }
 
 // 返回邮箱状态
 bool POP3Client::getStatus(size_t& mailnum, size_t& totsize)
 {
+    if (mState != POP3State::Transaction) {
+        // 不处于事务状态
+        rstring errstr = "status showing not available in state ";
+        errstr += static_cast<int>(mState);
+        report(errstr);
+    }
+
     char* reply = nullptr;		// 回复
     char buf[10];				// 回复OK缓冲区
     int replyLen, statRet;		// 回复使用的内存大小，stat返回值
@@ -185,6 +199,13 @@ bool POP3Client::getStatus(size_t& mailnum, size_t& totsize)
 // mails: 邮件列表，为空则进行扩展，否则需要与邮件总数保持一致
 bool POP3Client::getMailListWithSize(std::vector<Mail*>& mails)
 {
+    if (mState != POP3State::Transaction) {
+        // 不处于事务状态
+        rstring errstr = "list not available in state ";
+        errstr += static_cast<int>(mState);
+        report(errstr);
+    }
+
     char* reply;
     char buf[10];
     int replyLen, listRet;
@@ -224,8 +245,12 @@ bool POP3Client::getMailListWithSize(std::vector<Mail*>& mails)
             // 获取下一行的
             char* ptemp = strstr(p + 2, "\r\n");
             _snscanf(p, ptemp - p, "%u %u", &no, &eachsize);
-            no = no > 0 ? no - 1 : no;		// for safety
-            mails[no]->setSize(eachsize);
+            // 为空则分配新资源
+            if (mails[no-1] == nullptr) {
+                // 序号从1开始
+                mails[no-1] = new Mail();
+            }
+            mails[no-1]->setSize(eachsize);
 
             p = ptemp + 2;		// 下一行
         }
@@ -245,6 +270,13 @@ bool POP3Client::getMailListWithSize(std::vector<Mail*>& mails)
 // mails: 邮件列表，为空则进行扩展，否则需要与邮件总数保持一致
 bool POP3Client::getMailListWithUID(std::vector<Mail*>& mails)
 {
+    if (mState != POP3State::Transaction) {
+        // 不处于事务状态
+        rstring errstr = "uid list not available in state ";
+        errstr += static_cast<int>(mState);
+        report(errstr);
+    }
+
     char* reply;
     char buf[10];
     int replyLen, uidlRet;
@@ -285,8 +317,12 @@ bool POP3Client::getMailListWithUID(std::vector<Mail*>& mails)
             // 获取下一行的
             char* ptemp = strstr(p + 2, "\r\n");
             _snscanf(p, ptemp - p, "%u %s", &no, uid);
-            no = no > 0 ? no - 1 : no;		// for safety
-            mails[no]->setUID(uid);
+            // 为空则分配新资源
+            if (mails[no-1] == nullptr) {
+                // 邮件序号从1开始
+                mails[no-1] = new Mail();
+            }
+            mails[no-1]->setUID(uid);
 
             p = ptemp + 2;		// 下一行
         }
@@ -302,14 +338,25 @@ bool POP3Client::getMailListWithUID(std::vector<Mail*>& mails)
     return ret;
 }
 
+// 取回第 i 封邮件
+// i: 邮件序号，从0开始
+// mail: 邮件指针
 bool POP3Client::retrMail(size_t i, Mail* mail)
 {
+    if (mState != POP3State::Transaction) {
+        // 不处于验证状态
+        rstring errstr = "mail retrieving not available in state ";
+        errstr += static_cast<int>(mState);
+        report(errstr);
+    }
+
     char* reply;
     char okBuf[10], octetsBuf[20];
     int replyLen, retrRet;
     size_t mailsize;
     bool ret = false;
 
+    // i+1 为取邮件时使用的序号
     if ((retrRet = retr(&reply, &replyLen, i+1)) == 0) {
         ret = true;
 
@@ -322,9 +369,111 @@ bool POP3Client::retrMail(size_t i, Mail* mail)
     }
     else {
         // 报告错误信息
-        rstring errstr = "retrive mail failed: ";
+        rstring errstr = "retrieve mail failed: ";
         errstr.append(retrRet > 0 ? reply : "IO error");
         report(errstr);
+    }
+
+    free(reply);
+    return ret;
+}
+
+// 删除第 i 封邮件，删除邮件后列表变更，注意及时更新邮件列表
+// i: 邮件序号，从0开始
+bool POP3Client::deleteMail(size_t i)
+{
+    if (mState != POP3State::Transaction) {
+        // 不处于验证状态
+        rstring errstr = "mail deleting not available in state ";
+        errstr += static_cast<int>(mState);
+        report(errstr);
+    }
+
+    char* reply;
+    char okBuf[10], octetsBuf[20];
+    int replyLen, deleRet;
+    size_t mailsize;
+    bool ret = false;
+
+    // i+1 为删除邮件所使用的序号
+    if ((deleRet = dele(i + 1, &reply, &replyLen)) == 0) {
+        // 删除成功
+        ret = true;
+
+        rstring msg = "mail ";
+        msg.append(std::to_string(i + 1));
+        msg.append(" deleted");
+        report(msg);
+    }
+    else {
+        // 报告错误信息
+        rstring errstr = "delete mail ";
+        errstr.append(std::to_string(i + 1));
+        errstr.append(" failed: ");
+        errstr.append(deleRet > 0 ? reply : "IO error");
+        report(errstr);
+    }
+
+    free(reply);
+    return ret;
+}
+
+// 删除指定 UID 的邮件，删除后列表变更，注意及时更新邮件列表
+// uid: 邮件 Unique ID
+bool POP3Client::deleteMail(rstring uid)
+{
+    if (mState != POP3State::Transaction) {
+        // 不处于验证状态
+        rstring errstr = "mail deleting not available in state ";
+        errstr += static_cast<int>(mState);
+        report(errstr);
+    }
+
+    size_t no = this->getNo(uid);
+    if (no == 0) {
+        // 没有找到这样一封信，报告错误信息
+        rstring errstr = "delete mail ";
+        errstr.append(uid);
+        errstr.append(" failed: cannot find such a mail or encounter an IO error");
+        report(errstr);
+
+        return false;
+    }
+
+    return this->deleteMail(no - 1);
+}
+
+// 获取 uid 对应邮件的邮件序号
+// uid: 邮件uid字符串
+size_t POP3Client::getNo(const rstring& uid)
+{
+    char* reply;
+    char buf[10];
+    int replyLen, uidlRet;
+    size_t mailnum, totsize;
+    size_t ret = 0;
+
+    if ((uidlRet = this->uidl(&reply, &replyLen)) == 0) {
+        // 解析命令返回字符串
+        char* p = strstr(reply, "\r\n");		// 第一行状态行
+        _snscanf(reply, p - reply, "%s %u %u", buf, &mailnum, &totsize);
+
+        size_t no;
+        char _uid[BUFFER_SIZE];
+        p += 2;
+        // 读取每一行的数据
+        for (size_t i = 0; i < mailnum; ++i) {
+            // 获取下一行的
+            char* ptemp = strstr(p + 2, "\r\n");
+            _snscanf(p, ptemp - p, "%u %s", &no, _uid);
+            
+            if (uid.compare(_uid) == 0) {
+                ret = no;
+                break;
+            }
+
+            p = ptemp + 2;		// 下一行
+        }
     }
 
     free(reply);
@@ -636,10 +785,10 @@ int POP3Client::list(char** reply, int* outlen, int no)
 //		  使用完毕应使用free()清除
 // outlen: 为给 reply 分配的内存空间的大小，一定为 BUFFER_SIZE 的倍数 + 1（可能多余实际长度）
 // 正常回复返回0，回复错误返回1，读写错误及内存分配失败返回-1
-int POP3Client::retr(char** reply, int* outlen, int no)
+int POP3Client::retr(char** reply, int* outlen, size_t no)
 {
     char buf[BUFFER_SIZE];		// 缓冲区
-    sprintf(buf, "RETR %d\r\n", no);
+    sprintf(buf, "RETR %u\r\n", no);
 
     return cmdWithMultiLinesReply(buf, "\r\n.\r\n", reply, outlen);
 }
@@ -650,10 +799,10 @@ int POP3Client::retr(char** reply, int* outlen, int no)
 // outlen: 为给 reply 分配的内存空间的大小，一定为 BUFFER_SIZE 的倍数 + 1（可能多余实际长度）
 // no: 指定返回特定序号邮件的相关内容
 // 正常回复返回0，回复错误返回1，读写错误及内存分配失败返回-1
-int POP3Client::top(char** reply, int* outlen, int no, int lines)
+int POP3Client::top(char** reply, int* outlen, size_t no, size_t lines)
 {
     char buf[BUFFER_SIZE];		// 缓冲区
-    sprintf(buf, "TOP %d %d\r\n", no, lines);
+    sprintf(buf, "TOP %u %u\r\n", no, lines);
 
     return cmdWithMultiLinesReply(buf, "\r\n.\r\n", reply, outlen);
 }
@@ -665,11 +814,11 @@ int POP3Client::top(char** reply, int* outlen, int no, int lines)
 //		  使用完毕应使用free()清除
 // outlen: 配合 reply 输出新分配空间的大小
 // 正常回复返回 0，命令回复错误返回 1，读写错误或无回复或内存分配失败返回 -1
-int POP3Client::dele(int no, char** reply, int* outlen)
+int POP3Client::dele(size_t no, char** reply, int* outlen)
 {
     char buf[BUFFER_SIZE];		// 缓冲区
 
-    sprintf(buf, "DELE %d\r\n", no);		// PASS 命令放入缓冲区
+    sprintf(buf, "DELE %u\r\n", no);		// PASS 命令放入缓冲区
 
     return cmdWithSingLineReply(buf, reply, outlen);
 }

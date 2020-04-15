@@ -1,8 +1,9 @@
 #include "EncodeUtils.h"
+#include "CharsetUtils.h"
 
 
 // encode 'text' into base64 str into 'buf'
-const char* base64_encode(const unsigned char* text, int size, char* buf, int* out_len)
+const char* EncodeUtil::base64_encode(const unsigned char* text, int size, char* buf, int* out_len)
 {
     char* head_buf = buf;
     static const char* base64_encoding =
@@ -67,7 +68,7 @@ char GetBase64Value(char ch)
 }
 
 // decode base64 str 'text' into 'buf'
-int base64_decode(const char* text, int size, char* buf)
+int EncodeUtil::base64_decode(const char* text, int size, char* buf)
 {
     if (size % 4)
         return -1;
@@ -89,4 +90,28 @@ int base64_decode(const char* text, int size, char* buf)
         parsenum += 3;
     }
     return parsenum;
+}
+
+const rstring EncodeUtil::encodeAsciiWithCharset(const rstring& asciitext, const rstring& charset)
+{
+    if (_strnicmp(charset.c_str(), "binary", 6) == 0 ||
+        _strnicmp(charset.c_str(), "US-ASCII", 8) == 0) {
+        // ascii
+        return asciitext;
+    }
+    else if (_strnicmp(charset.c_str(), "UTF-8", 5) == 0) {
+        // utf8
+        return CharsetUtil::AnsiToUtf8(asciitext);
+    }
+    else if (_strnicmp(charset.c_str(), "gb2312", 6) == 0) {
+        // gb2312
+        return CharsetUtil::UnicodeToUtf8(CharsetUtil::AnsiToUnicode(asciitext));
+    }
+    else if (_strnicmp(charset.c_str(), "GBK", 3) == 0) {
+        // gbk
+        return CharsetUtil::Utf8ToGBK(CharsetUtil::AnsiToUtf8(asciitext));
+    }
+    else {
+        return asciitext;
+    }
 }

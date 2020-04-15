@@ -42,6 +42,7 @@ void MIMEParser::parseMail(const rstring& raw, Mail* mail)
 	}
 	// 解析信体部分
 	size_t endpos = raw.find("\r\n.\r\n");
+	// 去掉结尾点之后的内容
 	parseBody(begin + pos + 4, endpos == rstring::npos ? end : begin + endpos + 2, body);
 
 	mail->setHeader(header);
@@ -58,7 +59,7 @@ void MIMEParser::parseHeader(const str_citer& begin, const str_citer& end, mail_
 	size_t sz = 0;		// 辅助迭代器进行定位，已读字符数
 
 	while (begin + sz < end) {
-		// 取出一对字段
+		// 取出一个字段
 		size_t temp = extractField(begin + sz, end, field);
 		if (temp == 0) {
 			break;
@@ -123,7 +124,7 @@ size_t MIMEParser::extractField(const str_citer& begin, const str_citer& end, st
 		char ch = *(begin + keysz + valsz);
 		if (ch == '\r') {
 			field.second.append(rstring(begin + keysz, begin + keysz + valsz));
-			// 跳过换行符
+			// unfolding，跳过换行符
 			valsz += 2;
 			// 包含空白符则表示有多行值
 			if (skipWhiteSpaces(begin + keysz + valsz, end) > 0) {
@@ -160,6 +161,9 @@ void MIMEParser::setHeaderField(mail_header_t& header, const str_kv_t& field)
 	}
 	else if (_strnicmp(key.c_str(), "To", 2) == 0) {
 		setTo(header, field.second);
+	}
+	else if (_strnicmp(key.c_str(), "Content-Type", 12) == 0) {
+		setContentType(header, field.second);
 	}
 	else {
 		setOthers(header, key, field.second);
@@ -198,6 +202,11 @@ void MIMEParser::setTo(mail_header_t& header, const rstring& to)
 	// TODO: to 可能有多个
 	header.to.clear();
 	header.to.push_back(to);
+}
+
+void MIMEParser::setContentType(mail_header_t& header, const rstring& contentType)
+{
+	header.content_type = contentType;
 }
 
 // 根据原始其他字段的字段名和值字符串设置信头属性
