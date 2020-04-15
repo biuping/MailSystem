@@ -4,7 +4,7 @@
 #include "../Mail.h"
 #include <utility>
 
-typedef std::pair<rstring, rstring> kv_t;
+typedef std::pair<rstring, rstring> str_kv_t;
 typedef rstring::const_iterator str_citer;
 
 
@@ -28,8 +28,8 @@ private:
 
 	size_t skipWhiteSpaces(const str_citer& begin, const str_citer& end);
 
-	size_t extractField(const str_citer& begin, const str_citer& end, kv_t& field);
-	void setHeaderField(mail_header_t& header, const kv_t& field);
+	size_t extractField(const str_citer& begin, const str_citer& end, str_kv_t& field);
+	void setHeaderField(mail_header_t& header, const str_kv_t& field);
 
 	/* header fields setters */
 	/* set specific fields */
