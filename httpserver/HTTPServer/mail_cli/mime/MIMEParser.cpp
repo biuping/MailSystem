@@ -1,4 +1,6 @@
 #include "MIMEParser.h"
+#include "../../tools/GeneralUtils.h"
+#include "MIMEDecoder.h"
 
 
 MIMEParser* MIMEParser::mInstance = nullptr;
@@ -98,7 +100,7 @@ size_t MIMEParser::skipWhiteSpaces(const str_citer& begin, const str_citer& end)
 // return: 返回该字段在原始字符串中的长度
 size_t MIMEParser::extractField(const str_citer& begin, const str_citer& end, str_kv_t& field)
 {
-	if (*begin == '\r') {
+	if (*begin == '\r' && begin + 1 < end && *(begin + 1) == '\n') {
 		// 出现空行
 		return 0;
 	}
@@ -121,11 +123,14 @@ size_t MIMEParser::extractField(const str_citer& begin, const str_citer& end, st
 	// 字段值解析
 	field.second.clear();
 	while (begin + keysz + valsz < end) {
-		char ch = *(begin + keysz + valsz);
-		if (ch == '\r') {
+		size_t pos = keysz + valsz;
+
+		if (*(begin + pos) == '\r' && begin + pos + 1 < end && *(begin + pos + 1) == '\n') {
 			field.second.append(rstring(begin + keysz, begin + keysz + valsz));
 			// unfolding，跳过换行符
 			valsz += 2;
+			keysz = keysz + valsz;
+			valsz = 0;
 			// 包含空白符则表示有多行值
 			if (skipWhiteSpaces(begin + keysz + valsz, end) > 0) {
 				continue;
@@ -159,11 +164,26 @@ void MIMEParser::setHeaderField(mail_header_t& header, const str_kv_t& field)
 	else if (_strnicmp(key.c_str(), "From", 4) == 0) {
 		setFrom(header, field.second);
 	}
+	else if (_strnicmp(key.c_str(), "Received", 8) == 0) {
+		setReceived(header, field.second);
+	}
+	else if (_strnicmp(key.c_str(), "Mime-Version", 12) == 0) {
+		setMimeVersion(header, field.second);
+	}
 	else if (_strnicmp(key.c_str(), "To", 2) == 0) {
 		setTo(header, field.second);
 	}
+	else if (_strnicmp(key.c_str(), "Cc", 2) == 0) {
+		setCc(header, field.second);
+	}
+	else if (_strnicmp(key.c_str(), "Bcc", 4) == 0) {
+		setBcc(header, field.second);
+	}
 	else if (_strnicmp(key.c_str(), "Content-Type", 12) == 0) {
 		setContentType(header, field.second);
+	}
+	else if (_strnicmp(key.c_str(), "Content-Transfer-Encoding", 25) == 0) {
+		setContentTransferEncoding(header, field.second);
 	}
 	else {
 		setOthers(header, key, field.second);
@@ -175,7 +195,7 @@ void MIMEParser::setHeaderField(mail_header_t& header, const str_kv_t& field)
 // subject: 主题原始字符串
 void MIMEParser::setSubject(mail_header_t& header, const rstring& subject)
 {
-	header.subject = subject;
+	MIMEDecoder::decodeWord(subject, header.subject);
 }
 
 // 根据原始日期字符串设置信头日期属性
@@ -183,7 +203,8 @@ void MIMEParser::setSubject(mail_header_t& header, const rstring& subject)
 // date: 日期原始字符串
 void MIMEParser::setDate(mail_header_t& header, const rstring& date)
 {
-	header.date = date;
+	header.date = date; 
+	GeneralUtil::strTrim(header.date);
 }
 
 // 根据原始发件人字符串设置信头发件人属性
@@ -191,7 +212,73 @@ void MIMEParser::setDate(mail_header_t& header, const rstring& date)
 // from: 发件人原始字符串
 void MIMEParser::setFrom(mail_header_t& header, const rstring& from)
 {
-	header.from = from;
+	parseSingleMailAddr(from, header.from);
+}
+
+// 根据原始回复字符串设置信头回复属性
+// header: 信头结构引用
+// replyto: 回复原始字符串
+void MIMEParser::setReplyTo(mail_header_t& header, const rstring& replyto)
+{
+	parseSingleMailAddr(replyto, header.reply_to);
+}
+
+// 根据原始sender字符串设置信头sender属性
+// header: 信头结构引用
+// sender: sender原始字符串
+void MIMEParser::setSender(mail_header_t& header, const rstring& sender)
+{
+	parseSingleMailAddr(sender, header.sender);
+}
+
+// 根据原始Received字符串设置信头received属性
+// header: 信头结构引用
+// received: Received原始值
+void MIMEParser::setReceived(mail_header_t& header, const rstring& received)
+{
+	header.received.names.clear();
+
+	rstring recvd = received;
+	GeneralUtil::strTrim(recvd);
+
+	size_t datepos = recvd.rfind(';');
+	if (datepos != rstring::npos) {
+		header.received.date = recvd.substr(datepos + 1);
+		GeneralUtil::strTrim(header.received.date);
+		recvd.erase(datepos);
+	}
+
+	// 保留一个空格
+	recvd = std::regex_replace(recvd, r_regex("\\s+"), " ");
+
+	// 匹配 name value 对
+	r_regex nameValRegex = r_regex(R"(([^\s]+)\s([^\s]+(\s\(.+?\))*))");
+	r_smatch matches;
+	while (std::regex_search(recvd, matches, nameValRegex)) {
+		if (matches.str(1)[0] == '(') {
+			// () 内容表示 comment
+			continue;
+		}
+		
+		rstring name = matches.str(1);
+		rstring val = matches.str(2);
+
+		if (header.received.names.find(name) == header.received.names.end()) {
+			// 新 name
+			header.received.names.emplace(name, val);
+		}
+
+		recvd = matches.suffix();
+	}
+}
+
+// 设置 MIME 协议版本
+// header: 信头结构引用
+// version: mime-version原始值
+void MIMEParser::setMimeVersion(mail_header_t& header, const rstring& version)
+{
+	header.mime_version = version;
+	GeneralUtil::strTrim(header.mime_version);
 }
 
 // 根据原始收件人字符串设置信头收件人属性
@@ -199,14 +286,106 @@ void MIMEParser::setFrom(mail_header_t& header, const rstring& from)
 // to: 收件人原始字符串
 void MIMEParser::setTo(mail_header_t& header, const rstring& to)
 {
-	// TODO: to 可能有多个
 	header.to.clear();
-	header.to.push_back(to);
+	parseRfcMailAddrs(to, header.to);
 }
 
+// 根据原始抄写字符串设置信头抄写属性
+// header: 信头结构引用
+// cc: 抄写原始字符串
+void MIMEParser::setCc(mail_header_t& header, const rstring& cc)
+{
+	header.cc.clear();
+	parseRfcMailAddrs(cc, header.cc);
+}
+
+// 根据原始密送字符串设置信头密送属性
+// header: 信头结构引用
+// bcc: 密送原始字符串
+void MIMEParser::setBcc(mail_header_t& header, const rstring& bcc)
+{
+	header.bcc.clear();
+	parseRfcMailAddrs(bcc, header.bcc);
+}
+
+// 根据原始内容类型字符串设置信头content-type属性
+// header: 信头结构引用
+// contentType: 内容类型原始字符串
 void MIMEParser::setContentType(mail_header_t& header, const rstring& contentType)
 {
-	header.content_type = contentType;
+	str_kvlist params;
+	MIMEDecoder::rfc2231Decode(contentType, params);
+
+	bool mediaSet = false;
+	for (str_kv_t kv : params) {
+		rstring& key = kv.first;
+		rstring& val = kv.second;
+		GeneralUtil::strTrim(key);
+		GeneralUtil::strTrim(val);
+		GeneralUtil::strRemoveQuotes(val);
+		
+		// 解析字段
+		if (key.size() == 0) {
+			// media type
+			if (!mediaSet) {
+				// 检查 illegal type
+				if (_strnicmp(val.c_str(), "text", 4) == 0 ||
+					_strnicmp(val.c_str(), "text/", 5) == 0) {
+					val = "text/plain";
+				}
+
+				cleanMediaType(val);
+				header.content_type.media = val;
+				mediaSet = true;
+			}
+			// else 有多个media type，只使用第一个
+		}
+		else if (_strnicmp(key.c_str(), "boundary", 8) == 0) {
+			// set boundary
+			header.content_type.boundary = val;
+		}
+		else if (_strnicmp(key.c_str(), "charset", 7) == 0) {
+			// set charset
+			header.content_type.charset = val;
+		}
+		else if (_strnicmp(key.c_str(), "name", 4) == 0) {
+			// set name
+			header.content_type.name = val;
+		}
+		else {
+			// add parameters
+			header.content_type.params.emplace(key, val);
+		}
+	}
+}
+
+// 根据原始内容传输编码字符串设置信头相应属性
+// header: 信头结构引用
+// encoding: 内容传输编码原始字符串
+void MIMEParser::setContentTransferEncoding(mail_header_t& header, const rstring& encoding)
+{
+	rstring val = encoding;
+	GeneralUtil::strTrim(val);
+
+	if (_strnicmp(val.c_str(), "7bit", 4) == 0) {
+		header.content_transfer_encoding = "7bit";
+	}
+	else if (_strnicmp(val.c_str(), "8bit", 4) == 0) {
+		header.content_transfer_encoding = "8bit";
+	}
+	else if (_strnicmp(val.c_str(), "quoted-printable", 16) == 0) {
+		header.content_transfer_encoding = "quoted-printable";
+	}
+	else if (_strnicmp(val.c_str(), "base64", 6) == 0) {
+		header.content_transfer_encoding = "base64";
+	}
+	else if (_strnicmp(val.c_str(), "binary", 6) == 0) {
+		header.content_transfer_encoding = "binary";
+	}
+	else {
+		// default use 7bit
+		header.content_transfer_encoding = "7bit";
+	}
 }
 
 // 根据原始其他字段的字段名和值字符串设置信头属性
@@ -216,4 +395,135 @@ void MIMEParser::setContentType(mail_header_t& header, const rstring& contentTyp
 void MIMEParser::setOthers(mail_header_t& header, const rstring & key, const rstring & val)
 {
 	header.xfields.insert(std::make_pair(key, val));
+}
+
+// 解析邮件地址用户名和邮箱地址，可能有多项值
+// raw: 原始字符串
+// addrlist: 邮箱地址列表引用
+void MIMEParser::parseRfcMailAddrs(const rstring& raw, maddr_list& addrlist)
+{
+	// split with ,
+	slist mailaddrs;
+	GeneralUtil::strSplitIgnoreQuoted(raw, ',', mailaddrs);
+
+	// 逐个解析，添加到列表中
+	for (const rstring s : mailaddrs) {
+		mail_addr_t addr;
+		MIMEParser::parseSingleMailAddr(s, addr);
+		addrlist.push_back(addr);
+	}
+}
+
+// 解析单个地址
+// raw: 单地址原始字符串
+// addr: 邮箱地址引用
+void MIMEParser::parseSingleMailAddr(const rstring& raw, mail_addr_t& addr)
+{
+	// 去除空格并解码
+	rstring addrstr = raw;
+	GeneralUtil::strTrim(addrstr);
+	rstring decoded;
+	MIMEDecoder::decodeWord(addrstr, decoded);
+
+	// 去除尾部邮件地址的 <>
+	// 先取最后出现的 <> 位置
+	int lastOpen = decoded.rfind('<');
+	int lastClosed = decoded.rfind('>');
+
+	// 寻找相邻最先出现的 <> 位置
+	int firstOpen = lastOpen;
+	int firstClosed = lastClosed;
+	while (firstOpen > 0 && decoded[firstOpen - 1] == '<' && 
+		decoded[firstClosed - 1] == '>') {
+		--firstOpen;
+		--firstClosed;
+	}
+
+	if (firstOpen != lastOpen) {
+		// multiple brackets
+		// 保留一对 <>
+		decoded = decoded.substr(0, firstOpen) +
+			decoded.substr(lastOpen, firstClosed - lastOpen + 1);
+	}
+
+	// 定位尾部邮件位置
+	int emailstart = decoded.rfind('<');
+	int emailend = decoded.rfind('>');
+
+	addr.name = "";
+	if (emailstart >= 0 && emailend >= 0) {
+		if (emailstart > 0) {
+			// 邮件地址前有用户名信息
+			addr.name = decoded.substr(0, emailstart);
+			GeneralUtil::strTrim(addr.name);
+		}
+
+		addr.addr = decoded.substr(emailstart + 1, emailend - emailstart - 1);
+		GeneralUtil::strTrim(addr.addr);
+	}
+	else {
+		// 认为只包含邮件地址
+		addr.addr = decoded;
+	}
+}
+
+// 清理 media-type 中的非法字符
+void MIMEParser::cleanMediaType(rstring& mediatype)
+{
+	size_t typeEnd = mediatype.find('/');
+	if (typeEnd == rstring::npos || typeEnd == mediatype.size()-1) {
+		// invalid
+		return;
+	}
+
+	// extract type and subtype
+	rstring type = mediatype.substr(0, typeEnd);
+	rstring subtype = mediatype.substr(typeEnd + 1);
+	
+	stripRfc2045TSpecials(type);
+	stripRfc822Ctls(type);
+	GeneralUtil::strReplaceAll(type, " ", "");
+
+	stripRfc2045TSpecials(subtype);
+	stripRfc822Ctls(subtype);
+	GeneralUtil::strReplaceAll(subtype, " ", "");
+
+	// output cleaned
+	mediatype = type + "/" + subtype;
+}
+
+// 清理 Rfc2045 中说明的特殊字符
+void MIMEParser::stripRfc2045TSpecials(rstring& raw)
+{
+	char* buf = new char[raw.size() + 1];
+	int sz = 0;
+	for (size_t i = 0; i < raw.size(); ++i) {
+		if (strchr(tspecials, raw[i]) == nullptr) {
+			buf[sz++] = raw[i];
+		}
+		// else 为非法字符，去除
+	}
+	buf[sz] = '\0';
+	
+	raw = rstring(buf);
+	delete[] buf;
+}
+
+// 清理 Rfc822 中说明的控制字符
+void MIMEParser::stripRfc822Ctls(rstring& raw)
+{
+	char* buf = new char[raw.size() + 1];
+	int sz = 0;
+	for (int i = 0; i < raw.size(); ++i) {
+		if (((char)0 <= raw[i] && (char)31 >= raw[i]) ||
+			(char)127 == raw[i]) {
+			// ASCII Control Chars or Del
+			continue;
+		}
+		buf[sz++] = raw[i];
+	}
+	buf[sz] = '\0';
+
+	raw = rstring(buf);
+	delete[] buf;
 }

@@ -6,14 +6,16 @@
 #include "../../mail_cli/mime/MIMEDecoder.h"
 #include "../../mail_cli/mime/MIMEDecoder.h"
 #include "../../tools/CharsetUtils.h"
+#include "../../tools/GeneralUtils.h"
 
 
 void start_zhang()
 {
-	// pop3_test();
-	// utility_test();
+	pop3_test();
+	//utility_test();
 	//string_test();
-	decode_test();
+	//decode_test();
+	//charset_test();
 }
 
 
@@ -32,6 +34,18 @@ void utility_test()
 	const char* str = "aaa 55";
 	_snscanf(str, strlen(str), "%s %d", buf, &len);
 	LogUtil::report(buf);
+
+	slist strs;
+	GeneralUtil::strSplitIgnoreQuoted("part1=\"12341\"; part2=\"ssadasd\"; part3=8888; ", ';', strs);
+	for (rstring s : strs) {
+		LogUtil::report(s);
+	}
+
+	rstring tstr = "    acccd";
+	GeneralUtil::strTrim(tstr);
+	LogUtil::report(tstr);
+
+	LogUtil::report(GeneralUtil::strEndsWith(tstr, "dccd") ? "true" : "false");
 }
 
 
@@ -50,8 +64,11 @@ void string_test()
 // 解码工具测试
 void decode_test()
 {
-	rstring test;
-	MIMEDecoder::decodeWord("=?UTF-8?Q?a?= =?UTF-8?Q?a?= =?UTF-8?Q?a?=", test);
+	/*rstring test;
+	MIMEDecoder::decodeWord("=?UTF-8?Q?a?= =?UTF-8?Q?a?= =?UTF-8?Q?a?=", test);*/
+
+	str_kvlist kvs;
+	MIMEDecoder::rfc2231Decode("text/plain charset=\"iso-8859-1\" name=\"somefile.txt\" attachment; files", kvs);
 }
 
 
@@ -83,8 +100,6 @@ void charset_test()
 
 	gbk = Utf8ToGBK(utf8); showHex("gbk", gbk);
 	utf8 = GBKToUtf8(gbk); showHex("utf8", utf8);
-
-	getchar();
 }
 
 // pop3 功能测试
@@ -141,7 +156,7 @@ void pop3_test()
 		}
 
 		/* retr */
-		if (popcli->retrMail(0, mails[0])) {
+		if (popcli->retrMail(2, mails[2])) {
 			LogUtil::report("Mail 1 subject: ");
 			LogUtil::report(mails[0]->getHeader().subject);
 			LogUtil::report(mails[0]->getBody().message);

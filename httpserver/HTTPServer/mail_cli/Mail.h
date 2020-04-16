@@ -12,12 +12,41 @@ typedef std::map<rstring, rstring> str_kvmap;
 
 
 typedef struct {
-	rstring from;
+	rstring name;
+	rstring addr;
+} mail_addr_t;
+
+typedef std::list<mail_addr_t> maddr_list;
+
+typedef struct {
+	rstring media;
+	rstring boundary;
+	rstring charset;
+	rstring name;
+	str_kvmap params;
+} mail_content_type_t;
+
+typedef struct {
+	rstring date;
+	str_kvmap names;
+} received_t;
+
+typedef struct {
+	mail_addr_t from;
 	rstring subject;
 	rstring date;
-	rstring content_type;
-	slist to;
-	str_kvmap xfields;		// other extended fields
+	mail_addr_t	reply_to;
+	mail_addr_t sender;
+	rstring mime_version;
+	rstring content_transfer_encoding;
+	mail_content_type_t content_type;
+	maddr_list to;
+	maddr_list cc;
+	maddr_list bcc;
+	received_t received;
+
+	// other fields
+	str_kvmap xfields;
 } mail_header_t;
 
 typedef struct {

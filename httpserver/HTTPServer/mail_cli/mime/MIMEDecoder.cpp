@@ -40,15 +40,13 @@ void MIMEDecoder::decodeWord(const rstring& encoded, rstring& decoded)
 
 		newEncoded = matches.suffix();
 	}
-
-	LogUtil::report(decoded);
 }
 
 
 const rstring MIMEDecoder::decode(const rstring& encoded,
 	const rstring& charset, const rstring& encoding)
 {
-	const rstring decoded = encoded;
+	rstring decoded = encoded;
 	
 	// decode first
 	if (_strnicmp(encoding.c_str(), "B", 1) == 0) {
@@ -56,18 +54,141 @@ const rstring MIMEDecoder::decode(const rstring& encoded,
 		char* buf = new char[encoded.size()+1];
 		EncodeUtil::base64_decode(encoded.c_str(), encoded.size(), buf);
 		
-		const rstring decoded = buf;
+		decoded = buf;
 
 		delete[] buf;
 	}
 	else if (_strnicmp(encoding.c_str(), "Q", 1) == 0) {
 		// quoted-printable encoding
-		
+		EncodeUtil::quoted_printable_decode(encoded, decoded, true);
 	}
-	else {
-		// unknown encoding
-		return encoded;
-	}
+	// else unknow encoding
 
 	return EncodeUtil::encodeAsciiWithCharset(decoded, charset);
+}
+
+
+void MIMEDecoder::rfc2231Decode(const rstring& raw, str_kvlist & kvs)
+{
+	// nomarlize, 检查分号遗失
+// 如 text/plain; charset=\"iso-8859-1\" name=\"somefile.txt\"
+// 以及 attachment filename=\"foo\"
+	rstring encoded = std::regex_replace(raw, r_regex("=\\s*\"([^\"]*)\"\\s"), "=\"$1\"; ");
+	encoded = std::regex_replace(encoded, r_regex(R"(^([^;\s]+)\s([^;\s]+))"), "$1; $2");
+	// split by ;
+	GeneralUtil::strTrim(encoded);
+	slist splitted;
+	GeneralUtil::strSplitIgnoreQuoted(encoded, ';', splitted);
+
+	kvs.clear();
+	for (rstring s : splitted) {
+		GeneralUtil::strTrim(s);
+		if (s.size() == 0) {
+			continue;
+		}
+
+		size_t eqpos = s.find('=');
+		if (eqpos == rstring::npos) {
+			// 直接添加
+			kvs.emplace_back("", s);
+		}
+		else {
+			// = 前为 key，= 后为value
+			rstring key = s.substr(0, eqpos);
+			rstring val = s.substr(eqpos + 1);
+			GeneralUtil::strTrim(key);
+			GeneralUtil::strTrim(val);
+			kvs.emplace_back(key, val);
+		}
+	}
+
+
+	MIMEDecoder::rfc2231DecodePairs(kvs);
+}
+
+void MIMEDecoder::rfc2231DecodePairs(str_kvlist& kvs)
+{
+	for (str_kvlist::iterator ite = kvs.begin(); ite != kvs.end(); ++ite) {
+		rstring& key = ite->first;
+		rstring& val = ite->second;
+		GeneralUtil::strRemoveQuotes(val);
+
+		if (GeneralUtil::strEndsWith(key, "*0") || GeneralUtil::strEndsWith(key, "*0*")) {
+			rstring encoding = "notEncoded";
+			if (GeneralUtil::strEndsWith(key, "*0*")) {
+				// encoded
+				// 解码，取出encoding，不符合规范则encoding设为""
+				MIMEDecoder::rfc2231DecodeSingle(val, encoding);
+				// 去除开始的表示continuation的*0，以及后面表示encoded的*
+				GeneralUtil::strReplaceAll(key, "*0*", "");
+			}
+			else {
+				// not encoded
+				GeneralUtil::strReplaceAll(key, "*0", "");
+			}
+
+			// 查看之后的为continuation部分的key
+			int count = 1;
+			// list 迭代器无法 + 1（只能顺序访问，使用++）
+			str_kvlist::iterator iter = iter;
+			++iter;
+			while(iter != kvs.end()) {
+				rstring& nxtKey = iter->first;
+				rstring& nxtVal = iter->second;
+				GeneralUtil::strRemoveQuotes(nxtVal);
+
+				rstring tempKey = key + "*" + std::to_string(count);
+				if (nxtKey.compare(tempKey) == 0) {
+					// not encoded value
+					val.append(nxtVal);
+				}
+				else if (nxtKey.compare(tempKey + "*") == 0) {
+					// 第一部分not encoded
+					if (encoding.size() != 0) {
+						// 检查实际是否编码
+						MIMEDecoder::rfc2231DecodeSingle(nxtVal, encoding);
+					}
+					val.append(nxtVal);
+				}
+				else {
+					// continuation 结束
+					break;
+				}
+
+				// 删除
+				kvs.erase(iter++);
+				++count;
+			}
+		}
+		else if (GeneralUtil::strEndsWith(key, "*")) {
+			// not part of continuation
+			// 去除 key* 中的 *
+			GeneralUtil::strReplaceAll(key, "*", "");
+			// decode value
+			rstring throwAway;
+			MIMEDecoder::rfc2231DecodeSingle(val, throwAway);
+		}
+		// else normal key, no changes needed
+	}
+}
+
+void MIMEDecoder::rfc2231DecodeSingle(rstring& encoded, rstring& encoding)
+{
+	size_t start = encoded.find('\'');
+	if (start == rstring::npos) {
+		// 无描述encoding部分
+		encoding = "";
+	}
+	else {
+		encoding = encoded.substr(0, start);
+		size_t end = encoded.rfind('\'');
+		encoded = encoded.substr(end + 1);
+
+		// 编码使用 QuotedPrintable
+		// 将 % 改为 =
+		GeneralUtil::strReplaceAll(encoded, "%", "=");
+		const rstring encodedWord = "=?" + encoding + "?Q?" + encoded + "?=";
+		// 解码，输出encoded
+		MIMEDecoder::decodeWord(encodedWord, encoded);
+	}
 }

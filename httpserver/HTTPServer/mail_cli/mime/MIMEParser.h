@@ -25,7 +25,8 @@ private:
 	static MIMEParser* mInstance;
 	/* constants */
 	const char* illegalChars = "\"*?<>:\\/|";
-	const char* whitespaces = " \t";
+	const char* whitespaces = " \t\v\f\r\n";
+	const char* tspecials = "()<>@,;:\\/\"[]?=";
 
 	size_t skipWhiteSpaces(const str_citer& begin, const str_citer& end);
 
@@ -37,10 +38,24 @@ private:
 	void setSubject(mail_header_t& header, const rstring& subject);
 	void setDate(mail_header_t& header, const rstring& date);
 	void setFrom(mail_header_t& header, const rstring& from);
+	void setReplyTo(mail_header_t& header, const rstring& replyto);
+	void setSender(mail_header_t& header, const rstring& sender);
+	void setReceived(mail_header_t& header, const rstring& received);
+	void setMimeVersion(mail_header_t& header, const rstring& version);
 	void setTo(mail_header_t& header, const rstring& to);
+	void setCc(mail_header_t& header, const rstring& cc);
+	void setBcc(mail_header_t& header, const rstring& bcc);
 	void setContentType(mail_header_t& header, const rstring& contentType);
+	void setContentTransferEncoding(mail_header_t& header, const rstring& encoding);
 	/* set non-standard(extended) fields */
 	void setOthers(mail_header_t& header, const rstring & key, const rstring & val);
+
+	void parseRfcMailAddrs(const rstring& raw, maddr_list& addrlist);
+	void parseSingleMailAddr(const rstring& raw, mail_addr_t& addr);
+
+	void cleanMediaType(rstring& mediatype);
+	void stripRfc2045TSpecials(rstring& raw);
+	void stripRfc822Ctls(rstring& raw);
 };
 
 #endif !_MIME_PARSER_H_
