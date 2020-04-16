@@ -155,6 +155,10 @@ const rstring EncodeUtil::encodeAsciiWithCharset(const rstring& asciitext, const
         // gbk
         return CharsetUtil::Utf8ToGBK(CharsetUtil::AnsiToUtf8(asciitext));
     }
+    else if (_strnicmp(charset.c_str(), "gb", 2) == 0) {
+        // 其他 gb 规范，采用 GBK 尝试编码
+        return CharsetUtil::Utf8ToGBK(CharsetUtil::AnsiToUtf8(asciitext));
+    }
     else {
         return asciitext;
     }
