@@ -1,5 +1,5 @@
 #include "SMTPClient.h"
-#include<iostream>
+#include <iostream>
 #include <string>
 
 using namespace std;

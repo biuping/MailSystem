@@ -1,5 +1,5 @@
-#include "socket/TCPClientSocket.h"
-#include"mail_cli/MailSender.h"
+#include "../../socket/TCPClientSocket.h"
+#include "../MailSender.h"
 #include <string>
 #define MAX_CONNECTION_NUM 5
 #define SMTP_SERVER_PORT 25
@@ -14,7 +14,7 @@ SOCKET serverSocket;
 
 
 
-class SMTPClient :MailSender
+class SMTPClient : MailSender
 {
 public:
 	std::string sentEmail();

@@ -45,13 +45,14 @@ void MIMEDecoder::decodeWord(const rstring& encoded, rstring& decoded)
 void MIMEDecoder::decodeMailBody(const rstring& encoded, const rstring& charset,
 	ContentTransferEncoding encoding, rstring& decoded)
 {
+	char* buf;
 	switch (encoding)
 	{
 	case ContentTransferEncoding::QuotedPrintable:
 		EncodeUtil::quoted_printable_decode(encoded, decoded, false);
 		break;
 	case ContentTransferEncoding::Base64:
-		char* buf = new char[encoded.size() + 1];
+		buf = new char[encoded.size() + 1];
 		EncodeUtil::base64_decode(encoded.c_str(), encoded.size(), buf);
 
 		decoded = buf;
