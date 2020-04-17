@@ -127,7 +127,7 @@
       <Filter>Source Files\mail_client_src\smtp_src</Filter>
     </ClCompile>
     <ClCompile Include="mail_cli\MessagePart.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\mail_client_src</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -209,11 +209,11 @@
     <ClInclude Include="mail_cli\smtp\SMTPClient.h">
       <Filter>Header Files\mail_client_include\smtp_include</Filter>
     </ClInclude>
-    <ClInclude Include="mail_cli\ContentTypes.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="mail_cli\MessagePart.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\mail_client_include</Filter>
+    </ClInclude>
+    <ClInclude Include="mail_cli\ContentTypes.h">
+      <Filter>Header Files\mail_client_include</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
