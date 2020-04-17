@@ -2,6 +2,7 @@
 #include <Windows.h>
 
 
+// 效果等同于 wstring to string
 const rstring CharsetUtil::UnicodeToAnsi(const rwstring& unicode)
 {
     LPCWCH ptr = unicode.c_str();
@@ -14,6 +15,7 @@ const rstring CharsetUtil::UnicodeToAnsi(const rwstring& unicode)
     return strRet;
 }
 
+// 效果等同于 string to wstring
 const rwstring CharsetUtil::AnsiToUnicode(const rstring& ansi)
 {
     LPCCH ptr = ansi.c_str();
