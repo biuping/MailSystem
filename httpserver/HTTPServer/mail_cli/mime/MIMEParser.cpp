@@ -1,6 +1,7 @@
 #include "MIMEParser.h"
 #include "../../tools/GeneralUtils.h"
 #include "MIMEDecoder.h"
+#include <stack>
 
 
 MIMEParser* MIMEParser::mInstance = nullptr;
@@ -45,7 +46,7 @@ void MIMEParser::parseMail(const rstring& raw, Mail* mail)
 	// 解析信体部分
 	size_t endpos = raw.find("\r\n.\r\n");
 	// 去掉结尾点之后的内容
-	parseBody(begin + pos + 4, endpos == rstring::npos ? end : begin + endpos + 2, body);
+	parseBody(begin + pos + 4, endpos == rstring::npos ? end : begin + endpos + 2, header, body);
 
 	mail->setHeader(header);
 	mail->setBody(body);
@@ -75,9 +76,25 @@ void MIMEParser::parseHeader(const str_citer& begin, const str_citer& end, mail_
 // begin: 字符串开始位置const_iterator
 // end: 字符串结束位置const_iterator
 // body: 信体结构引用
-void MIMEParser::parseBody(const str_citer& begin, const str_citer& end, mail_body_t& body)
+void MIMEParser::parseBody(const str_citer& begin, const str_citer& end,
+	const mail_header_t& header, mail_body_t& body)
 {
-	body.message = rstring(begin, end);
+	rstring raw = rstring(begin, end);
+	GeneralUtil::strTrim(raw);
+
+	if (GeneralUtil::strStartWith(header.content_type.media, "multipart/", true)) {
+		// has multipart
+		// 解析多部分的信体内容
+		slist parts;
+		extractParts(begin, end, header.content_type.boundary, parts);
+		
+	}
+	else {
+		// non multipart message
+		// 直接根据字符集与编码方式解码
+		MIMEDecoder::decodeMailBody(raw, header.content_type.charset,
+			header.content_transfer_encoding, body.message);
+	}
 }
 
 // 跳过空白字符
@@ -195,6 +212,8 @@ void MIMEParser::setHeaderField(mail_header_t& header, const str_kv_t& field)
 // subject: 主题原始字符串
 void MIMEParser::setSubject(mail_header_t& header, const rstring& subject)
 {
+	header.subject = subject;
+	GeneralUtil::strTrim(header.subject);
 	MIMEDecoder::decodeWord(subject, header.subject);
 }
 
@@ -368,23 +387,23 @@ void MIMEParser::setContentTransferEncoding(mail_header_t& header, const rstring
 	GeneralUtil::strTrim(val);
 
 	if (_strnicmp(val.c_str(), "7bit", 4) == 0) {
-		header.content_transfer_encoding = "7bit";
+		header.content_transfer_encoding = ContentTransferEncoding::SevenBit;
 	}
 	else if (_strnicmp(val.c_str(), "8bit", 4) == 0) {
-		header.content_transfer_encoding = "8bit";
+		header.content_transfer_encoding = ContentTransferEncoding::EightBit;
 	}
 	else if (_strnicmp(val.c_str(), "quoted-printable", 16) == 0) {
-		header.content_transfer_encoding = "quoted-printable";
+		header.content_transfer_encoding = ContentTransferEncoding::QuotedPrintable;
 	}
 	else if (_strnicmp(val.c_str(), "base64", 6) == 0) {
-		header.content_transfer_encoding = "base64";
+		header.content_transfer_encoding = ContentTransferEncoding::Base64;
 	}
 	else if (_strnicmp(val.c_str(), "binary", 6) == 0) {
-		header.content_transfer_encoding = "binary";
+		header.content_transfer_encoding = ContentTransferEncoding::Binary;
 	}
 	else {
 		// default use 7bit
-		header.content_transfer_encoding = "7bit";
+		header.content_transfer_encoding = ContentTransferEncoding::SevenBit;
 	}
 }
 
@@ -495,8 +514,8 @@ void MIMEParser::cleanMediaType(rstring& mediatype)
 // 清理 Rfc2045 中说明的特殊字符
 void MIMEParser::stripRfc2045TSpecials(rstring& raw)
 {
-	char* buf = new char[raw.size() + 1];
-	int sz = 0;
+	char* buf = new char[raw.size() + 3];
+	size_t sz = 0;
 	for (size_t i = 0; i < raw.size(); ++i) {
 		if (strchr(tspecials, raw[i]) == nullptr) {
 			buf[sz++] = raw[i];
@@ -512,7 +531,7 @@ void MIMEParser::stripRfc2045TSpecials(rstring& raw)
 // 清理 Rfc822 中说明的控制字符
 void MIMEParser::stripRfc822Ctls(rstring& raw)
 {
-	char* buf = new char[raw.size() + 1];
+	char* buf = new char[raw.size() + 3];
 	int sz = 0;
 	for (int i = 0; i < raw.size(); ++i) {
 		if (((char)0 <= raw[i] && (char)31 >= raw[i]) ||
@@ -526,4 +545,36 @@ void MIMEParser::stripRfc822Ctls(rstring& raw)
 
 	raw = rstring(buf);
 	delete[] buf;
+}
+
+void MIMEParser::extractParts(const str_citer& begin, const str_citer& end,
+	const rstring& boundary, slist& parts)
+{
+	parts.clear();
+	size_t passed = 0;
+	std::stack<rstring> bounds;
+	bounds.push(boundary);
+	rstring line;
+
+	while (begin + passed < end) {
+		// fetch a new line
+		size_t linepos = GeneralUtil::strFindLineEnd(begin + passed, end);
+		if (linepos == rstring::npos) {
+			line = rstring(begin + passed, end);
+			passed = end - begin;
+		}
+		else {
+			line = rstring(begin + passed, begin + passed + linepos);
+			passed = passed + linepos + 2;
+		}
+
+		if (GeneralUtil::strStartWith(line, "--" + bounds.top(), true)) {
+			// 进入边界
+
+		}
+	}
+}
+
+void MIMEParser::parseMessage(const rstring& raw, rstring& message)
+{
 }

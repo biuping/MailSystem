@@ -16,7 +16,8 @@ public:
 	void parseMail(const rstring& raw, Mail* mail);
 	
 	void parseHeader(const str_citer& begin, const str_citer& end, mail_header_t& header);
-	void parseBody(const str_citer& begin, const str_citer& end, mail_body_t& body);
+	void parseBody(const str_citer& begin, const str_citer& end,
+		const mail_header_t& header, mail_body_t& body);
 
 private:
 	MIMEParser();
@@ -30,10 +31,10 @@ private:
 
 	size_t skipWhiteSpaces(const str_citer& begin, const str_citer& end);
 
+	/* header parsing functions */
 	size_t extractField(const str_citer& begin, const str_citer& end, str_kv_t& field);
 	void setHeaderField(mail_header_t& header, const str_kv_t& field);
-
-	/* header fields setters */
+	/* header fields setters(responsible for specific parsing) */
 	/* set specific fields */
 	void setSubject(mail_header_t& header, const rstring& subject);
 	void setDate(mail_header_t& header, const rstring& date);
@@ -56,6 +57,11 @@ private:
 	void cleanMediaType(rstring& mediatype);
 	void stripRfc2045TSpecials(rstring& raw);
 	void stripRfc822Ctls(rstring& raw);
+
+	/* body parsing functions */
+	void extractParts(const str_citer& begin, const str_citer& end,
+		const rstring& boundary, slist& part);
+	void parseMessage(const rstring& raw, rstring& message);
 };
 
 #endif !_MIME_PARSER_H_

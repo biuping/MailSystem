@@ -96,3 +96,37 @@ bool GeneralUtil::strEndsWith(const rstring& source, const rstring& suffix, bool
 
 	return true;
 }
+
+bool GeneralUtil::strStartWith(const rstring& source, const rstring& prefix, bool caseIgnore)
+{
+	if (source.size() < prefix.size()) {
+		return false;
+	}
+
+	int srcsize = source.size();
+	int presize = prefix.size();
+	for (int sr = 0, pr = 0;
+		sr < srcsize && pr < presize;
+		++sr, ++pr) {
+		char src = caseIgnore ? tolower(source[sr]) : source[sr];
+		char prc = caseIgnore ? tolower(prefix[pr]) : prefix[pr];
+		if (src != prc) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+size_t GeneralUtil::strFindLineEnd(const str_citer& begin, const str_citer& end)
+{
+	size_t len = 0;
+	while (begin + len < end) {
+		if (*(begin + len) == '\r' && begin + len + 1 < end && *(begin + len + 1) == '\n') {
+			break;
+		}
+		++len;
+	}
+
+	return begin + len < end ? len : rstring::npos;
+}

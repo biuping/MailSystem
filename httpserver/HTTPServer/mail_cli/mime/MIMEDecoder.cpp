@@ -42,6 +42,33 @@ void MIMEDecoder::decodeWord(const rstring& encoded, rstring& decoded)
 	}
 }
 
+void MIMEDecoder::decodeMailBody(const rstring& encoded, const rstring& charset,
+	ContentTransferEncoding encoding, rstring& decoded)
+{
+	switch (encoding)
+	{
+	case ContentTransferEncoding::QuotedPrintable:
+		EncodeUtil::quoted_printable_decode(encoded, decoded, false);
+		break;
+	case ContentTransferEncoding::Base64:
+		char* buf = new char[encoded.size() + 1];
+		EncodeUtil::base64_decode(encoded.c_str(), encoded.size(), buf);
+
+		decoded = buf;
+		delete[] buf;
+		break;
+	case ContentTransferEncoding::SevenBit:
+	case ContentTransferEncoding::EightBit:
+	case ContentTransferEncoding::Binary:
+	default:
+		// 7bit, 8bit, binary 不需要进行额外处理
+		decoded = encoded;
+		break;
+	}
+
+	decoded = EncodeUtil::encodeAsciiWithCharset(decoded, charset);
+}
+
 
 const rstring MIMEDecoder::decode(const rstring& encoded,
 	const rstring& charset, const rstring& encoding)
@@ -55,7 +82,6 @@ const rstring MIMEDecoder::decode(const rstring& encoded,
 		EncodeUtil::base64_decode(encoded.c_str(), encoded.size(), buf);
 		
 		decoded = buf;
-
 		delete[] buf;
 	}
 	else if (_strnicmp(encoding.c_str(), "Q", 1) == 0) {

@@ -157,9 +157,12 @@ void pop3_test()
 
 		/* retr */
 		if (popcli->retrMail(2, mails[2])) {
+			//SetConsoleCP(65001);
 			LogUtil::report("Mail 1 subject: ");
-			LogUtil::report(mails[0]->getHeader().subject);
-			LogUtil::report(mails[0]->getBody().message);
+			rstring sub = mails[2]->getHeader().subject;
+			CharsetUtil::showHex(sub.c_str(), sub.size());
+			LogUtil::report(mails[2]->getHeader().subject);
+			LogUtil::report(mails[2]->getBody().message);
 		}
 	}
 	else {

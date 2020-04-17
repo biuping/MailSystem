@@ -6,6 +6,7 @@
 #include <map>
 #include <list>
 #include <utility>
+#include "../Mail.h"
 
 typedef std::string rstring;
 typedef std::regex r_regex;
@@ -18,6 +19,8 @@ class MIMEDecoder
 {
 public:
 	static void decodeWord(const rstring& encoded, rstring& decoded);
+	static void decodeMailBody(const rstring& encoded, const rstring& charset,
+		ContentTransferEncoding encoding, rstring& decoded);
 	static const rstring decode(const rstring& encoded, const rstring& charset, const rstring& encoding);
 	static void rfc2231Decode(const rstring& raw, str_kvlist& kvs);
 private:

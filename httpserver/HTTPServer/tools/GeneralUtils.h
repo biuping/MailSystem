@@ -16,6 +16,8 @@ namespace GeneralUtil {
 	void strTrim(rstring& str);
 	void strRemoveQuotes(rstring& str);
 	bool strEndsWith(const rstring& source, const rstring& suffix, bool caseIgnore=false);
+	bool strStartWith(const rstring& source, const rstring& prefix, bool caseIgnore = false);
+	size_t strFindLineEnd(const str_citer& begin, const str_citer& end);
 
 	static const char* whitespaces = " \f\v\t\r\n";
 };
