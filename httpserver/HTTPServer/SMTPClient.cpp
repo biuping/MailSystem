@@ -134,27 +134,32 @@ string SMTPClient::sentEmail()
 	char srvDomain[256] = "smtp.whu.edu.cn";
 	char userName[256] = "2017302580306@whu.edu.cn";
 	char password[256] = "wdrs14569";
-	char targetEmail[256] = "1092949763@qq.com";
+	char targetEmail[256] = "2017302580307@whu.edu.cn";
 	char emailTitle[256] = "hello";
-	char content[256] = "这是一封测试邮件，很高兴我的第一个客户端制作成功！";
+	char content[256] = "测试邮件";
 
 	WORD wVersionRequested;
 	WSADATA wsaData;
 	int err;
 
 	wVersionRequested = MAKEWORD(2, 1);
+
 	err = WSAStartup(wVersionRequested, &wsaData);
+
 	//武大邮箱
 	TCPClientSocket socketClient = TCPClientSocket(srvDomain, SMTP_SERVER_PORT);
+
+	//缓存清零
 	char buff[BUFFER_SIZE];
-	memset(buff, 0, sizeof(char) * BUFFER_SIZE);//缓存清零
+	memset(buff, 0, sizeof(char) * BUFFER_SIZE);
 
 	SendAndRecvMsg(socketClient, 0, 0, 2, buff, BUFFER_SIZE);
 
 	char UserNameToSendEmail[256] = { 0 };
-	printf(UserNameToSendEmail, "EHLO %s", "it is just a test");
-	lstrcat(UserNameToSendEmail, "\r\n\0");
 
+	printf(UserNameToSendEmail, "EHLO %s", "it is just a test");
+	//lstrcat(UserNameToSendEmail, "\r\n\0");
+	lstrcat(UserNameToSendEmail, "\n\0");
 	SendAndRecvMsg(socketClient, UserNameToSendEmail,SMTPClient::GetStrLength(UserNameToSendEmail), 0, buff, BUFFER_SIZE);
 	char pUerName[256] = { 0 };
 	//调用strstr函数，搜索一个字符串在另外一个字符串中的第一次出现，并返回第一次出现位置的指针

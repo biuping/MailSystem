@@ -156,6 +156,7 @@
     <ClCompile Include="SMTPClient.cpp" />
     <ClCompile Include="socket\TCPClientSocket.cpp" />
     <ClCompile Include="http\static\Tools.cpp" />
+    <ClCompile Include="tests\huang_test\huang.cpp" />
     <ClCompile Include="tests\mao_test\mao.cpp" />
     <ClCompile Include="tests\zhang_test\zhang.cpp" />
     <ClCompile Include="tools\EncodeUtils.cpp" />
@@ -176,6 +177,7 @@
     <ClInclude Include="mail_cli\MailSender.h" />
     <ClInclude Include="mail_cli\pop3\POP3Client.h" />
     <ClInclude Include="SMTPClient.h" />
+    <ClInclude Include="tests\huang_test\huang.h" />
     <ClInclude Include="tests\mao_test\mao.h" />
     <ClInclude Include="tests\my.h" />
     <ClInclude Include="tests\test.h" />

@@ -5,12 +5,6 @@
 #define SMTP_SERVER_PORT 25
 #define BUFFER_SIZE 4096
 
-u_short serverPort = SMTP_SERVER_PORT;
-char* readBuf;
-WSAData wsaData;
-SOCKET  clientSocket[MAX_CONNECTION_NUM];
-SOCKET serverSocket;
-
 
 
 
