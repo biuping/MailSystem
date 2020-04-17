@@ -42,7 +42,7 @@
         top: 1%;
         left: 1%;
         width: 95%;
-        background-color: rgba(156, 122, 97, 0.1);
+        background-color: rgba(73, 71, 67, 0.5);
         border-radius: 2%;
     }
     ul{

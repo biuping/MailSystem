@@ -1,15 +1,15 @@
 ﻿<template>
     
     <div id="login-group">
-        <form action="">
-            <transition enter-active-class="fadeInDown" >
+        <div action="">
+            <transition enter-active-class="fadeInDown" :="{enter:400}">
                 <div class="headline animated" v-if="flag" >樱花邮箱</div>
             </transition>
 
             <transition  enter-active-class="slideInRight" :="{endter:400}">
                 <div class="account-group animated" v-if="flag" >
                     <label v-if="flag"><span class="glyphicon glyphicon-user" aria-hidden="true"></span>用户</label>
-                    <input type="email" class="form-control" id="exampleInputEmail1" placeholder="Email">
+                    <input type="email" class="form-control" id="exampleInputEmail1" placeholder="Email" v-model="account">
                 </div>
             </transition>
 
@@ -20,14 +20,14 @@
                         <span class="glyphicon glyphicon-lock" aria-hidden="true"></span>密码
                     </label>
                     
-                    <input type="password" class="form-control" id="exampleInputPassword1" placeholder="Password">
+                    <input type="password" class="form-control" id="exampleInputPassword1" placeholder="Password" v-model="password">
                 </div>
             </transition>
             <transition  enter-active-class="flipInY" :="{endter:400}">             
-               <button type="submit" class="btn btn-info animated" v-if="flag">登录</button>
+               <button type="submit" class="btn btn-info animated" v-if="flag" @click="login">登录</button>
             </transition>     
             
-        </form>
+        </div>
         <div class="bg" ></div>
         
     </div>
@@ -41,7 +41,7 @@
         margin: 0 auto;
         transform: translateY(-50%);
         width: 40%;
-        height: 35%;
+        height: 40%;
     }
     .bg{
         position: absolute;
@@ -60,6 +60,9 @@
         position: relative;
         margin: 0 auto;
         left: 16%;
+    }
+    span,label{
+        font-size: 20px;
     }
     .headline{
         position: relative;
@@ -104,12 +107,18 @@
     export default{
         data(){
             return{
-                flag:false
+                flag:false,
+                account:'',
+                password:''
             }
         },
         methods:{
             show:function(){
                 this.flag=!this.flag
+            },
+            login:function(){
+                // TODO 登录请求
+                this.$router.push({path:'/mainpage',params:{account:this.account}})
             }
         },
         mounted(){

@@ -40,16 +40,16 @@ bool SMTPClient::FormatEmail(char* pFrom, char* pTo, char* pSubject, char* pMess
 
 }
 //发送并接收来自smtp服务器的信息
-bool SMTPClient::SendAndRecvMsg(TCPClientSocket socketClient, char* pMessage, int Messagelen, int Dowhat, char* recvBuf, int recvBuflen)
+bool SMTPClient::SendAndRecvMsg(TCPClientSocket * socketClient, char* pMessage, int Messagelen, int Dowhat, char* recvBuf, int recvBuflen)
 {
 	char lpMessage[256] = { 0 };
 	memcpy(lpMessage, pMessage, Messagelen);
 	printf("\n\n%s \n", lpMessage);
 	if (Dowhat == 0)
 	{
-		socketClient.write(lpMessage, Messagelen, 0);
+		socketClient->write(lpMessage, Messagelen, 0);
 		memset(recvBuf, 0, recvBuflen);
-		DWORD num = socketClient.readblock(recvBuf, recvBuflen, 0);
+		DWORD num = socketClient->readblock(recvBuf, recvBuflen, 0);
 		if (num == -1)
 		{
 			cout << "读取失败";
@@ -70,13 +70,13 @@ bool SMTPClient::SendAndRecvMsg(TCPClientSocket socketClient, char* pMessage, in
 	//只发送
 	else if (Dowhat ==1)
 	{
-		socketClient.write(lpMessage, Messagelen, 0);
+		socketClient->write(lpMessage, Messagelen, 0);
 	}
 	//只接收
 	else if (Dowhat == 2)
 	{
 		memset(recvBuf, 0, recvBuflen);
-		DWORD num = socketClient.readblock(recvBuf, recvBuflen, 0);
+		DWORD num = socketClient->readblock(recvBuf, recvBuflen, 0);
 		if (num == -1)
 		{
 			cout << "读取失败";
@@ -147,7 +147,7 @@ string SMTPClient::sentEmail()
 	err = WSAStartup(wVersionRequested, &wsaData);
 
 	//武大邮箱
-	TCPClientSocket socketClient = TCPClientSocket(srvDomain, SMTP_SERVER_PORT);
+	TCPClientSocket * socketClient = new TCPClientSocket(srvDomain, SMTP_SERVER_PORT);
 
 	//缓存清零
 	char buff[BUFFER_SIZE];
@@ -196,7 +196,7 @@ string SMTPClient::sentEmail()
 	char Quit[7] = "QUIT\r\n";
 	SendAndRecvMsg(socketClient, Quit, lstrlen("QUIT\r\n"), 0, buff, BUFFER_SIZE);
 
-	socketClient.closeSocket();
+	socketClient->closeSocket();
 	WSACleanup();
 
 	

@@ -1,4 +1,5 @@
 #include "POP3Client.h"
+#include "../mime/MIMEParser.h"
 
 
 POP3Client::POP3Client() : mConn(new TCPClientSocket()), mState(POP3State::Unconnected)
@@ -11,416 +12,864 @@ POP3Client::POP3Client(const POP3Client& pop3cli) : mConn(pop3cli.mConn), mState
 
 POP3Client::~POP3Client()
 {
-	this->quit();
+    if (alive()) {
+        this->quit();
+    }
 
-	delete mConn;
-	mConn = nullptr;
+    delete mConn;
+    mConn = nullptr;
 }
 
-// ½øĞĞÁ¬½Ó
-// at: ÓÊ¼şµØÖ·ÖĞµÄÖ÷»úÃû
+// è¿›è¡Œè¿æ¥
+// at: é‚®ä»¶åœ°å€ä¸­çš„ä¸»æœºå
 bool POP3Client::open(const rstring& at)
 {
-	return open(at, RESERVED_POP3_PORT);
+    return this->open(at, RESERVED_POP3_PORT);
 }
 
-// ½øĞĞÁ¬½Ó
-// at: ÓÊ¼şµØÖ·ÖĞµÄÖ÷»úÃû
-// port: ·şÎñÆ÷ pop3 ·şÎñ¶Ë¿ÚºÅ
+// è¿›è¡Œè¿æ¥
+// at: é‚®ä»¶åœ°å€ä¸­çš„ä¸»æœºå
+// port: æœåŠ¡å™¨ pop3 æœåŠ¡ç«¯å£å·
 bool POP3Client::open(const rstring& at, USHORT port)
 {
-	char* addr = prefix(at.c_str());		// ¼ÓÉÏÇ°×º
-	mConn->connect2Server(addr, port);		// Á¬½Óµ½·şÎñÆ÷
+    char* addr = prefix(at.c_str());		// åŠ ä¸Šå‰ç¼€
+    char* reply = nullptr;		// æ¥æ”¶å›å¤
+    int replyLen = 0;		// æ¥æ”¶å›å¤ä¸²æ‰€å ç©ºé—´é•¿åº¦
+    int connRet = 0;		// è¿æ¥æ“ä½œçŠ¶æ€
+    bool ret = false;		// è¿”å›å€¼
+    
+    if ( (connRet = conn(addr, port, &reply, &replyLen)) < 0 ) {
+        // è¿æ¥å¤±è´¥
+        report("cannot open connection");
+        mState = POP3State::Unconnected;
+        ret = false;
+    }
+    else {
+        // è¿æ¥æˆåŠŸ
+        mState = POP3State::Authorization;
+        ret = true;
 
-	if (mConn->connected()) {
-		// ÒÑÁ¬½Ó
-		report("connection opened");
-		mState = POP3State::Authorization;	// ½øÈëÑéÖ¤×´Ì¬
-		return true;
-	}
-	else {
-		// ´ò¿ªÁ¬½ÓÊ§°Ü
-		report("cannot open connection");
-		mState = POP3State::Unconnected;
-		return false;
-	}
+        rstring infostr = "connection opened";
+        if (connRet > 0) {
+            // æœåŠ¡å™¨è¿”å› ERR
+            infostr.append(" but server returned ");
+            infostr.append(reply);
+        }
+        report(infostr);
+    }
+
+    // æ¸…ç†èµ„æº
+    delete[] addr;
+    free(reply);
+
+    // è·å–å…¼å®¹æ€§åˆ—è¡¨
+    getCapabilities();
+
+    return ret;
 }
 
-// ÑéÖ¤Éí·İ
-// at: ÓÊÏäÖ÷»úÃû
-// usr: ÓÃ»§Ãû
-// passwd: ÓÃ»§ÃÜÂë
+void POP3Client::close()
+{
+    return;
+}
+
+// éªŒè¯èº«ä»½
+// at: é‚®ç®±ä¸»æœºå
+// usr: ç”¨æˆ·å
+// passwd: ç”¨æˆ·å¯†ç 
 bool POP3Client::authenticate(const rstring& usr, const rstring& passwd)
 {
-	if (mState != POP3State::Authorization) {
-		// ²»´¦ÓÚÑéÖ¤×´Ì¬
-		rstring errstr = "authentication not available in state ";
-		errstr += static_cast<int>(mState);
-		report(errstr);
-	}
+    if (mState != POP3State::Authorization) {
+        // ä¸å¤„äºéªŒè¯çŠ¶æ€
+        rstring errstr = "authentication not available in state ";
+        errstr += static_cast<int>(mState);
+        report(errstr);
+    }
 
-	// ´¦ÓÚÑéÖ¤×´Ì¬
-	char* usrReply, * passReply;
-	int usrReplyLen, passReplyLen, usrRet, passRet;
-	usrReply = passReply = nullptr;
-	usrRet = passRet = -1;
-	if ((usrRet =  this->user(usr.c_str(), &usrReply, &usrReplyLen)) == 0
-		&& (passRet = this->pass(passwd.c_str(), &passReply, &passReplyLen)) == 0) {
-		// userÃüÁîºÍpassÃüÁîÕıÈ·»Ø¸´
-		mState = POP3State::Transaction;		// ½øÈëÊÂÎñ×´Ì¬
-		report("authenticated");
-	}
-	else {
-		// Éí·İÑéÖ¤Ê§°Ü£¬×´Ì¬²»±ä
-		rstring errstr = "authentication failed: ";
-		// Ìí¼Ó¶ÔÓ¦´íÎóĞÅÏ¢
-		errstr.append(usrRet != 0 ? usrReply : passReply);
-		report(errstr);
-	}
+    // å¤„äºéªŒè¯çŠ¶æ€
+    char* usrReply, * passReply;
+    int usrReplyLen, passReplyLen, usrRet, passRet;
+    usrReply = passReply = nullptr;
+    usrRet = passRet = -1;
+    if ( (usrRet =  this->user(usr.c_str(), &usrReply, &usrReplyLen)) == 0
+        && (passRet = this->pass(passwd.c_str(), &passReply, &passReplyLen)) == 0 ) {
+        // userå‘½ä»¤å’Œpasså‘½ä»¤æ­£ç¡®å›å¤
+        mState = POP3State::Transaction;		// è¿›å…¥äº‹åŠ¡çŠ¶æ€
+        report("authenticated");
+    }
+    else {
+        // èº«ä»½éªŒè¯å¤±è´¥ï¼ŒçŠ¶æ€ä¸å˜
+        rstring errstr = "authentication failed: ";
+        // æ·»åŠ å¯¹åº”é”™è¯¯ä¿¡æ¯
+        errstr.append( usrRet <= 0 ? ( (usrRet < 0 || passRet < 0) ? "IO error" : passReply ) : usrReply );
+        report(errstr);
+    }
 
-	delete usrReply;
-	delete passReply;
+    free(usrReply);
+    free(passReply);
 
-	return (usrRet == 0) && (passRet == 0);
+    return (usrRet == 0) && (passRet == 0);
 }
 
-// ÔÚÖ÷»úÓòÃûÇ°¼ÓÉÏ pop Ç°×º
-// ·µ»ØÖ¸ÏòÆ´½ÓºóµÄĞÂ×Ö·û´®µÄÖ¸Õë£¬×¢ÒâÊ¹ÓÃºóÓ¦Ê¹ÓÃ delete[] ÊÍ·Å¸Ã×Ö·û´®
+// è·å–å…¼å®¹æŒ‡ä»¤åˆ—è¡¨ï¼ˆä¸å¼ºåˆ¶è·å–ï¼‰
+// return: list<string> å­—ç¬¦ä¸²é“¾è¡¨
+slist& POP3Client::getCapabilities()
+{
+    // å·²è¿æ¥ä¸”å…¼å®¹æŒ‡ä»¤åˆ—è¡¨ä¸ºç©º
+    if (this->capabilities.size() == 0 && mState != POP3State::Unconnected) {
+        // æœªè·å–å…¼å®¹æ€§åˆ—è¡¨
+        char* reply = nullptr, * p;
+        int len, capaRet = 0;
+
+        // å‘é€ CAPA å‘½ä»¤
+        if ((capaRet = this->capa(&reply, &len)) == 0) {
+            p = strstr(reply, "\r\n");		// è·³è¿‡ç¡®è®¤ä¿¡æ¯
+
+            // åŠ å…¥æ¯ä¸€è¡Œä¸­å…¼å®¹å‘½ä»¤
+            while (*p != '\0') {
+                p += 2;		// è·³è¿‡æ¢è¡Œç¬¦
+                char cmd[50];
+                int i = 0;
+
+                // æ‹·è´ä¸€è¡Œå‘½ä»¤
+                while (*p != '\0') {
+                    if (*p == '\r' && *(p + 1) == '\n') {
+                        // æ¢è¡Œ
+                        break;
+                    }
+                    cmd[i++] = *p++;
+                }
+                cmd[i] = '\0';
+
+                this->capabilities.emplace_back(cmd);
+            }
+        }
+
+        free(reply);
+    }
+
+    return this->capabilities;
+}
+
+// è¿”å›è¿æ¥æ˜¯å¦ä¿æŒ
+bool POP3Client::alive()
+{
+    if (mState != POP3State::Transaction) {
+        // ä¸å¤„äºäº‹åŠ¡çŠ¶æ€
+        rstring errstr = "noop not available in state ";
+        errstr += static_cast<int>(mState);
+        report(errstr);
+    }
+
+    return this->noop() == 0;
+}
+
+// è¿”å›é‚®ç®±çŠ¶æ€
+bool POP3Client::getStatus(size_t& mailnum, size_t& totsize)
+{
+    if (mState != POP3State::Transaction) {
+        // ä¸å¤„äºäº‹åŠ¡çŠ¶æ€
+        rstring errstr = "status showing not available in state ";
+        errstr += static_cast<int>(mState);
+        report(errstr);
+    }
+
+    char* reply = nullptr;		// å›å¤
+    char buf[10];				// å›å¤OKç¼“å†²åŒº
+    int replyLen, statRet;		// å›å¤ä½¿ç”¨çš„å†…å­˜å¤§å°ï¼Œstatè¿”å›å€¼
+    bool ret = false;
+
+    if ( (statRet = this->stat(&reply, &replyLen)) == 0) {
+        sscanf(reply, "%s %u %u", buf, &mailnum, &totsize);
+
+        ret = true;
+    }
+    else {
+        // æŠ¥å‘Šé”™è¯¯ä¿¡æ¯
+        rstring errstr = "get status failed: ";
+        errstr.append(statRet > 0 ? reply : "IO error");
+        report(errstr);
+    }
+
+    free(reply);
+    return ret;
+}
+
+// è·å–é‚®ä»¶åˆ—è¡¨å¹¶ä¸ºæ¯å°é‚®ä»¶è®¾ç½®å¤§å°
+// mails: é‚®ä»¶åˆ—è¡¨ï¼Œä¸ºç©ºåˆ™è¿›è¡Œæ‰©å±•ï¼Œå¦åˆ™éœ€è¦ä¸é‚®ä»¶æ€»æ•°ä¿æŒä¸€è‡´
+bool POP3Client::getMailListWithSize(std::vector<Mail*>& mails)
+{
+    if (mState != POP3State::Transaction) {
+        // ä¸å¤„äºäº‹åŠ¡çŠ¶æ€
+        rstring errstr = "list not available in state ";
+        errstr += static_cast<int>(mState);
+        report(errstr);
+    }
+
+    char* reply;
+    char buf[10];
+    int replyLen, listRet;
+    size_t mailnum, totsize;
+    bool ret = false;
+
+
+    if ((listRet = this->list(&reply, &replyLen)) == 0) {
+        ret = true;
+
+        // è§£æå‘½ä»¤è¿”å›å­—ç¬¦ä¸²
+        char* p = strstr(reply, "\r\n");		// ç¬¬ä¸€è¡ŒçŠ¶æ€è¡Œ
+        _snscanf(reply, p - reply, "%s %u %u", buf, &mailnum, &totsize);
+
+        // æ£€æŸ¥é‚®ä»¶åˆ—è¡¨ï¼Œsizeä¸ç­‰äºå½“å‰é‚®ä»¶æ•°ç›®åˆ™clearï¼Œcapacityä¸è¶³åˆ™è¿›è¡Œé€‚å½“çš„reserve
+        if (mails.size() != mailnum) {
+            // é‡Šæ”¾åŸé‚®ä»¶èµ„æº
+            for (Mail* m : mails) {
+                delete m;
+                m = nullptr;
+            }
+            mails.clear();
+            // æ‰©å®¹
+            if (mails.capacity() < mailnum) {
+                mails.reserve(mailnum);
+            }
+            // åˆ†é…æ–°èµ„æº
+            for (size_t i = 0; i < mailnum; ++i) {
+                mails.push_back(new Mail());
+            }
+        }
+
+        size_t no, eachsize;
+        p += 2;
+        // è¯»å–æ¯ä¸€è¡Œçš„æ•°æ®
+        for (size_t i = 0; i < mailnum; ++i) {
+            // è·å–ä¸‹ä¸€è¡Œçš„
+            char* ptemp = strstr(p + 2, "\r\n");
+            _snscanf(p, ptemp - p, "%u %u", &no, &eachsize);
+            // ä¸ºç©ºåˆ™åˆ†é…æ–°èµ„æº
+            if (mails[no-1] == nullptr) {
+                // åºå·ä»1å¼€å§‹
+                mails[no-1] = new Mail();
+            }
+            mails[no-1]->setSize(eachsize);
+
+            p = ptemp + 2;		// ä¸‹ä¸€è¡Œ
+        }
+    }
+    else {
+        // æŠ¥å‘Šé”™è¯¯ä¿¡æ¯
+        rstring errstr = "get list failed: ";
+        errstr.append(listRet > 0 ? reply : "IO error");
+        report(errstr);
+    }
+
+    free(reply);
+    return ret;
+}
+
+// è·å–é‚®ä»¶åˆ—è¡¨å¹¶ä¸ºæ¯å°é‚®ä»¶è®¾ç½® UID
+// mails: é‚®ä»¶åˆ—è¡¨ï¼Œä¸ºç©ºåˆ™è¿›è¡Œæ‰©å±•ï¼Œå¦åˆ™éœ€è¦ä¸é‚®ä»¶æ€»æ•°ä¿æŒä¸€è‡´
+bool POP3Client::getMailListWithUID(std::vector<Mail*>& mails)
+{
+    if (mState != POP3State::Transaction) {
+        // ä¸å¤„äºäº‹åŠ¡çŠ¶æ€
+        rstring errstr = "uid list not available in state ";
+        errstr += static_cast<int>(mState);
+        report(errstr);
+    }
+
+    char* reply;
+    char buf[10];
+    int replyLen, uidlRet;
+    size_t mailnum, totsize;
+    bool ret = false;
+
+
+    if ((uidlRet = this->uidl(&reply, &replyLen)) == 0) {
+        ret = true;
+
+        // è§£æå‘½ä»¤è¿”å›å­—ç¬¦ä¸²
+        char* p = strstr(reply, "\r\n");		// ç¬¬ä¸€è¡ŒçŠ¶æ€è¡Œ
+        _snscanf(reply, p - reply, "%s %u %u", buf, &mailnum, &totsize);
+
+        // æ£€æŸ¥é‚®ä»¶åˆ—è¡¨ï¼Œsizeä¸ç­‰äºå½“å‰é‚®ä»¶æ•°ç›®åˆ™clearï¼Œcapacityä¸è¶³åˆ™è¿›è¡Œé€‚å½“çš„reserve
+        if (mails.size() != mailnum) {
+            // é‡Šæ”¾åŸé‚®ä»¶èµ„æº
+            for (Mail* m : mails) {
+                delete m;
+                m = nullptr;
+            }
+            mails.clear();
+            // æ‰©å®¹
+            if (mails.capacity() < mailnum) {
+                mails.reserve(mailnum);
+            }
+            // åˆ†é…æ–°èµ„æº
+            for (size_t i = 0; i < mailnum; ++i) {
+                mails.push_back(new Mail());
+            }
+        }
+
+        size_t no;
+        char uid[BUFFER_SIZE];
+        p += 2;
+        // è¯»å–æ¯ä¸€è¡Œçš„æ•°æ®
+        for (size_t i = 0; i < mailnum; ++i) {
+            // è·å–ä¸‹ä¸€è¡Œçš„
+            char* ptemp = strstr(p + 2, "\r\n");
+            _snscanf(p, ptemp - p, "%u %s", &no, uid);
+            // ä¸ºç©ºåˆ™åˆ†é…æ–°èµ„æº
+            if (mails[no-1] == nullptr) {
+                // é‚®ä»¶åºå·ä»1å¼€å§‹
+                mails[no-1] = new Mail();
+            }
+            mails[no-1]->setUID(uid);
+
+            p = ptemp + 2;		// ä¸‹ä¸€è¡Œ
+        }
+    }
+    else {
+        // æŠ¥å‘Šé”™è¯¯ä¿¡æ¯
+        rstring errstr = "get uid list failed: ";
+        errstr.append(uidlRet > 0 ? reply : "IO error");
+        report(errstr);
+    }
+
+    free(reply);
+    return ret;
+}
+
+// å–å›ç¬¬ i å°é‚®ä»¶
+// i: é‚®ä»¶åºå·ï¼Œä»0å¼€å§‹
+// mail: é‚®ä»¶æŒ‡é’ˆ
+bool POP3Client::retrMail(size_t i, Mail* mail)
+{
+    if (mState != POP3State::Transaction) {
+        // ä¸å¤„äºéªŒè¯çŠ¶æ€
+        rstring errstr = "mail retrieving not available in state ";
+        errstr += static_cast<int>(mState);
+        report(errstr);
+    }
+
+    char* reply;
+    char okBuf[10], octetsBuf[20];
+    int replyLen, retrRet;
+    size_t mailsize;
+    bool ret = false;
+
+    // i+1 ä¸ºå–é‚®ä»¶æ—¶ä½¿ç”¨çš„åºå·
+    if ((retrRet = retr(&reply, &replyLen, i+1)) == 0) {
+        ret = true;
+
+        // ç¬¬ä¸€è¡ŒçŠ¶æ€è¡Œ
+        char* p = strstr(reply, "\r\n");
+        _snscanf(reply, p - reply, "%s %u %s", okBuf, &mailsize, octetsBuf);
+        
+        mail->setSize(mailsize);
+        MIMEParser::instance()->parseMail(p + 2, mail);
+    }
+    else {
+        // æŠ¥å‘Šé”™è¯¯ä¿¡æ¯
+        rstring errstr = "retrieve mail failed: ";
+        errstr.append(retrRet > 0 ? reply : "IO error");
+        report(errstr);
+    }
+
+    free(reply);
+    return ret;
+}
+
+// åˆ é™¤ç¬¬ i å°é‚®ä»¶ï¼Œåˆ é™¤é‚®ä»¶ååˆ—è¡¨å˜æ›´ï¼Œæ³¨æ„åŠæ—¶æ›´æ–°é‚®ä»¶åˆ—è¡¨
+// i: é‚®ä»¶åºå·ï¼Œä»0å¼€å§‹
+bool POP3Client::deleteMail(size_t i)
+{
+    if (mState != POP3State::Transaction) {
+        // ä¸å¤„äºéªŒè¯çŠ¶æ€
+        rstring errstr = "mail deleting not available in state ";
+        errstr += static_cast<int>(mState);
+        report(errstr);
+    }
+
+    char* reply;
+    char okBuf[10], octetsBuf[20];
+    int replyLen, deleRet;
+    size_t mailsize;
+    bool ret = false;
+
+    // i+1 ä¸ºåˆ é™¤é‚®ä»¶æ‰€ä½¿ç”¨çš„åºå·
+    if ((deleRet = dele(i + 1, &reply, &replyLen)) == 0) {
+        // åˆ é™¤æˆåŠŸ
+        ret = true;
+
+        rstring msg = "mail ";
+        msg.append(std::to_string(i + 1));
+        msg.append(" deleted");
+        report(msg);
+    }
+    else {
+        // æŠ¥å‘Šé”™è¯¯ä¿¡æ¯
+        rstring errstr = "delete mail ";
+        errstr.append(std::to_string(i + 1));
+        errstr.append(" failed: ");
+        errstr.append(deleRet > 0 ? reply : "IO error");
+        report(errstr);
+    }
+
+    free(reply);
+    return ret;
+}
+
+// åˆ é™¤æŒ‡å®š UID çš„é‚®ä»¶ï¼Œåˆ é™¤ååˆ—è¡¨å˜æ›´ï¼Œæ³¨æ„åŠæ—¶æ›´æ–°é‚®ä»¶åˆ—è¡¨
+// uid: é‚®ä»¶ Unique ID
+bool POP3Client::deleteMail(rstring uid)
+{
+    if (mState != POP3State::Transaction) {
+        // ä¸å¤„äºéªŒè¯çŠ¶æ€
+        rstring errstr = "mail deleting not available in state ";
+        errstr += static_cast<int>(mState);
+        report(errstr);
+    }
+
+    size_t no = this->getNo(uid);
+    if (no == 0) {
+        // æ²¡æœ‰æ‰¾åˆ°è¿™æ ·ä¸€å°ä¿¡ï¼ŒæŠ¥å‘Šé”™è¯¯ä¿¡æ¯
+        rstring errstr = "delete mail ";
+        errstr.append(uid);
+        errstr.append(" failed: cannot find such a mail or encounter an IO error");
+        report(errstr);
+
+        return false;
+    }
+
+    return this->deleteMail(no - 1);
+}
+
+// è·å– uid å¯¹åº”é‚®ä»¶çš„é‚®ä»¶åºå·
+// uid: é‚®ä»¶uidå­—ç¬¦ä¸²
+size_t POP3Client::getNo(const rstring& uid)
+{
+    char* reply;
+    char buf[10];
+    int replyLen, uidlRet;
+    size_t mailnum, totsize;
+    size_t ret = 0;
+
+    if ((uidlRet = this->uidl(&reply, &replyLen)) == 0) {
+        // è§£æå‘½ä»¤è¿”å›å­—ç¬¦ä¸²
+        char* p = strstr(reply, "\r\n");		// ç¬¬ä¸€è¡ŒçŠ¶æ€è¡Œ
+        _snscanf(reply, p - reply, "%s %u %u", buf, &mailnum, &totsize);
+
+        size_t no;
+        char _uid[BUFFER_SIZE];
+        p += 2;
+        // è¯»å–æ¯ä¸€è¡Œçš„æ•°æ®
+        for (size_t i = 0; i < mailnum; ++i) {
+            // è·å–ä¸‹ä¸€è¡Œçš„
+            char* ptemp = strstr(p + 2, "\r\n");
+            _snscanf(p, ptemp - p, "%u %s", &no, _uid);
+            
+            if (uid.compare(_uid) == 0) {
+                ret = no;
+                break;
+            }
+
+            p = ptemp + 2;		// ä¸‹ä¸€è¡Œ
+        }
+    }
+
+    free(reply);
+    return ret;
+}
+
+// åœ¨ä¸»æœºåŸŸåå‰åŠ ä¸Š pop å‰ç¼€
+// return: æŒ‡å‘æ‹¼æ¥åçš„æ–°å­—ç¬¦ä¸²çš„æŒ‡é’ˆï¼Œæ³¨æ„ä½¿ç”¨ååº”ä½¿ç”¨ delete[] é‡Šæ”¾è¯¥å­—ç¬¦ä¸²
 char* POP3Client::prefix(const char* host)
 {
-	// »ñÈ¡×Ö·û´®³¤¶È
-	int prefixlen = strlen(RESERVED_POP3_PREFIX);
-	int hostlen = strlen(host);
-	// ·ÖÅäÄÚ´æ
-	char* outs = new char[hostlen + prefixlen + 1];
-	// Æ´½Ó
-	strncpy(outs, RESERVED_POP3_PREFIX, prefixlen);
-	outs[prefixlen] = '.';
-	strncpy(outs + prefixlen + 1, host, hostlen + 1);
+    // è·å–å­—ç¬¦ä¸²é•¿åº¦
+    int prefixlen = strlen(RESERVED_POP3_PREFIX);
+    int hostlen = strlen(host);
+    // åˆ†é…å†…å­˜
+    char* outs = new char[hostlen + prefixlen + 2];
+    // æ‹¼æ¥
+    strncpy(outs, RESERVED_POP3_PREFIX, prefixlen);
+    outs[prefixlen] = '.';
+    strncpy(outs + prefixlen + 1, host, hostlen + 1);
 
-	return outs;
+    return outs;
 }
 
-// ¼ì²éÃüÁîÊÇ·ñ³É¹¦
-// resp ÎªÃüÁî·¢ËÍºóÊÕµ½µÄ»Ø¸´
+// æ£€æŸ¥å‘½ä»¤æ˜¯å¦æˆåŠŸ
+// resp ä¸ºå‘½ä»¤å‘é€åæ”¶åˆ°çš„å›å¤
 bool POP3Client::cmdOK(const char* resp)
 {
-	if (resp[0] == '+')
-		return true;
+    if (resp[0] == '+')
+        return true;
 
-	return false;
+    return false;
 }
 
-// »Ø¸´µ¥ĞĞÄÚÈİµÄÃüÁî
-// cmd: ÃüÁî×Ö·û´®
-// reply: ´«Èë nullptr(Ä¬ÈÏ) ±íÊ¾²»¹ØĞÄ»Ø¸´£»
-//		  ·Ç¿ÕÊ±ÎªÖ¸Ïò×Ö·ûÖ¸ÕëµÄÖ¸Õë£¬Èô½á¹û·µ»Ø0£¬Ôò½«replyÖ¸ÏòµÄÖ¸ÕëÖ¸ÏòÒ»¿éĞÂµÄÄÚ´æ
-// outlen: ÅäºÏ reply Êä³öĞÂ·ÖÅä¿Õ¼äµÄ´óĞ¡
-// Õı³£»Ø¸´·µ»Ø0£¬»Ø¸´´íÎó·µ»Ø1£¬¶ÁĞ´´íÎó»òÄÚ´æ·ÖÅäÊ§°Ü·µ»Ø-1
+// å›å¤å•è¡Œå†…å®¹çš„å‘½ä»¤
+// cmd: å‘½ä»¤å­—ç¬¦ä¸²
+// reply: ä¼ å…¥ nullptr(é»˜è®¤) è¡¨ç¤ºä¸å…³å¿ƒå›å¤ï¼›
+//		  éç©ºæ—¶ä¸ºæŒ‡å‘å­—ç¬¦æŒ‡é’ˆçš„æŒ‡é’ˆï¼Œè‹¥ç»“æœè¿”å›0ï¼Œåˆ™å°†replyæŒ‡å‘çš„æŒ‡é’ˆæŒ‡å‘ä¸€å—æ–°çš„å†…å­˜ï¼›
+//		  ä½¿ç”¨å®Œæ¯•åº”ä½¿ç”¨free()æ¸…é™¤
+// outlen: é…åˆ reply è¾“å‡ºæ–°åˆ†é…ç©ºé—´çš„å¤§å°
+// return: æ­£å¸¸å›å¤ 0ï¼Œå›å¤é”™è¯¯ 1ï¼Œè¯»å†™é”™è¯¯æˆ–å†…å­˜åˆ†é…å¤±è´¥ -1
 int inline POP3Client::cmdWithSingLineReply(const char* cmd, char** reply, int* outlen)
 {
-	char buf[BUFFER_SIZE];
+    char buf[BUFFER_SIZE];
 
-	int cmdlen = strlen(cmd);
-	int r = mConn->write(cmd, cmdlen);		// ·¢ËÍÃüÁî
+    int cmdlen = strlen(cmd);
+    int r = mConn->write(cmd, cmdlen);		// å‘é€å‘½ä»¤
 
-	// ¼ì²éĞ´´íÎó
-	if (r <= 0)
-		return -1;
+    // æ£€æŸ¥å†™é”™è¯¯
+    if (r <= 0)
+        return -1;
 
-	r = mConn->readline(buf, BUFFER_SIZE);	// ¶ÁÈ¡»Ø¸´
+    r = mConn->readline(buf, BUFFER_SIZE);	// è¯»å–å›å¤
 
-	// ¼ì²é¶Á´íÎó»òÎŞ»Ø¸´
-	if (r <= 0)
-		return -1;
+    // æ£€æŸ¥è¯»é”™è¯¯æˆ–æ— å›å¤
+    if (r <= 0)
+        return -1;
 
-	if (reply != nullptr) {
-		// ·µ»Ø»Ø¸´
-		int newlen = strlen(buf) + 1;
-		*reply = (char*)calloc(newlen, sizeof(char));
-		if (*reply == nullptr) {
-			// ÄÚ´æ·ÖÅäÊ§°Ü
-			return -1;
-		}
-		strncpy(*reply, buf, newlen);
-		*outlen = newlen;
-	}
+    if (reply != nullptr) {
+        // è¿”å›å›å¤
+        int newlen = strlen(buf) + 1;
+        *reply = (char*)calloc(newlen, sizeof(char));
+        if (*reply == nullptr) {
+            // å†…å­˜åˆ†é…å¤±è´¥
+            return -1;
+        }
+        strncpy(*reply, buf, newlen);
+        *outlen = newlen;
+    }
 
-	return cmdOK(buf) ? 0 : 1;
+    return cmdOK(buf) ? 0 : 1;
 }
 
-// »Ø¸´¶àĞĞÄÚÈİµÄÃüÁî
-// cmd: ÃüÁî
-// ends: ½áÊø±êÖ¾×Ö·û´®£¬·µ»ØµÄ»Ø¸´ÄÚÈİÓöµ½ ends ºó½áÊø£¬²»°üº¬ ends
-// reply: Ö¸Ïò×Ö·ûÖ¸ÕëµÄÖ¸Õë£¬Èô½á¹û·µ»Ø0£¬Ôò½«replyÖ¸ÏòµÄÖ¸ÕëÖ¸ÏòÒ»¿éĞÂµÄÄÚ´æ
-// outlen: ¸ø reply ·ÖÅäµÄÄÚ´æ¿Õ¼äµÄ´óĞ¡£¬Ò»¶¨Îª BUFFER_SIZE µÄ±¶Êı + 1£¨¿ÉÄÜ¶àÓàÊµ¼Ê³¤¶È£©
-// Õı³£»Ø¸´·µ»Ø0£¬»Ø¸´´íÎó·µ»Ø1£¬¶ÁĞ´´íÎó¼°ÄÚ´æ·ÖÅäÊ§°Ü·µ»Ø-1
+// å›å¤å¤šè¡Œå†…å®¹çš„å‘½ä»¤
+// cmd: å‘½ä»¤
+// ends: ç»“æŸæ ‡å¿—å­—ç¬¦ä¸²ï¼Œè¿”å›çš„å›å¤å†…å®¹é‡åˆ° ends åç»“æŸï¼Œä¸åŒ…å« ends
+// reply: æŒ‡å‘å­—ç¬¦æŒ‡é’ˆçš„æŒ‡é’ˆï¼Œè‹¥ç»“æœè¿”å›0ï¼Œåˆ™å°†replyæŒ‡å‘çš„æŒ‡é’ˆæŒ‡å‘ä¸€å—æ–°çš„å†…å­˜ï¼›
+//		  ä½¿ç”¨å®Œæ¯•åº”ä½¿ç”¨free()æ¸…é™¤
+// outlen: ç»™ reply åˆ†é…çš„å†…å­˜ç©ºé—´çš„å¤§å°ï¼Œä¸€å®šä¸º BUFFER_SIZE çš„å€æ•° + 1ï¼ˆå¯èƒ½å¤šä½™å®é™…é•¿åº¦ï¼‰
+// æ­£å¸¸å›å¤è¿”å›0ï¼Œå›å¤é”™è¯¯è¿”å›1ï¼Œè¯»å†™é”™è¯¯åŠå†…å­˜åˆ†é…å¤±è´¥è¿”å›-1
 int inline POP3Client::cmdWithMultiLinesReply(
-	const char* cmd, const char* ends, char** reply, int* outlen
+    const char* cmd, const char* ends, char** reply, int* outlen
 )
 {
-	int cmdlen = strlen(cmd);
-	int r = mConn->write(cmd, cmdlen);	// ·¢ËÍÃüÁî
-	int ret = 0;	// ·µ»ØÖµ
+    int cmdlen = strlen(cmd);
+    int r = mConn->write(cmd, cmdlen);	// å‘é€å‘½ä»¤
+    int ret = 0;	// è¿”å›å€¼
 
-	if (r < 0) {
-		ret = -1;
-	}
-	else {
-		int totsz = BUFFER_SIZE;
-		char* newBuf = (char*)calloc(BUFFER_SIZE, sizeof(char));	// ¶à·ÖÅäÒ»¸ö×Ö½ÚÓÃÓÚÅĞ¶ÏÊÇ·ñĞèÒªĞÂÔö·ÖÅä¿Õ¼ä
-		char* pEnds = nullptr;		// ÔİÊ±´æ´¢ ends ±êÖ¾ËùÔÚÎ»ÖÃµÄÖ¸Õë
-		if (newBuf == nullptr) {
-			ret = -1;
-		}
+    if (r < 0) {
+        ret = -1;
+    }
+    else {
+        int totsz = BUFFER_SIZE;
+        char* newBuf = (char*)calloc(BUFFER_SIZE, sizeof(char));	// å¤šåˆ†é…ä¸€ä¸ªå­—èŠ‚ç”¨äºåˆ¤æ–­æ˜¯å¦éœ€è¦æ–°å¢åˆ†é…ç©ºé—´
+        char* pEnds = nullptr;		// æš‚æ—¶å­˜å‚¨ ends æ ‡å¿—æ‰€åœ¨ä½ç½®çš„æŒ‡é’ˆ
+        if (newBuf == nullptr) {
+            ret = -1;
+        }
 
-		int sz = 0;		// ÒÑÊÕµ½µÄ×Ö½ÚÊı
-		while (ret >= 0) {
-			int r = mConn->readblock(newBuf + sz, totsz - sz);
-			if (r < 0) {
-				// ·¢Éú¶Á´íÎó
-				ret = -1;
-				break;
-			}
+        int sz = 0;		// å·²æ”¶åˆ°çš„å­—èŠ‚æ•°
+        while (ret >= 0) {
+            int r = mConn->readblock(newBuf + sz, totsz - sz);
+            if (r < 0) {
+                // å‘ç”Ÿè¯»é”™è¯¯
+                ret = -1;
+                break;
+            }
 
-			sz += r;
-			newBuf[sz] = '\0';
+            sz += r;
+            newBuf[sz] = '\0';
 
-			if ((pEnds = strstr(newBuf, ends)) != nullptr) {
-				// ÒÔ ends ±êÖ¾½áÊø
-				*pEnds = '\0';		// ·µ»ØµÄ»Ø¸´ÖĞ²»º¬ ends
-				break;
-			}
-			if (sz >= totsz) {
-				// ÒÑ¶Á×Ö½ÚÊıÒç³öµ±Ç°·ÖÅäµÄ¿Õ¼ä
-				totsz += BUFFER_SIZE;
-				char* tmpbuf = (char*)realloc(newBuf, totsz + 1);		// ¶à1¸ö×Ö½Ú¼ì²âÒç³ö
+            if ((pEnds = strstr(newBuf, ends)) != nullptr) {
+                // ä»¥ ends æ ‡å¿—ç»“æŸ
+                *pEnds = '\0';		// è¿”å›çš„å›å¤ä¸­ä¸å« ends
+                break;
+            }
+            if (sz >= totsz) {
+                // å·²è¯»å­—èŠ‚æ•°æº¢å‡ºå½“å‰åˆ†é…çš„ç©ºé—´
+                totsz += BUFFER_SIZE;
+                char* tmpbuf = (char*)realloc(newBuf, totsz + 1);		// å¤š1ä¸ªå­—èŠ‚æ£€æµ‹æº¢å‡º
 
-				if (tmpbuf == nullptr) {
-					ret = -1;
-					break;
-				}
+                if (tmpbuf == nullptr) {
+                    ret = -1;
+                    break;
+                }
 
-				newBuf = tmpbuf;
-			}
-		}
-		if (ret >= 0) {
-			// Î´³öÏÖ´íÎó£¬Êä³ö»Ø¸´ÄÚÈİ¼°·ÖÅä¿Õ¼ä´óĞ¡
-			*reply = newBuf;
-			*outlen = totsz + 1;
-		}
-		else if (newBuf != nullptr) {
-			// ³öÏÖ´íÎó£¬ÈôÒÑ·ÖÅäÄÚ´æÔòÇå¿Õ
-			free(newBuf);
-		}
-	}
+                newBuf = tmpbuf;
+            }
+        }
+        if (ret >= 0) {
+            // æœªå‡ºç°é”™è¯¯ï¼Œè¾“å‡ºå›å¤å†…å®¹åŠåˆ†é…ç©ºé—´å¤§å°
+            *reply = newBuf;
+            *outlen = totsz + 1;
+        }
+        else if (newBuf != nullptr) {
+            // å‡ºç°é”™è¯¯ï¼Œè‹¥å·²åˆ†é…å†…å­˜åˆ™æ¸…ç©º
+            free(newBuf);
+        }
+    }
 
-	if (ret == -1) {
-		*outlen = 0;
-	}
-	else {
-		ret = cmdOK(*reply);
-	}
+    if (ret == -1) {
+        *outlen = 0;
+    }
+    else {
+        ret = cmdOK(*reply) ? 0 : 1;
+    }
 
-	return ret;
+    return ret;
 }
 
-// POP3 USER ÃüÁî£¬Ö¸¶¨ÓÃ»§Ãû
-// usr: ÓÃ»§Ãû
-// reply: ´«Èë nullptr(Ä¬ÈÏ) ±íÊ¾²»¹ØĞÄ»Ø¸´£»
-//		  ·Ç¿ÕÊ±ÎªÖ¸Ïò×Ö·ûÖ¸ÕëµÄÖ¸Õë£¬Èô½á¹û·µ»Ø0£¬Ôò½«replyÖ¸ÏòµÄÖ¸ÕëÖ¸ÏòÒ»¿éĞÂµÄÄÚ´æ
-// outlen: ÅäºÏ reply Êä³öĞÂ·ÖÅä¿Õ¼äµÄ´óĞ¡
-// Õı³£»Ø¸´·µ»Ø 0£¬ÃüÁî»Ø¸´´íÎó·µ»Ø 1£¬¶ÁĞ´´íÎó»òÎŞ»Ø¸´»òÄÚ´æ·ÖÅäÊ§°Ü·µ»Ø -1
+// è¿æ¥åˆ° POP3 æœåŠ¡å™¨
+// addr: æœåŠ¡å™¨åœ°å€
+// port: POP3 æœåŠ¡ç«¯å£å·
+// reply: ä¼ å…¥ nullptr(é»˜è®¤) è¡¨ç¤ºä¸å…³å¿ƒå›å¤ï¼›
+//		  éç©ºæ—¶ä¸ºæŒ‡å‘å­—ç¬¦æŒ‡é’ˆçš„æŒ‡é’ˆï¼Œè‹¥ç»“æœè¿”å›0ï¼Œåˆ™å°†replyæŒ‡å‘çš„æŒ‡é’ˆæŒ‡å‘ä¸€å—æ–°çš„å†…å­˜ï¼›
+//		  ä½¿ç”¨å®Œæ¯•åº”ä½¿ç”¨free()æ¸…é™¤
+// outlen: é…åˆ reply è¾“å‡ºæ–°åˆ†é…ç©ºé—´çš„å¤§å°
+// æ­£å¸¸å›å¤è¿”å› 0ï¼Œå‘½ä»¤å›å¤é”™è¯¯è¿”å› 1ï¼Œè¯»å†™é”™è¯¯æˆ–æ— å›å¤æˆ–å†…å­˜åˆ†é…å¤±è´¥è¿”å› -1
+int POP3Client::conn(const char* addr, USHORT port, char** reply, int* outlen)
+{
+    this->mConn->connect(addr, port);
+
+    char buf[BUFFER_SIZE];		// è¯»ç¼“å†²åŒº
+
+    int r = mConn->readline(buf, BUFFER_SIZE);		// è¯»å–å›å¤
+
+    // æ£€æŸ¥è¯»é”™è¯¯æˆ–æ— å›å¤
+    if (r <= 0) {
+        this->mConn->closeSocket();		// å…³é—­å¥—æ¥å­—
+        return -1;
+    }
+
+    if (reply != nullptr) {
+        // è¿”å›å›å¤
+        int newlen = strlen(buf) + 1;
+        *reply = (char*)calloc(newlen, sizeof(char));
+        if (*reply == nullptr) {
+            // å†…å­˜åˆ†é…å¤±è´¥
+            return -1;
+        }
+        strncpy(*reply, buf, newlen);
+        *outlen = newlen;
+    }
+
+    return cmdOK(buf) ? 0 : 1;
+}
+
+// POP3 USER å‘½ä»¤ï¼ŒæŒ‡å®šç”¨æˆ·å
+// usr: ç”¨æˆ·å
+// reply: ä¼ å…¥ nullptr(é»˜è®¤) è¡¨ç¤ºä¸å…³å¿ƒå›å¤ï¼›
+//		  éç©ºæ—¶ä¸ºæŒ‡å‘å­—ç¬¦æŒ‡é’ˆçš„æŒ‡é’ˆï¼Œè‹¥ç»“æœè¿”å›0ï¼Œåˆ™å°†replyæŒ‡å‘çš„æŒ‡é’ˆæŒ‡å‘ä¸€å—æ–°çš„å†…å­˜ï¼›
+//		  ä½¿ç”¨å®Œæ¯•åº”ä½¿ç”¨free()æ¸…é™¤
+// outlen: é…åˆ reply è¾“å‡ºæ–°åˆ†é…ç©ºé—´çš„å¤§å°
+// æ­£å¸¸å›å¤è¿”å› 0ï¼Œå‘½ä»¤å›å¤é”™è¯¯è¿”å› 1ï¼Œè¯»å†™é”™è¯¯æˆ–æ— å›å¤æˆ–å†…å­˜åˆ†é…å¤±è´¥è¿”å› -1
 int POP3Client::user(const char* usr, char** reply, int* outlen)
 {
-	char buf[BUFFER_SIZE];		// »º³åÇø
+    char buf[BUFFER_SIZE];		// ç¼“å†²åŒº
 
-	sprintf(buf, "USER %s\r\n", usr);		// ·ÅÈë USER ÃüÁî
+    sprintf(buf, "USER %s\r\n", usr);		// æ”¾å…¥ USER å‘½ä»¤
 
-	return cmdWithSingLineReply(buf, reply, outlen);
+    return cmdWithSingLineReply(buf, reply, outlen);
 }
 
-// POP3 PASS ÃüÁî£¬ÑéÖ¤ÃÜÂë
-// passwd: ÃÜÂë
-// reply: ´«Èë nullptr(Ä¬ÈÏ) ±íÊ¾²»¹ØĞÄ»Ø¸´£»
-//		  ·Ç¿ÕÊ±ÎªÖ¸Ïò×Ö·ûÖ¸ÕëµÄÖ¸Õë£¬Èô½á¹û·µ»Ø0£¬Ôò½«replyÖ¸ÏòµÄÖ¸ÕëÖ¸ÏòÒ»¿éĞÂµÄÄÚ´æ
-// outlen: ÅäºÏ reply Êä³öĞÂ·ÖÅä¿Õ¼äµÄ´óĞ¡
-// Õı³£»Ø¸´·µ»Ø 0£¬ÃüÁî»Ø¸´´íÎó·µ»Ø 1£¬¶ÁĞ´´íÎó»òÎŞ»Ø¸´»òÄÚ´æ·ÖÅäÊ§°Ü·µ»Ø -1
+// POP3 PASS å‘½ä»¤ï¼ŒéªŒè¯å¯†ç 
+// passwd: å¯†ç 
+// reply: ä¼ å…¥ nullptr(é»˜è®¤) è¡¨ç¤ºä¸å…³å¿ƒå›å¤ï¼›
+//		  éç©ºæ—¶ä¸ºæŒ‡å‘å­—ç¬¦æŒ‡é’ˆçš„æŒ‡é’ˆï¼Œè‹¥ç»“æœè¿”å›0ï¼Œåˆ™å°†replyæŒ‡å‘çš„æŒ‡é’ˆæŒ‡å‘ä¸€å—æ–°çš„å†…å­˜ï¼›
+//		  ä½¿ç”¨å®Œæ¯•åº”ä½¿ç”¨free()æ¸…é™¤
+// outlen: é…åˆ reply è¾“å‡ºæ–°åˆ†é…ç©ºé—´çš„å¤§å°
+// æ­£å¸¸å›å¤è¿”å› 0ï¼Œå‘½ä»¤å›å¤é”™è¯¯è¿”å› 1ï¼Œè¯»å†™é”™è¯¯æˆ–æ— å›å¤æˆ–å†…å­˜åˆ†é…å¤±è´¥è¿”å› -1
 int POP3Client::pass(const char* passwd, char** reply, int* outlen)
 {
-	char buf[BUFFER_SIZE];		// »º³åÇø
+    char buf[BUFFER_SIZE];		// ç¼“å†²åŒº
 
-	sprintf(buf, "PASS %s\r\n", passwd);		// PASS ÃüÁî·ÅÈë»º³åÇø
+    sprintf(buf, "PASS %s\r\n", passwd);		// PASS å‘½ä»¤æ”¾å…¥ç¼“å†²åŒº
 
-	return cmdWithSingLineReply(buf, reply, outlen);
+    return cmdWithSingLineReply(buf, reply, outlen);
 }
 
-// POP3 APOP ÃüÁî£¬ÁíÒ»ÖÖÌá¹©È·ÈÏ¹ı³ÌµÄ·½Ê½
-// name: ÓÊÏä×Ö´®£¬Í¬ÓÃ»§Ãû
-// digest: MD5 ²úÉúµÄ°üÀ¨Ê±¼ä´ÁºÍ¹²ÏíÃÜÔ¿µÄ×Ö´®
-// reply: ´«Èë nullptr(Ä¬ÈÏ) ±íÊ¾²»¹ØĞÄ»Ø¸´£»
-//		  ·Ç¿ÕÊ±ÎªÖ¸Ïò×Ö·ûÖ¸ÕëµÄÖ¸Õë£¬Èô½á¹û·µ»Ø0£¬Ôò½«replyÖ¸ÏòµÄÖ¸ÕëÖ¸ÏòÒ»¿éĞÂµÄÄÚ´æ
-// outlen: ÅäºÏ reply Êä³öĞÂ·ÖÅä¿Õ¼äµÄ´óĞ¡
-// Õı³£»Ø¸´·µ»Ø 0£¬ÃüÁî»Ø¸´´íÎó·µ»Ø 1£¬¶ÁĞ´´íÎó»òÎŞ»Ø¸´»òÄÚ´æ·ÖÅäÊ§°Ü·µ»Ø -1
+// POP3 APOP å‘½ä»¤ï¼Œå¦ä¸€ç§æä¾›ç¡®è®¤è¿‡ç¨‹çš„æ–¹å¼
+// name: é‚®ç®±å­—ä¸²ï¼ŒåŒç”¨æˆ·å
+// digest: MD5 äº§ç”Ÿçš„åŒ…æ‹¬æ—¶é—´æˆ³å’Œå…±äº«å¯†é’¥çš„å­—ä¸²
+// reply: ä¼ å…¥ nullptr(é»˜è®¤) è¡¨ç¤ºä¸å…³å¿ƒå›å¤ï¼›
+//		  éç©ºæ—¶ä¸ºæŒ‡å‘å­—ç¬¦æŒ‡é’ˆçš„æŒ‡é’ˆï¼Œè‹¥ç»“æœè¿”å›0ï¼Œåˆ™å°†replyæŒ‡å‘çš„æŒ‡é’ˆæŒ‡å‘ä¸€å—æ–°çš„å†…å­˜ï¼›
+//		  ä½¿ç”¨å®Œæ¯•åº”ä½¿ç”¨free()æ¸…é™¤
+// outlen: é…åˆ reply è¾“å‡ºæ–°åˆ†é…ç©ºé—´çš„å¤§å°
+// æ­£å¸¸å›å¤è¿”å› 0ï¼Œå‘½ä»¤å›å¤é”™è¯¯è¿”å› 1ï¼Œè¯»å†™é”™è¯¯æˆ–æ— å›å¤æˆ–å†…å­˜åˆ†é…å¤±è´¥è¿”å› -1
 int POP3Client::apop(const char* name, const char* digest, char** reply, int* outlen)
 {
-	char buf[BUFFER_SIZE];
+    char buf[BUFFER_SIZE];
 
-	sprintf(buf, "APOP %s,%s\r\n", name, digest);
+    sprintf(buf, "APOP %s,%s\r\n", name, digest);
 
-	return cmdWithSingLineReply(buf, reply, outlen);
+    return cmdWithSingLineReply(buf, reply, outlen);
 }
 
-// POP3 QUIT ÃüÁî£¬ÍË³öÁ¬½Ó£¬Í¬Ê±¶Ï¿ª socket Á¬½Ó
-// reply: ´«Èë nullptr(Ä¬ÈÏ) ±íÊ¾²»¹ØĞÄ»Ø¸´£»
-//		  ·Ç¿ÕÊ±ÎªÖ¸Ïò×Ö·ûÖ¸ÕëµÄÖ¸Õë£¬Èô½á¹û·µ»Ø0£¬Ôò½«replyÖ¸ÏòµÄÖ¸ÕëÖ¸ÏòÒ»¿éĞÂµÄÄÚ´æ
-// outlen: ÅäºÏ reply Êä³öĞÂ·ÖÅä¿Õ¼äµÄ´óĞ¡
-// Õı³£»Ø¸´·µ»Ø 0£¬ÃüÁî»Ø¸´´íÎó·µ»Ø 1£¬¶ÁĞ´´íÎó»òÎŞ»Ø¸´»òÄÚ´æ·ÖÅäÊ§°Ü·µ»Ø -1
+// POP3 QUIT å‘½ä»¤ï¼Œé€€å‡ºè¿æ¥ï¼ŒåŒæ—¶æ–­å¼€ socket è¿æ¥
+// reply: ä¼ å…¥ nullptr(é»˜è®¤) è¡¨ç¤ºä¸å…³å¿ƒå›å¤ï¼›
+//		  éç©ºæ—¶ä¸ºæŒ‡å‘å­—ç¬¦æŒ‡é’ˆçš„æŒ‡é’ˆï¼Œè‹¥ç»“æœè¿”å›0ï¼Œåˆ™å°†replyæŒ‡å‘çš„æŒ‡é’ˆæŒ‡å‘ä¸€å—æ–°çš„å†…å­˜ï¼›
+//		  ä½¿ç”¨å®Œæ¯•åº”ä½¿ç”¨free()æ¸…é™¤
+// outlen: é…åˆ reply è¾“å‡ºæ–°åˆ†é…ç©ºé—´çš„å¤§å°
+// æ­£å¸¸å›å¤è¿”å› 0ï¼Œå‘½ä»¤å›å¤é”™è¯¯è¿”å› 1ï¼Œè¯»å†™é”™è¯¯æˆ–æ— å›å¤æˆ–å†…å­˜åˆ†é…å¤±è´¥è¿”å› -1
 int POP3Client::quit(char** reply, int* outlen)
 {
-	char buf[BUFFER_SIZE];		// »º³åÇø
+    char buf[BUFFER_SIZE];		// ç¼“å†²åŒº
 
-	sprintf(buf, "QUIT\r\n");
+    sprintf(buf, "QUIT\r\n");
 
-	int ret = cmdWithSingLineReply(buf, reply, outlen);
+    int ret = cmdWithSingLineReply(buf, reply, outlen);
 
-	mConn->closeSocket();
+    mConn->closeSocket();
 
-	return ret;
+    return ret;
 }
 
-// POP3 NOOP ÃüÁî£¬¼ì²éÁ¬½Ó
-// reply: ´«Èë nullptr(Ä¬ÈÏ) ±íÊ¾²»¹ØĞÄ»Ø¸´£»
-//		  ·Ç¿ÕÊ±ÎªÖ¸Ïò×Ö·ûÖ¸ÕëµÄÖ¸Õë£¬Èô½á¹û·µ»Ø0£¬Ôò½«replyÖ¸ÏòµÄÖ¸ÕëÖ¸ÏòÒ»¿éĞÂµÄÄÚ´æ
-// outlen: ÅäºÏ reply Êä³öĞÂ·ÖÅä¿Õ¼äµÄ´óĞ¡
-// Õı³£»Ø¸´·µ»Ø 0£¬ÃüÁî»Ø¸´´íÎó·µ»Ø 1£¬¶ÁĞ´´íÎó»òÎŞ»Ø¸´»òÄÚ´æ·ÖÅäÊ§°Ü·µ»Ø -1
-// Õı³£»Ø¸´±íÁ¬½ÓÕı³£
+// POP3 NOOP å‘½ä»¤ï¼Œæ£€æŸ¥è¿æ¥
+// reply: ä¼ å…¥ nullptr(é»˜è®¤) è¡¨ç¤ºä¸å…³å¿ƒå›å¤ï¼›
+//		  éç©ºæ—¶ä¸ºæŒ‡å‘å­—ç¬¦æŒ‡é’ˆçš„æŒ‡é’ˆï¼Œè‹¥ç»“æœè¿”å›0ï¼Œåˆ™å°†replyæŒ‡å‘çš„æŒ‡é’ˆæŒ‡å‘ä¸€å—æ–°çš„å†…å­˜ï¼›
+//		  ä½¿ç”¨å®Œæ¯•åº”ä½¿ç”¨free()æ¸…é™¤
+// outlen: é…åˆ reply è¾“å‡ºæ–°åˆ†é…ç©ºé—´çš„å¤§å°
+// æ­£å¸¸å›å¤è¿”å› 0ï¼Œå‘½ä»¤å›å¤é”™è¯¯è¿”å› 1ï¼Œè¯»å†™é”™è¯¯æˆ–æ— å›å¤æˆ–å†…å­˜åˆ†é…å¤±è´¥è¿”å› -1
+// æ­£å¸¸å›å¤è¡¨è¿æ¥æ­£å¸¸
 int POP3Client::noop(char** reply, int* outlen)
 {
-	char buf[BUFFER_SIZE];		// »º³åÇø
+    char buf[BUFFER_SIZE];		// ç¼“å†²åŒº
 
-	sprintf(buf, "NOOP\r\n");
+    sprintf(buf, "NOOP\r\n");
 
-	return cmdWithSingLineReply(buf, reply, outlen);
+    return cmdWithSingLineReply(buf, reply, outlen);
 }
 
-// POP3 STAT ÃüÁî£¬²é¿´×´Ì¬
-// reply: ´«Èë nullptr(Ä¬ÈÏ) ±íÊ¾²»¹ØĞÄ»Ø¸´£»
-//		  ·Ç¿ÕÊ±ÎªÖ¸Ïò×Ö·ûÖ¸ÕëµÄÖ¸Õë£¬Èô½á¹û·µ»Ø0£¬Ôò½«replyÖ¸ÏòµÄÖ¸ÕëÖ¸ÏòÒ»¿éĞÂµÄÄÚ´æ
-// outlen: ÅäºÏ reply Êä³öĞÂ·ÖÅä¿Õ¼äµÄ´óĞ¡
-// Õı³£»Ø¸´·µ»Ø 0£¬ÃüÁî»Ø¸´´íÎó·µ»Ø 1£¬¶ÁĞ´´íÎó»òÎŞ»Ø¸´»òÄÚ´æ·ÖÅäÊ§°Ü·µ»Ø -1
-// Õı³£»Ø¸´ÄÚÈİ°üº¬ÓÊ¼şÊıÁ¿ÒÔ¼°ËùÕ¼¿Õ¼äµÄ´óĞ¡
+// POP3 STAT å‘½ä»¤ï¼ŒæŸ¥çœ‹çŠ¶æ€
+// reply: ä¼ å…¥ nullptr(é»˜è®¤) è¡¨ç¤ºä¸å…³å¿ƒå›å¤ï¼›
+//		  éç©ºæ—¶ä¸ºæŒ‡å‘å­—ç¬¦æŒ‡é’ˆçš„æŒ‡é’ˆï¼Œè‹¥ç»“æœè¿”å›0ï¼Œåˆ™å°†replyæŒ‡å‘çš„æŒ‡é’ˆæŒ‡å‘ä¸€å—æ–°çš„å†…å­˜ï¼›
+//		  ä½¿ç”¨å®Œæ¯•åº”ä½¿ç”¨free()æ¸…é™¤
+// outlen: é…åˆ reply è¾“å‡ºæ–°åˆ†é…ç©ºé—´çš„å¤§å°
+// æ­£å¸¸å›å¤è¿”å› 0ï¼Œå‘½ä»¤å›å¤é”™è¯¯è¿”å› 1ï¼Œè¯»å†™é”™è¯¯æˆ–æ— å›å¤æˆ–å†…å­˜åˆ†é…å¤±è´¥è¿”å› -1
+// æ­£å¸¸å›å¤å†…å®¹åŒ…å«é‚®ä»¶æ•°é‡ä»¥åŠæ‰€å ç©ºé—´çš„å¤§å°
 int POP3Client::stat(char** reply, int* outlen)
 {
-	char buf[BUFFER_SIZE];		// »º³åÇø
+    char buf[BUFFER_SIZE];		// ç¼“å†²åŒº
 
-	sprintf(buf, "STAT\r\n");
+    sprintf(buf, "STAT\r\n");
 
-	return cmdWithSingLineReply(buf, reply, outlen);
+    return cmdWithSingLineReply(buf, reply, outlen);
 }
 
-// POP3 LIST ÃüÁî£¬²é¿´ÓÊ¼ş´óĞ¡ĞÅÏ¢£¬Ö¸¶¨ĞòºÅ·µ»Øµ¥ĞĞ£¬²»Ö¸¶¨·µ»Ø¶àĞĞ
-// reply: Ö¸Ïò×Ö·ûÖ¸ÕëµÄÖ¸Õë£¬Èô½á¹û·µ»Ø0£¬Ôò½«replyÖ¸ÏòµÄÖ¸ÕëÖ¸ÏòÒ»¿éĞÂµÄÄÚ´æ
-// outlen: Îª¸ø reply ·ÖÅäµÄÄÚ´æ¿Õ¼äµÄ´óĞ¡£¬·µ»Ø¶àĞĞÊ±Ò»¶¨Îª BUFFER_SIZE µÄ±¶Êı + 1£¨¿ÉÄÜ¶àÓàÊµ¼Ê³¤¶È£©
-// no Ö¸¶¨·µ»ØÌØ¶¨ĞòºÅÓÊ¼şµÄ´óĞ¡ĞÅÏ¢£¬Ä¬ÈÏÖµ -1 ±íÊ¾²»Ö¸¶¨
-// Õı³£»Ø¸´·µ»Ø0£¬»Ø¸´´íÎó·µ»Ø1£¬¶ÁĞ´´íÎó¼°ÄÚ´æ·ÖÅäÊ§°Ü·µ»Ø-1
+// POP3 LIST å‘½ä»¤ï¼ŒæŸ¥çœ‹é‚®ä»¶å¤§å°ä¿¡æ¯ï¼ŒæŒ‡å®šåºå·è¿”å›å•è¡Œï¼Œä¸æŒ‡å®šè¿”å›å¤šè¡Œ
+// reply: æŒ‡å‘å­—ç¬¦æŒ‡é’ˆçš„æŒ‡é’ˆï¼Œè‹¥ç»“æœè¿”å›0ï¼Œåˆ™å°†replyæŒ‡å‘çš„æŒ‡é’ˆæŒ‡å‘ä¸€å—æ–°çš„å†…å­˜ï¼›
+//		  ä½¿ç”¨å®Œæ¯•åº”ä½¿ç”¨free()æ¸…é™¤
+// outlen: ä¸ºç»™ reply åˆ†é…çš„å†…å­˜ç©ºé—´çš„å¤§å°ï¼Œè¿”å›å¤šè¡Œæ—¶ä¸€å®šä¸º BUFFER_SIZE çš„å€æ•° + 1ï¼ˆå¯èƒ½å¤šä½™å®é™…é•¿åº¦ï¼‰
+// no æŒ‡å®šè¿”å›ç‰¹å®šåºå·é‚®ä»¶çš„å¤§å°ä¿¡æ¯ï¼Œé»˜è®¤å€¼ -1 è¡¨ç¤ºä¸æŒ‡å®š
+// æ­£å¸¸å›å¤è¿”å›0ï¼Œå›å¤é”™è¯¯è¿”å›1ï¼Œè¯»å†™é”™è¯¯åŠå†…å­˜åˆ†é…å¤±è´¥è¿”å›-1
 int POP3Client::list(char** reply, int* outlen, int no)
 {
-	if (no > 0) {
-		// Ö¸¶¨ĞòºÅ£¬·µ»Øµ¥ĞĞÄÚÈİ
-		char buf[BUFFER_SIZE];		// »º³åÇø
-		sprintf(buf, "LIST %d\r\n", no);
-		return cmdWithSingLineReply(buf, reply, outlen);
-	}
-	else {
-		// ²»Ö¸¶¨ĞòºÅ£¬·µ»Ø¶àĞĞÄÚÈİ
-		return cmdWithMultiLinesReply("LIST\r\n", "\r\n.\r\n", reply, outlen);
-	}
+    if (no > 0) {
+        // æŒ‡å®šåºå·ï¼Œè¿”å›å•è¡Œå†…å®¹
+        char buf[BUFFER_SIZE];		// ç¼“å†²åŒº
+        sprintf(buf, "LIST %d\r\n", no);
+        return cmdWithSingLineReply(buf, reply, outlen);
+    }
+    else {
+        // ä¸æŒ‡å®šåºå·ï¼Œè¿”å›å¤šè¡Œå†…å®¹
+        return cmdWithMultiLinesReply("LIST\r\n", "\r\n.\r\n", reply, outlen);
+    }
 }
 
-// POP3 RETR ÃüÁî£¬È¡ÌØ¶¨ĞòºÅÓÊ¼şĞÅÏ¢
-// reply: Ö¸Ïò×Ö·ûÖ¸ÕëµÄÖ¸Õë£¬Èô½á¹û·µ»Ø0£¬Ôò½«replyÖ¸ÏòµÄÖ¸ÕëÖ¸ÏòÒ»¿éĞÂµÄÄÚ´æ
-// outlen: Îª¸ø reply ·ÖÅäµÄÄÚ´æ¿Õ¼äµÄ´óĞ¡£¬Ò»¶¨Îª BUFFER_SIZE µÄ±¶Êı + 1£¨¿ÉÄÜ¶àÓàÊµ¼Ê³¤¶È£©
-// Õı³£»Ø¸´·µ»Ø0£¬»Ø¸´´íÎó·µ»Ø1£¬¶ÁĞ´´íÎó¼°ÄÚ´æ·ÖÅäÊ§°Ü·µ»Ø-1
-int POP3Client::retr(char** reply, int* outlen, int no)
+// POP3 RETR å‘½ä»¤ï¼Œå–ç‰¹å®šåºå·é‚®ä»¶ä¿¡æ¯
+// reply: æŒ‡å‘å­—ç¬¦æŒ‡é’ˆçš„æŒ‡é’ˆï¼Œè‹¥ç»“æœè¿”å›0ï¼Œåˆ™å°†replyæŒ‡å‘çš„æŒ‡é’ˆæŒ‡å‘ä¸€å—æ–°çš„å†…å­˜ï¼›
+//		  ä½¿ç”¨å®Œæ¯•åº”ä½¿ç”¨free()æ¸…é™¤
+// outlen: ä¸ºç»™ reply åˆ†é…çš„å†…å­˜ç©ºé—´çš„å¤§å°ï¼Œä¸€å®šä¸º BUFFER_SIZE çš„å€æ•° + 1ï¼ˆå¯èƒ½å¤šä½™å®é™…é•¿åº¦ï¼‰
+// æ­£å¸¸å›å¤è¿”å›0ï¼Œå›å¤é”™è¯¯è¿”å›1ï¼Œè¯»å†™é”™è¯¯åŠå†…å­˜åˆ†é…å¤±è´¥è¿”å›-1
+int POP3Client::retr(char** reply, int* outlen, size_t no)
 {
-	char buf[BUFFER_SIZE];		// »º³åÇø
-	sprintf(buf, "RETR %d\r\n", no);
+    char buf[BUFFER_SIZE];		// ç¼“å†²åŒº
+    sprintf(buf, "RETR %u\r\n", no);
 
-	return cmdWithMultiLinesReply(buf, "\r\n.\r\n", reply, outlen);
+    return cmdWithMultiLinesReply(buf, "\r\n.\r\n", reply, outlen);
 }
 
-// POP3 TOP ÃüÁî£¬È¡ÌØ¶¨ĞòºÅÓÊ¼şµÄÍ·²¿ºÍĞÅÌåµÄÖ¸¶¨ĞĞÊıÄÚÈİ
-// reply: Ö¸Ïò×Ö·ûÖ¸ÕëµÄÖ¸Õë£¬Èô½á¹û·µ»Ø0£¬Ôò½«replyÖ¸ÏòµÄÖ¸ÕëÖ¸ÏòÒ»¿éĞÂµÄÄÚ´æ
-// outlen: Îª¸ø reply ·ÖÅäµÄÄÚ´æ¿Õ¼äµÄ´óĞ¡£¬Ò»¶¨Îª BUFFER_SIZE µÄ±¶Êı + 1£¨¿ÉÄÜ¶àÓàÊµ¼Ê³¤¶È£©
-// no: Ö¸¶¨·µ»ØÌØ¶¨ĞòºÅÓÊ¼şµÄÏà¹ØÄÚÈİ
-// Õı³£»Ø¸´·µ»Ø0£¬»Ø¸´´íÎó·µ»Ø1£¬¶ÁĞ´´íÎó¼°ÄÚ´æ·ÖÅäÊ§°Ü·µ»Ø-1
-int POP3Client::top(char** reply, int* outlen, int no, int lines)
+// POP3 TOP å‘½ä»¤ï¼Œå–ç‰¹å®šåºå·é‚®ä»¶çš„å¤´éƒ¨å’Œä¿¡ä½“çš„æŒ‡å®šè¡Œæ•°å†…å®¹
+// reply: æŒ‡å‘å­—ç¬¦æŒ‡é’ˆçš„æŒ‡é’ˆï¼Œè‹¥ç»“æœè¿”å›0ï¼Œåˆ™å°†replyæŒ‡å‘çš„æŒ‡é’ˆæŒ‡å‘ä¸€å—æ–°çš„å†…å­˜ï¼›
+//		  ä½¿ç”¨å®Œæ¯•åº”ä½¿ç”¨free()æ¸…é™¤
+// outlen: ä¸ºç»™ reply åˆ†é…çš„å†…å­˜ç©ºé—´çš„å¤§å°ï¼Œä¸€å®šä¸º BUFFER_SIZE çš„å€æ•° + 1ï¼ˆå¯èƒ½å¤šä½™å®é™…é•¿åº¦ï¼‰
+// no: æŒ‡å®šè¿”å›ç‰¹å®šåºå·é‚®ä»¶çš„ç›¸å…³å†…å®¹
+// æ­£å¸¸å›å¤è¿”å›0ï¼Œå›å¤é”™è¯¯è¿”å›1ï¼Œè¯»å†™é”™è¯¯åŠå†…å­˜åˆ†é…å¤±è´¥è¿”å›-1
+int POP3Client::top(char** reply, int* outlen, size_t no, size_t lines)
 {
-	char buf[BUFFER_SIZE];		// »º³åÇø
-	sprintf(buf, "TOP %d %d\r\n", no, lines);
+    char buf[BUFFER_SIZE];		// ç¼“å†²åŒº
+    sprintf(buf, "TOP %u %u\r\n", no, lines);
 
-	return cmdWithMultiLinesReply(buf, "\r\n.\r\n", reply, outlen);
+    return cmdWithMultiLinesReply(buf, "\r\n.\r\n", reply, outlen);
 }
 
-// POP3 DELE ÃüÁî£¬É¾³ıÖ¸¶¨ĞòºÅÓÊ¼ş
-// no: Ö¸¶¨É¾³ıÌØ¶¨ĞòºÅÓÊ¼ş
-// reply: ´«Èë nullptr(Ä¬ÈÏ) ±íÊ¾²»¹ØĞÄ»Ø¸´£»
-//		  ·Ç¿ÕÊ±ÎªÖ¸Ïò×Ö·ûÖ¸ÕëµÄÖ¸Õë£¬Èô½á¹û·µ»Ø0£¬Ôò½«replyÖ¸ÏòµÄÖ¸ÕëÖ¸ÏòÒ»¿éĞÂµÄÄÚ´æ
-// outlen: ÅäºÏ reply Êä³öĞÂ·ÖÅä¿Õ¼äµÄ´óĞ¡
-// Õı³£»Ø¸´·µ»Ø 0£¬ÃüÁî»Ø¸´´íÎó·µ»Ø 1£¬¶ÁĞ´´íÎó»òÎŞ»Ø¸´»òÄÚ´æ·ÖÅäÊ§°Ü·µ»Ø -1
-int POP3Client::dele(int no, char** reply, int* outlen)
+// POP3 DELE å‘½ä»¤ï¼Œåˆ é™¤æŒ‡å®šåºå·é‚®ä»¶
+// no: æŒ‡å®šåˆ é™¤ç‰¹å®šåºå·é‚®ä»¶
+// reply: ä¼ å…¥ nullptr(é»˜è®¤) è¡¨ç¤ºä¸å…³å¿ƒå›å¤ï¼›
+//		  éç©ºæ—¶ä¸ºæŒ‡å‘å­—ç¬¦æŒ‡é’ˆçš„æŒ‡é’ˆï¼Œè‹¥ç»“æœè¿”å›0ï¼Œåˆ™å°†replyæŒ‡å‘çš„æŒ‡é’ˆæŒ‡å‘ä¸€å—æ–°çš„å†…å­˜ï¼›
+//		  ä½¿ç”¨å®Œæ¯•åº”ä½¿ç”¨free()æ¸…é™¤
+// outlen: é…åˆ reply è¾“å‡ºæ–°åˆ†é…ç©ºé—´çš„å¤§å°
+// æ­£å¸¸å›å¤è¿”å› 0ï¼Œå‘½ä»¤å›å¤é”™è¯¯è¿”å› 1ï¼Œè¯»å†™é”™è¯¯æˆ–æ— å›å¤æˆ–å†…å­˜åˆ†é…å¤±è´¥è¿”å› -1
+int POP3Client::dele(size_t no, char** reply, int* outlen)
 {
-	char buf[BUFFER_SIZE];		// »º³åÇø
+    char buf[BUFFER_SIZE];		// ç¼“å†²åŒº
 
-	sprintf(buf, "DELE %d\r\n", no);		// PASS ÃüÁî·ÅÈë»º³åÇø
+    sprintf(buf, "DELE %u\r\n", no);		// PASS å‘½ä»¤æ”¾å…¥ç¼“å†²åŒº
 
-	return cmdWithSingLineReply(buf, reply, outlen);
+    return cmdWithSingLineReply(buf, reply, outlen);
 }
 
-// POP3 REST ÃüÁî£¬¸´Î»POP3»á»°£¬±êÖ¾É¾³ıµÄÓÊ¼şÈ¡ÏûÉ¾³ı±ê¼Ç
-// reply: ´«Èë nullptr(Ä¬ÈÏ) ±íÊ¾²»¹ØĞÄ»Ø¸´£»
-//		  ·Ç¿ÕÊ±ÎªÖ¸Ïò×Ö·ûÖ¸ÕëµÄÖ¸Õë£¬Èô½á¹û·µ»Ø0£¬Ôò½«replyÖ¸ÏòµÄÖ¸ÕëÖ¸ÏòÒ»¿éĞÂµÄÄÚ´æ
-// outlen: ÅäºÏ reply Êä³öĞÂ·ÖÅä¿Õ¼äµÄ´óĞ¡
-// Õı³£»Ø¸´·µ»Ø 0£¬ÃüÁî»Ø¸´´íÎó·µ»Ø 1£¬¶ÁĞ´´íÎó»òÎŞ»Ø¸´»òÄÚ´æ·ÖÅäÊ§°Ü·µ»Ø -1
+// POP3 REST å‘½ä»¤ï¼Œå¤ä½POP3ä¼šè¯ï¼Œæ ‡å¿—åˆ é™¤çš„é‚®ä»¶å–æ¶ˆåˆ é™¤æ ‡è®°
+// reply: ä¼ å…¥ nullptr(é»˜è®¤) è¡¨ç¤ºä¸å…³å¿ƒå›å¤ï¼›
+//		  éç©ºæ—¶ä¸ºæŒ‡å‘å­—ç¬¦æŒ‡é’ˆçš„æŒ‡é’ˆï¼Œè‹¥ç»“æœè¿”å›0ï¼Œåˆ™å°†replyæŒ‡å‘çš„æŒ‡é’ˆæŒ‡å‘ä¸€å—æ–°çš„å†…å­˜ï¼›
+//		  ä½¿ç”¨å®Œæ¯•åº”ä½¿ç”¨free()æ¸…é™¤
+// outlen: é…åˆ reply è¾“å‡ºæ–°åˆ†é…ç©ºé—´çš„å¤§å°
+// æ­£å¸¸å›å¤è¿”å› 0ï¼Œå‘½ä»¤å›å¤é”™è¯¯è¿”å› 1ï¼Œè¯»å†™é”™è¯¯æˆ–æ— å›å¤æˆ–å†…å­˜åˆ†é…å¤±è´¥è¿”å› -1
 int POP3Client::rest(char** reply, int* outlen)
 {
-	char buf[BUFFER_SIZE];		// »º³åÇø
+    char buf[BUFFER_SIZE];		// ç¼“å†²åŒº
 
-	sprintf(buf, "REST\r\n");		// PASS ÃüÁî·ÅÈë»º³åÇø
+    sprintf(buf, "REST\r\n");		// PASS å‘½ä»¤æ”¾å…¥ç¼“å†²åŒº
 
-	return cmdWithSingLineReply(buf, reply, outlen);
+    return cmdWithSingLineReply(buf, reply, outlen);
 }
 
-// POP3 UIDL ÃüÁî£¬²é¿´ÓÊ¼şÎ¨Ò»±êÊ¶£¬Ö¸¶¨ĞòºÅ·µ»Øµ¥ĞĞ£¬²»Ö¸¶¨·µ»Ø¶àĞĞ
-// reply: Ö¸Ïò×Ö·ûÖ¸ÕëµÄÖ¸Õë£¬Èô½á¹û·µ»Ø0£¬Ôò½«replyÖ¸ÏòµÄÖ¸ÕëÖ¸ÏòÒ»¿éĞÂµÄÄÚ´æ
-// outlen: Îª¸ø reply ·ÖÅäµÄÄÚ´æ¿Õ¼äµÄ´óĞ¡£¬·µ»Ø¶àĞĞÊ±Ò»¶¨Îª BUFFER_SIZE µÄ±¶Êı + 1£¨¿ÉÄÜ¶àÓàÊµ¼Ê³¤¶È£©
-// no Ö¸¶¨·µ»ØÌØ¶¨ĞòºÅÓÊ¼şµÄ´óĞ¡ĞÅÏ¢£¬Ä¬ÈÏÖµ -1 ±íÊ¾²»Ö¸¶¨
-// Õı³£»Ø¸´·µ»Ø0£¬»Ø¸´´íÎó·µ»Ø1£¬¶ÁĞ´´íÎó¼°ÄÚ´æ·ÖÅäÊ§°Ü·µ»Ø-1
+// POP3 UIDL å‘½ä»¤ï¼ŒæŸ¥çœ‹é‚®ä»¶å”¯ä¸€æ ‡è¯†ï¼ŒæŒ‡å®šåºå·è¿”å›å•è¡Œï¼Œä¸æŒ‡å®šè¿”å›å¤šè¡Œ
+// reply: æŒ‡å‘å­—ç¬¦æŒ‡é’ˆçš„æŒ‡é’ˆï¼Œè‹¥ç»“æœè¿”å›0ï¼Œåˆ™å°†replyæŒ‡å‘çš„æŒ‡é’ˆæŒ‡å‘ä¸€å—æ–°çš„å†…å­˜ï¼›
+//		  ä½¿ç”¨å®Œæ¯•åº”ä½¿ç”¨free()æ¸…é™¤
+// outlen: ä¸ºç»™ reply åˆ†é…çš„å†…å­˜ç©ºé—´çš„å¤§å°ï¼Œè¿”å›å¤šè¡Œæ—¶ä¸€å®šä¸º BUFFER_SIZE çš„å€æ•° + 1ï¼ˆå¯èƒ½å¤šä½™å®é™…é•¿åº¦ï¼‰
+// no æŒ‡å®šè¿”å›ç‰¹å®šåºå·é‚®ä»¶çš„å¤§å°ä¿¡æ¯ï¼Œé»˜è®¤å€¼ -1 è¡¨ç¤ºä¸æŒ‡å®š
+// æ­£å¸¸å›å¤è¿”å›0ï¼Œå›å¤é”™è¯¯è¿”å›1ï¼Œè¯»å†™é”™è¯¯åŠå†…å­˜åˆ†é…å¤±è´¥è¿”å›-1
 int POP3Client::uidl(char** reply, int* outlen, int no)
 {
-	if (no > 0) {
-		// È¡µ¥ĞĞÄÚÈİ
-		char buf[BUFFER_SIZE];		// »º³åÇø
-		sprintf(buf, "UIDL %d\r\n", no);
-		return cmdWithSingLineReply(buf, reply, outlen);
-	}
-	else {
-		return cmdWithMultiLinesReply("UIDL\r\n", "\r\n.\r\n", reply, outlen);
-	}
+    if (no > 0) {
+        // å–å•è¡Œå†…å®¹
+        char buf[BUFFER_SIZE];		// ç¼“å†²åŒº
+        sprintf(buf, "UIDL %d\r\n", no);
+        return cmdWithSingLineReply(buf, reply, outlen);
+    }
+    else {
+        return cmdWithMultiLinesReply("UIDL\r\n", "\r\n.\r\n", reply, outlen);
+    }
 }
 
-// POP3 capa ÃüÁî£¬²é¿´·şÎñ¶Ë¼æÈİÃüÁîÁĞ±í
-// reply: Ö¸Ïò×Ö·ûÖ¸ÕëµÄÖ¸Õë£¬Èô½á¹û·µ»Ø0£¬Ôò½«replyÖ¸ÏòµÄÖ¸ÕëÖ¸ÏòÒ»¿éĞÂµÄÄÚ´æ
-// outlen: Îª¸ø reply ·ÖÅäµÄÄÚ´æ¿Õ¼äµÄ´óĞ¡£¬Ò»¶¨Îª BUFFER_SIZE µÄ±¶Êı + 1£¨¿ÉÄÜ¶àÓàÊµ¼Ê³¤¶È£©
-// Õı³£»Ø¸´·µ»Ø0£¬»Ø¸´´íÎó·µ»Ø1£¬¶ÁĞ´´íÎó¼°ÄÚ´æ·ÖÅäÊ§°Ü·µ»Ø-1
+// POP3 capa å‘½ä»¤ï¼ŒæŸ¥çœ‹æœåŠ¡ç«¯å…¼å®¹å‘½ä»¤åˆ—è¡¨
+// reply: æŒ‡å‘å­—ç¬¦æŒ‡é’ˆçš„æŒ‡é’ˆï¼Œè‹¥ç»“æœè¿”å›0ï¼Œåˆ™å°†replyæŒ‡å‘çš„æŒ‡é’ˆæŒ‡å‘ä¸€å—æ–°çš„å†…å­˜ï¼›
+//		  ä½¿ç”¨å®Œæ¯•åº”ä½¿ç”¨free()æ¸…é™¤
+// outlen: ä¸ºç»™ reply åˆ†é…çš„å†…å­˜ç©ºé—´çš„å¤§å°ï¼Œä¸€å®šä¸º BUFFER_SIZE çš„å€æ•° + 1ï¼ˆå¯èƒ½å¤šä½™å®é™…é•¿åº¦ï¼‰
+// æ­£å¸¸å›å¤è¿”å›0ï¼Œå›å¤é”™è¯¯è¿”å›1ï¼Œè¯»å†™é”™è¯¯åŠå†…å­˜åˆ†é…å¤±è´¥è¿”å›-1
 int POP3Client::capa(char** reply, int* outlen)
 {
-	return cmdWithMultiLinesReply("CAPA\r\n", "\r\n.\r\n", reply, outlen);
+    return cmdWithMultiLinesReply("CAPA\r\n", "\r\n.\r\n", reply, outlen);
 }
 
-// ±¨¸æĞÅÏ¢
+// æŠ¥å‘Šä¿¡æ¯ï¼ˆæ·»åŠ ç±»åï¼‰
+// msg: å­—ç¬¦ä¸²ä¿¡æ¯
 void POP3Client::report(const rstring& msg)
 {
-	LogUtil::report("POP3Client " + msg);
+    LogUtil::report("POP3Client " + msg);
 }

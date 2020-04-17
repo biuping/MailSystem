@@ -15,7 +15,7 @@ public:
 	int AnalysisData();
 private:
 	bool FormatEmail(char* pFrom, char* pTo, char* pSubject, char* pMessage, char* Email);
-	bool SendAndRecvMsg(TCPClientSocket socketClient, char* pMessage ,int Messagelen, int Dowhat, char* recvBuf, int recvBuflen);
+	bool SendAndRecvMsg(TCPClientSocket * socketClient, char* pMessage ,int Messagelen, int Dowhat, char* recvBuf, int recvBuflen);
 	void StringToBase64(const char* src, char* dst);
 	int GetStrLength(char* pString);
 };

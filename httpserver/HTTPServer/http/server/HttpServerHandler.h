@@ -7,11 +7,13 @@ private:
 	HttpClient* m_client;
 	char* m_readbuff;
 public:
+	HttpServerHandler();
 	HttpServerHandler(HttpClient* client);
 	~HttpServerHandler();
-	//´¦Àí¿Í»§
+	//处理客户
 	void handle_client();
-	//´¦ÀíÇëÇó
+	void set_client(HttpClient* client);
+	//处理请求
 	HttpResponse* handle_request(HttpRequest& request);
 };
 

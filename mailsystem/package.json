@@ -5,7 +5,7 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "dev1": "webpack-dev-server"
+    "dev": "webpack-dev-server"
   },
   "dependencies": {
     "animate.css": "^3.7.2",

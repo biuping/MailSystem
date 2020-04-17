@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="mail_bg">
         <div class="theme">
             <label class="theme_label">{{this.mail.theme}}</label>
         </div>
@@ -28,6 +28,13 @@
     </div>
 </template>
 <style scoped>
+	.mail_bg{
+		position: absolute;
+		background-color: rgba(124, 124, 122, 0.6);
+		width: 100%;
+		height: 100%;
+		border-radius: 2%;
+	}
     .recipient_frame{
         position: relative;
         padding: 0%;
@@ -46,31 +53,35 @@
     }
     .cutoff_line{
         width: 100%;
-        height: 1px;
-        background-color: blue;
+        height: 3px;
+        background-color: rgb(248, 216, 200);
     }
     input:disabled{
         cursor: auto;
     }
     .rec_label{
-        position: absolute;
+		position: absolute;
+		color: rgb(14, 45, 224);
         width: 5%;
         top: 1%;
 		left: 2%;
+		font-size: 20px;
     }
 	.recipient{
 		position: absolute;
-		top: -5%;
-		left: 6%;
+		top: -50%;
+		left: 7%;
 		padding: 0;
 		width: 15%;
-		border-bottom: 0.0625rem solid #ff0000;
+		border-bottom: 2px solid #ff000075;
 		border-left: 0 transparent;
 		border-top: 0 transparent;
 		border-right: 0 transparent;
 		border-radius: 0;
 		background-color: transparent;
 		outline: none;
+		font-size: 25px;
+
 	}
 	.form-group{
 		position: relative;

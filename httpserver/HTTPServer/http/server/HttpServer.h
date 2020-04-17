@@ -18,11 +18,15 @@ public:
 	SOCKET get_socket();
 	//初始化
 	int start(int backlog=BACKLOG_SIZE);
+	//非阻塞方式启动
+	int start_non_block(int backlog = BACKLOG_SIZE);
 	//关闭服务端
 	int close();
 	bool is_close();
 	//开始运行（包含初始化）
-	void run();
+	//默认非阻塞形式
+	void run(bool block=false);
+
 protected:
 	HttpClient* accept();
 
