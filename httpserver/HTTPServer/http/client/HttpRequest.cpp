@@ -181,7 +181,7 @@ const rstring& HttpRequest::head_content(const rstring& key)
 	HttpHead_t::iterator itor = m_headers.find(key);
 	if (itor != m_headers.end())
 		return itor->second;
-	return nullptr;
+	return "";//引用不能为空
 }
 
 const size_t HttpRequest::body_len()

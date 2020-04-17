@@ -23,4 +23,5 @@
 #define HTTP_URL_SEND_WITH_ATTACH	"/send_mail_with_attach"
 #define HTTP_URL_RECV_NO_ATTACH		"/recv_mail_no_attach"
 #define HTTP_URL_RECV_WITH_ATTACH	"/recv_mail_with_attach"
-#define HTTP_URL_DELETE_MAIL		"/delete_mails"
+#define HTTP_URL_DELETE_MAIL		"/delete_mail"
+#define HTTP_URL_DOWNLOAD_ATTACH	"/download_attach"
