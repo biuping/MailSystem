@@ -126,6 +126,9 @@
     <ClCompile Include="mail_cli\smtp\SMTPClient.cpp">
       <Filter>Source Files\mail_client_src\smtp_src</Filter>
     </ClCompile>
+    <ClCompile Include="mail_cli\MessagePart.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="tools\EncodeUtils.h">
@@ -205,6 +208,12 @@
     </ClInclude>
     <ClInclude Include="mail_cli\smtp\SMTPClient.h">
       <Filter>Header Files\mail_client_include\smtp_include</Filter>
+    </ClInclude>
+    <ClInclude Include="mail_cli\ContentTypes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="mail_cli\MessagePart.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

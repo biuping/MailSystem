@@ -142,6 +142,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="mail_cli\smtp\SMTPClient.cpp" />
+    <ClCompile Include="mail_cli\MessagePart.cpp" />
     <ClCompile Include="tools\CharsetUtils.cpp" />
     <ClCompile Include="http\client\HttpClient.cpp" />
     <ClCompile Include="http\client\HttpRequest.cpp" />
@@ -166,7 +167,9 @@
     <ClCompile Include="tools\LogUtils.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="mail_cli\ContentTypes.h" />
     <ClInclude Include="mail_cli\smtp\SMTPClient.h" />
+    <ClInclude Include="mail_cli\MessagePart.h" />
     <ClInclude Include="tools\CharsetUtils.h" />
     <ClInclude Include="http\static\config.h" />
     <ClInclude Include="http\client\HttpClient.h" />

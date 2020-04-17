@@ -182,9 +182,9 @@ void EncodeUtil::removeCarriageNewLineNotPaired(rstring& raw)
     rstring newstr = rstring(raw.size(), '\0');
     newstr.clear();
 
-    for (int i = 0; i < raw.size(); ++i) {
+    for (size_t i = 0; i < raw.size(); ++i) {
         if ( !(raw[i] == '\r' && (i + 1 >= raw.size() || raw[i + 1] != '\n')) &&
-            !(raw[i] == '\n' && (i - 1 < 0 || raw[i - 1] != '\r'))) {
+            !(raw[i] == '\n' && (i == 0 || raw[i - 1] != '\r'))) {
             // 只有不是 lonely \r or \n 才加入新串
             newstr.append(std::to_string(raw[i]));
         }

@@ -97,6 +97,128 @@ void MIMEParser::parseBody(const str_citer& begin, const str_citer& end,
 	}
 }
 
+// 解析内容类型
+void MIMEParser::parseContentType(const str_citer& begin, const str_citer& end,
+	mail_content_type_t& contentType)
+{
+	str_kvlist params;
+	MIMEDecoder::rfc2231Decode(rstring(begin, end), params);
+
+	bool mediaSet = false;
+	for (str_kv_t kv : params) {
+		rstring& key = kv.first;
+		rstring& val = kv.second;
+		GeneralUtil::strTrim(key);
+		GeneralUtil::strTrim(val);
+		GeneralUtil::strRemoveQuotes(val);
+
+		// 解析字段
+		if (key.size() == 0) {
+			// media type
+			if (!mediaSet) {
+				// 检查 illegal type
+				if (_strnicmp(val.c_str(), "text", 4) == 0 ||
+					_strnicmp(val.c_str(), "text/", 5) == 0) {
+					val = "text/plain";
+				}
+
+				cleanMediaType(val);
+				contentType.media = val;
+				mediaSet = true;
+			}
+			// else 有多个media type，只使用第一个
+		}
+		else if (_strnicmp(key.c_str(), "boundary", 8) == 0) {
+			// set boundary
+			contentType.boundary = val;
+		}
+		else if (_strnicmp(key.c_str(), "charset", 7) == 0) {
+			// set charset
+			contentType.charset = val;
+		}
+		else if (_strnicmp(key.c_str(), "name", 4) == 0) {
+			// set name
+			contentType.name = val;
+		}
+		else {
+			// add parameters
+			contentType.params.emplace(key, val);
+		}
+	}
+}
+
+// 解析内容排布
+void MIMEParser::parseContentDispostion(const str_citer& begin, const str_citer& end,
+	mail_content_disposition& contentDisposition)
+{
+	str_kvlist params;
+	MIMEDecoder::rfc2231Decode(rstring(begin, end), params);
+
+	for (str_kv_t kv : params) {
+		rstring& key = kv.first;
+		rstring& val = kv.second;
+
+		GeneralUtil::strTrim(key);
+		GeneralUtil::strTrim(val);
+		GeneralUtil::strRemoveQuotes(val);
+
+		if (key.size() == 0) {
+			contentDisposition.type = val;
+		}
+		else if (_strnicmp(key.c_str(), "name", 4) == 0 ||
+			_strnicmp(key.c_str(), "filename", 8) == 0) {
+			contentDisposition.filename = val;
+		}
+		else if (_strnicmp(key.c_str(), "size", 4) == 0) {
+			parseSize(val.begin(), val.end(), contentDisposition.size);
+		}
+		else if (_strnicmp(key.c_str(), "creation-date", 13) == 0) {
+			contentDisposition.creation_date = val;
+		}
+		else if (_strnicmp(key.c_str(), "modification-date", 17) == 0) {
+			contentDisposition.modification_date = val;
+		}
+		else if (_strnicmp(key.c_str(), "read-date", 9) == 0) {
+			contentDisposition.read_date = val;
+		}
+		else {
+			// add other params
+			contentDisposition.params.emplace(key, val);
+		}
+	}
+}
+
+void MIMEParser::parseContentTransferEncoding(const str_citer& begin, const str_citer& end,
+	ContentTransferEncoding& encoding)
+{
+	rstring val = rstring(begin, end);
+	GeneralUtil::strTrim(val);
+
+	if (_strnicmp(val.c_str(), "7bit", 4) == 0) {
+		encoding = ContentTransferEncoding::SevenBit;
+	}
+	else if (_strnicmp(val.c_str(), "8bit", 4) == 0) {
+		encoding = ContentTransferEncoding::EightBit;
+	}
+	else if (_strnicmp(val.c_str(), "quoted-printable", 16) == 0) {
+		encoding = ContentTransferEncoding::QuotedPrintable;
+	}
+	else if (_strnicmp(val.c_str(), "base64", 6) == 0) {
+		encoding = ContentTransferEncoding::Base64;
+	}
+	else if (_strnicmp(val.c_str(), "binary", 6) == 0) {
+		encoding = ContentTransferEncoding::Binary;
+	}
+	else {
+		// default use 7bit
+		encoding = ContentTransferEncoding::SevenBit;
+	}
+}
+
+void MIMEParser::parseSize(const str_citer& begin, const str_citer& end, long& size)
+{
+}
+
 // 跳过空白字符
 // begin: 字符串开始位置const_iterator
 // end: 字符串结束位置const_iterator
@@ -197,10 +319,10 @@ void MIMEParser::setHeaderField(mail_header_t& header, const str_kv_t& field)
 		setBcc(header, field.second);
 	}
 	else if (_strnicmp(key.c_str(), "Content-Type", 12) == 0) {
-		setContentType(header, field.second);
+		setHeaderContentType(header, field.second);
 	}
 	else if (_strnicmp(key.c_str(), "Content-Transfer-Encoding", 25) == 0) {
-		setContentTransferEncoding(header, field.second);
+		setHeaderContentTransferEncoding(header, field.second);
 	}
 	else {
 		setOthers(header, key, field.second);
@@ -330,81 +452,22 @@ void MIMEParser::setBcc(mail_header_t& header, const rstring& bcc)
 // 根据原始内容类型字符串设置信头content-type属性
 // header: 信头结构引用
 // contentType: 内容类型原始字符串
-void MIMEParser::setContentType(mail_header_t& header, const rstring& contentType)
+void MIMEParser::setHeaderContentType(mail_header_t& header, const rstring& contentType)
 {
-	str_kvlist params;
-	MIMEDecoder::rfc2231Decode(contentType, params);
-
-	bool mediaSet = false;
-	for (str_kv_t kv : params) {
-		rstring& key = kv.first;
-		rstring& val = kv.second;
-		GeneralUtil::strTrim(key);
-		GeneralUtil::strTrim(val);
-		GeneralUtil::strRemoveQuotes(val);
-		
-		// 解析字段
-		if (key.size() == 0) {
-			// media type
-			if (!mediaSet) {
-				// 检查 illegal type
-				if (_strnicmp(val.c_str(), "text", 4) == 0 ||
-					_strnicmp(val.c_str(), "text/", 5) == 0) {
-					val = "text/plain";
-				}
-
-				cleanMediaType(val);
-				header.content_type.media = val;
-				mediaSet = true;
-			}
-			// else 有多个media type，只使用第一个
-		}
-		else if (_strnicmp(key.c_str(), "boundary", 8) == 0) {
-			// set boundary
-			header.content_type.boundary = val;
-		}
-		else if (_strnicmp(key.c_str(), "charset", 7) == 0) {
-			// set charset
-			header.content_type.charset = val;
-		}
-		else if (_strnicmp(key.c_str(), "name", 4) == 0) {
-			// set name
-			header.content_type.name = val;
-		}
-		else {
-			// add parameters
-			header.content_type.params.emplace(key, val);
-		}
-	}
+	parseContentType(contentType.begin(), contentType.end(), header.content_type);
 }
 
 // 根据原始内容传输编码字符串设置信头相应属性
 // header: 信头结构引用
 // encoding: 内容传输编码原始字符串
-void MIMEParser::setContentTransferEncoding(mail_header_t& header, const rstring& encoding)
+void MIMEParser::setHeaderContentTransferEncoding(mail_header_t& header, const rstring& encoding)
 {
-	rstring val = encoding;
-	GeneralUtil::strTrim(val);
+	parseContentTransferEncoding(encoding.begin(), encoding.end(), header.content_transfer_encoding);
+}
 
-	if (_strnicmp(val.c_str(), "7bit", 4) == 0) {
-		header.content_transfer_encoding = ContentTransferEncoding::SevenBit;
-	}
-	else if (_strnicmp(val.c_str(), "8bit", 4) == 0) {
-		header.content_transfer_encoding = ContentTransferEncoding::EightBit;
-	}
-	else if (_strnicmp(val.c_str(), "quoted-printable", 16) == 0) {
-		header.content_transfer_encoding = ContentTransferEncoding::QuotedPrintable;
-	}
-	else if (_strnicmp(val.c_str(), "base64", 6) == 0) {
-		header.content_transfer_encoding = ContentTransferEncoding::Base64;
-	}
-	else if (_strnicmp(val.c_str(), "binary", 6) == 0) {
-		header.content_transfer_encoding = ContentTransferEncoding::Binary;
-	}
-	else {
-		// default use 7bit
-		header.content_transfer_encoding = ContentTransferEncoding::SevenBit;
-	}
+void MIMEParser::setHeaderContentDisposition(mail_header_t& header, const rstring& disposition)
+{
+	parseContentDispostion(disposition.begin(), disposition.end(), header.content_disposition);
 }
 
 // 根据原始其他字段的字段名和值字符串设置信头属性
@@ -552,8 +615,6 @@ void MIMEParser::extractParts(const str_citer& begin, const str_citer& end,
 {
 	parts.clear();
 	size_t passed = 0;
-	std::stack<rstring> bounds;
-	bounds.push(boundary);
 	rstring line;
 
 	while (begin + passed < end) {
@@ -568,7 +629,7 @@ void MIMEParser::extractParts(const str_citer& begin, const str_citer& end,
 			passed = passed + linepos + 2;
 		}
 
-		if (GeneralUtil::strStartWith(line, "--" + bounds.top(), true)) {
+		if (GeneralUtil::strStartWith(line, "--", true)) {
 			// 进入边界
 
 		}
