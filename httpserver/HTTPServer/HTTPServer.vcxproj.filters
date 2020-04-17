@@ -43,6 +43,12 @@
     <Filter Include="Header Files\mail_client_include\pop3_include">
       <UniqueIdentifier>{2cd6dd06-56fc-466b-ae63-9eb3d5fba64d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\smtp_src">
+      <UniqueIdentifier>{edea0cba-c540-4e9a-8df4-fd462c41df03}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\mail_client_include\smtp_include">
+      <UniqueIdentifier>{1c45976a-17f2-40fa-80f4-ee551ffcf061}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="mail_cli\Mail.cpp">
@@ -99,17 +105,8 @@
     <ClCompile Include="tests\mao_test\mao.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mail_cli\mime\MIMEParser.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="mail_cli\mime\MIMEDecoder.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="tools\CharsetUtils.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="tools\GeneralUtils.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="SMTPClient.cpp">
+      <Filter>Source Files\smtp_src</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -176,17 +173,8 @@
     <ClInclude Include="tests\my.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="mail_cli\mime\MIMEParser.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="mail_cli\mime\MIMEDecoder.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="tools\CharsetUtils.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="tools\GeneralUtils.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="SMTPClient.h">
+      <Filter>Header Files\mail_client_include\smtp_include</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
