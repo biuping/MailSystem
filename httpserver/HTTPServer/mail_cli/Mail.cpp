@@ -1,13 +1,22 @@
 #include "Mail.h"
 
 
+void clearParts(mail_body_t& body)
+{
+	for (MessagePart* p : body.parts) {
+		delete p;
+	}
+	body.parts.clear();
+}
+
+
 Mail::Mail():mSize(0),mUID("")
 {
 }
 
 Mail::~Mail()
 {
-	clearParts();
+	clearParts(mBody);
 }
 
 // 设置邮件大小（bytes）
@@ -20,13 +29,6 @@ void Mail::setSize(const size_t mailsize)
 void Mail::setUID(const rstring& mailUID)
 {
 	this->mUID = mailUID;
-}
-
-void Mail::clearParts()
-{
-	for (MessagePart* p : mBody.parts) {
-		delete p;
-	}
 }
 
 const mail_header_t& Mail::getHeader()
@@ -60,6 +62,6 @@ void Mail::setHeader(const mail_header_t& header)
 // 设置邮件主体
 void Mail::setBody(const mail_body_t& body)
 {
-	this->clearParts();
+	clearParts(mBody);
 	this->mBody = body;
 }

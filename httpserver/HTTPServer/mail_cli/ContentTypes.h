@@ -31,7 +31,7 @@ typedef struct {
 
 
 typedef struct mail_content_disposition {
-	long size;
+	long long size;
 	rstring filename;
 	rstring type;
 	rstring creation_date;

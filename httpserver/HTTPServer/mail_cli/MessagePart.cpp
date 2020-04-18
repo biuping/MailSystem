@@ -40,6 +40,26 @@ const int MessagePart::getPartsSize()
 	return mParts.size();
 }
 
+const str_kvmap& MessagePart::getParams()
+{
+	return mParams;
+}
+
+bool MessagePart::containParam(const rstring& name)
+{
+	return mParams.find(name) != mParams.end();
+}
+
+const rstring& MessagePart::getParam(const rstring& name)
+{
+	if (containParam(name)) {
+		return mParams[name];
+	}
+	else {
+		return "";
+	}
+}
+
 void MessagePart::setEncoding(ContentTransferEncoding encoding)
 {
 	this->mEncoding = encoding;
@@ -64,6 +84,38 @@ void MessagePart::setParts(const std::list<MessagePart*>& parts)
 {
 	this->clearParts();
 	this->mParts = parts;
+}
+
+void MessagePart::setParams(const str_kvmap& params)
+{
+	mParams = params;
+}
+
+bool MessagePart::addParam(const rstring& name, const rstring& val)
+{
+	if (containParam(name)) {
+		return false;
+	}
+	else {
+		mParams[name] = val;
+		return true;
+	}
+}
+
+bool MessagePart::setParam(const rstring& name, const rstring& val)
+{
+	if (containParam(name)) {
+		mParams[name] = val;
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+void MessagePart::setOrAddParam(const rstring& name, const rstring& val)
+{
+	mParams[name] = val;
 }
 
 void MessagePart::addPartBack(MessagePart*& part)
@@ -93,7 +145,7 @@ const rstring& MessagePart::getFileName()
 }
 
 // 是否为 multipart 类型
-bool MessagePart::multipart()
+bool MessagePart::isMultipart()
 {
 	return GeneralUtil::strStartWith(mContentType.media, "multipart/", true);
 }
@@ -107,5 +159,6 @@ bool MessagePart::isText()
 // 是否为附件类型
 bool MessagePart::isAttachment()
 {
-	return false;
+	return (!isText() && !isMultipart()) ||
+		(_strnicmp(mContentDisposition.type.c_str(), "attachment", 10) == 0);
 }

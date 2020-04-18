@@ -19,6 +19,9 @@ public:
 	const rstring& getMessage();
 	const std::list<MessagePart*> getParts();
 	const int getPartsSize();
+	const str_kvmap& getParams();
+	bool containParam(const rstring& name);
+	const rstring& getParam(const rstring& name);
 
 	/* setters */
 	void setEncoding(ContentTransferEncoding encoding);
@@ -26,6 +29,10 @@ public:
 	void setContentDisposition(const mail_content_disposition& contentDisposition);
 	void setMessage(const rstring& message);
 	void setParts(const std::list<MessagePart*>& parts);
+	void setParams(const str_kvmap& params);
+	bool addParam(const rstring& name, const rstring& val);
+	bool setParam(const rstring& name, const rstring& val);
+	void setOrAddParam(const rstring& name, const rstring& val);
 	void addPartBack(MessagePart*& part);
 	void addPartFront(MessagePart*& part);
 	void clearParts();
@@ -33,7 +40,7 @@ public:
 	const rstring& getFileName();
 	
 	/* convenient type check */
-	bool multipart();
+	bool isMultipart();
 	bool isText();
 	bool isAttachment();
 
@@ -43,6 +50,7 @@ private:
 	mail_content_disposition mContentDisposition;
 	rstring mMessage;
 	std::list<MessagePart*> mParts;
+	str_kvmap mParams;
 };
 
 

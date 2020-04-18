@@ -46,6 +46,12 @@ void utility_test()
 	LogUtil::report(tstr);
 
 	LogUtil::report(GeneralUtil::strEndsWith(tstr, "dccd") ? "true" : "false");
+
+	rstring test = " ada asdas aasd \t \r\n sdasd ";
+	GeneralUtil::strReplaceAll(test, "\r\n", "");
+	LogUtil::report(test);
+	GeneralUtil::strStripCharsIn(test, " \t");
+	LogUtil::report(test);
 }
 
 

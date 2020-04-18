@@ -23,6 +23,8 @@ public:
 		ContentTransferEncoding encoding, rstring& decoded);
 	static const rstring decode(const rstring& encoded, const rstring& charset, const rstring& encoding);
 	static void rfc2231Decode(const rstring& raw, str_kvlist& kvs);
+	static void base64Decode(const rstring& encoded, rstring& decoded);
+	static void quotedPrintableDecode(const rstring& encoded, rstring& decoded, bool variant);
 private:
 	static const rstring encodedWordPattern;
 	static const rstring replacePattern;
