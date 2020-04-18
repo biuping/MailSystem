@@ -161,14 +161,15 @@ void pop3_test()
 			}
 		}
 
+		int mailno = 1;
 		/* retr */
-		if (popcli->retrMail(2, mails[2])) {
+		if (popcli->retrMail(mailno, mails[mailno])) {
 			//SetConsoleCP(65001);
 			LogUtil::report("Mail 1 subject: ");
-			rstring sub = mails[2]->getHeader().subject;
+			rstring sub = mails[mailno]->getHeader().subject;
 			CharsetUtil::showHex(sub.c_str(), sub.size());
-			LogUtil::report(mails[2]->getHeader().subject);
-			LogUtil::report(mails[2]->getBody().message);
+			LogUtil::report(mails[mailno]->getHeader().subject);
+			LogUtil::report(mails[mailno]->getBody().message);
 		}
 	}
 	else {
