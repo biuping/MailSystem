@@ -163,7 +163,7 @@ void MIMEParser::parseContentType(const str_citer& begin, const str_citer& end,
 
 // 解析内容排布
 void MIMEParser::parseContentDispostion(const str_citer& begin, const str_citer& end,
-	mail_content_disposition& contentDisposition)
+	mail_content_disposition_t& contentDisposition)
 {
 	str_kvlist params;
 	MIMEDecoder::rfc2231Decode(rstring(begin, end), params);
@@ -181,7 +181,9 @@ void MIMEParser::parseContentDispostion(const str_citer& begin, const str_citer&
 		}
 		else if (_strnicmp(key.c_str(), "name", 4) == 0 ||
 			_strnicmp(key.c_str(), "filename", 8) == 0) {
-			contentDisposition.filename = val;
+			rstring decoded = val;
+			MIMEDecoder::decodeWord(val, decoded);
+			contentDisposition.filename = decoded;
 		}
 		else if (_strnicmp(key.c_str(), "size", 4) == 0) {
 			parseSize(val.begin(), val.end(), contentDisposition.size);
@@ -876,7 +878,7 @@ void MIMEParser::setPartHeaderField(MessagePart* part, const str_kv_t& field)
 		part->setEncoding(encoding);
 	}
 	else if (_strnicmp(key.c_str(), "Content-Disposition", 19) == 0) {
-		mail_content_disposition disposition;
+		mail_content_disposition_t disposition;
 		parseContentDispostion(field.second.begin(), field.second.end(), disposition);
 		part->setContentDisposition(disposition);
 	}

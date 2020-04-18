@@ -139,7 +139,7 @@ const rstring EncodeUtil::encodeAsciiWithCharset(const rstring& asciitext, const
     // TODO: 可以继续完善
     if (_strnicmp(charset.c_str(), "binary", 6) == 0 ||
         _strnicmp(charset.c_str(), "US-ASCII", 8) == 0 ||
-        _strnicmp(charset.c_str(), "iso-8859-1", 10) == 0 ||
+        _strnicmp(charset.c_str(), "iso-8859-", 9) == 0 ||
         _strnicmp(charset.c_str(), "ANSI", 4) == 0) {
         // ascii
         return asciitext;

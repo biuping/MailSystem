@@ -30,7 +30,7 @@ typedef struct {
 } mail_content_type_t;
 
 
-typedef struct mail_content_disposition {
+typedef struct mail_content_disposition_t {
 	long long size;
 	rstring filename;
 	rstring type;
@@ -38,8 +38,8 @@ typedef struct mail_content_disposition {
 	rstring modification_date;
 	rstring read_date;
 	str_kvmap params;
-	mail_content_disposition(): size(0) {}
-} mail_content_disposition;
+	mail_content_disposition_t(): size(0) {}
+} mail_content_disposition_t;
 
 
 

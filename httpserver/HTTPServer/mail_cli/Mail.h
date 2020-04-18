@@ -34,7 +34,7 @@ typedef struct mail_header_t {
 	rstring mime_version;
 	ContentTransferEncoding content_transfer_encoding;
 	mail_content_type_t content_type;
-	mail_content_disposition content_disposition;
+	mail_content_disposition_t content_disposition;
 	maddr_list to;
 	maddr_list cc;
 	maddr_list bcc;

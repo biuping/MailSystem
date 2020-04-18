@@ -20,7 +20,7 @@ const mail_content_type_t& MessagePart::getContentType()
 	return mContentType;
 }
 
-const mail_content_disposition& MessagePart::getContentDisposition()
+const mail_content_disposition_t& MessagePart::getContentDisposition()
 {
 	return mContentDisposition;
 }
@@ -70,7 +70,7 @@ void MessagePart::setContentType(const mail_content_type_t& contenttype)
 	this->mContentType = contenttype;
 }
 
-void MessagePart::setContentDisposition(const mail_content_disposition& contentDisposition)
+void MessagePart::setContentDisposition(const mail_content_disposition_t& contentDisposition)
 {
 	this->mContentDisposition = contentDisposition;
 }
