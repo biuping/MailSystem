@@ -18,7 +18,13 @@ public:
 	void parseHeader(const str_citer& begin, const str_citer& end, mail_header_t& header);
 	void parseBody(const str_citer& begin, const str_citer& end,
 		const mail_header_t& header, mail_body_t& body);
-
+	void parseContentType(const str_citer& begin, const str_citer& end,
+		mail_content_type_t& contentType);
+	void parseContentDispostion(const str_citer& begin, const str_citer& end,
+		mail_content_disposition& contentDisposition);
+	void parseContentTransferEncoding(const str_citer& begin, const str_citer& end,
+		ContentTransferEncoding& encoding);
+	void parseSize(const str_citer& begin, const str_citer& end, long& size);
 private:
 	MIMEParser();
 	~MIMEParser();
@@ -46,8 +52,9 @@ private:
 	void setTo(mail_header_t& header, const rstring& to);
 	void setCc(mail_header_t& header, const rstring& cc);
 	void setBcc(mail_header_t& header, const rstring& bcc);
-	void setContentType(mail_header_t& header, const rstring& contentType);
-	void setContentTransferEncoding(mail_header_t& header, const rstring& encoding);
+	void setHeaderContentType(mail_header_t& header, const rstring& contentType);
+	void setHeaderContentTransferEncoding(mail_header_t& header, const rstring& encoding);
+	void setHeaderContentDisposition(mail_header_t& header, const rstring& disposition);
 	/* set non-standard(extended) fields */
 	void setOthers(mail_header_t& header, const rstring & key, const rstring & val);
 

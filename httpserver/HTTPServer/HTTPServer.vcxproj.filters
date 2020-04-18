@@ -128,6 +128,8 @@
     </ClCompile>
     <ClCompile Include="tests\huang_test\huang.cpp">
       <Filter>Source Files</Filter>
+    <ClCompile Include="mail_cli\MessagePart.cpp">
+      <Filter>Source Files\mail_client_src</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -211,6 +213,11 @@
     </ClInclude>
     <ClInclude Include="tests\huang_test\huang.h">
       <Filter>Header Files</Filter>
+    <ClInclude Include="mail_cli\MessagePart.h">
+      <Filter>Header Files\mail_client_include</Filter>
+    </ClInclude>
+    <ClInclude Include="mail_cli\ContentTypes.h">
+      <Filter>Header Files\mail_client_include</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -15,13 +15,23 @@ HttpServerHandler::HttpServerHandler(HttpClient* client) :
 
 HttpServerHandler::~HttpServerHandler()
 {
-	
+
 	if (m_readbuff != nullptr)
 	{
 		delete[] m_readbuff;
 		m_readbuff = nullptr;
 	}
-	
+	//if (m_object != nullptr)
+	//{
+	//	delete m_object;
+	//	m_object = nullptr;
+	//}
+	//if (m_err != nullptr)
+	//{
+	//	delete m_err;
+	//	m_err = nullptr;
+	//}
+
 }
 
 void HttpServerHandler::handle_client()
@@ -90,21 +100,19 @@ HttpResponse* HttpServerHandler::handle_request(HttpRequest& request)
 
 	const rstring& method = request.method();
 	const rstring& url = request.url();
-	
+	const rstring& content_type = request.head_content(HTTP_HEAD_CONTENT_TYPE);
 
 	HttpResponse* response = new HttpResponse();
-	Json::Value object;
-	Json::String err;
 
-	if (method.compare("POST") == 0)
-	{	
-		const rstring& content_type = request.head_content(HTTP_HEAD_CONTENT_TYPE);
+	if (!content_type.empty() && method.compare("POST") == 0)
+	{
+
 		//处理post消息体
 		if (content_type.find(HTTP_HEAD_JSON_TYPE) != content_type.npos)
 		{
-			
-			Tools::json_read(request.body(), request.body_len(), object, err);
-			
+
+			Tools::json_read(request.body(), request.body_len(), m_object, m_err);
+
 		}
 		else if (content_type.find(HTTP_HEAD_FORM_TYPE) != content_type.npos)
 		{
@@ -119,30 +127,69 @@ HttpResponse* HttpServerHandler::handle_request(HttpRequest& request)
 	}
 
 	//处理url
-	if (url.compare(HTTP_URL_LOGIN)==0)
+	if (url.compare(HTTP_URL_LOGIN) == 0)
 	{
-
-		response->build_ok();
-		response->add_head(HTTP_HEAD_CONTENT_TYPE, HTTP_HEAD_JSON_TYPE);
+		Login(response);
+		
 	}
 	else if (url.compare(HTTP_URL_SEND_NO_ATTACH) == 0)
 	{
-
+		SendNoAttach(response);
 	}
 	else if (url.compare(HTTP_URL_RECV_NO_ATTACH) == 0)
 	{
-
+		RecvNoAttach(response);
 	}
 	else if (url.compare(HTTP_URL_DELETE_MAIL) == 0)
 	{
-
+		DeleteMail(response);
 	}
-	else 
+	else if (url.compare(HTTP_URL_DOWNLOAD_ATTACH) == 0)
+	{
+		DownloadAttach(response);
+	}
+	else
 	{
 		response->build_not_found();
 	}
 
 
 	return response;
+}
+
+void HttpServerHandler::Login(HttpResponse* response)
+{
+	response->build_ok();
+	response->add_head(HTTP_HEAD_CONTENT_TYPE, HTTP_HEAD_JSON_TYPE);
+}
+
+void HttpServerHandler::SendWithAttach(HttpResponse* response)
+{
+}
+
+void HttpServerHandler::SendNoAttach(HttpResponse* response)
+{
+}
+
+void HttpServerHandler::RecvWitnAttach(HttpResponse* response)
+{
+}
+
+void HttpServerHandler::RecvNoAttach(HttpResponse* response)
+{
+}
+
+void HttpServerHandler::DownloadAttach(HttpResponse* response)
+{
+	rstring down = "dGhpcyBpcyB0ZXN0Mg0KDQoNCi0tLS0tLS0tLS0tLQ0KLS0NCi0tLS0tLS0tLS0tLQ==";
+	response->add_head(HTTP_HEAD_CONTENT_TYPE, "text / plain; name = \"test2.txt\"");
+	response->build_ok();
+	response->add_head("Content-Disposition", "attachment; filename=\"test2.txt\"");
+	response->add_head("Content-Transfer-Encoding", "base64");
+	response->build_body(down);
+}
+
+void HttpServerHandler::DeleteMail(HttpResponse* response)
+{
 }
 

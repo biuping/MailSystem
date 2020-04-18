@@ -167,13 +167,12 @@ int HttpServer::start_non_block(int backlog)
 	} while (end_server != true);
 
 	//关闭所有套接字
-	for (int i = 0; i <= max_sd; ++i)
-	{
-		if (FD_ISSET(i, &master_set))
-			::closesocket(i);
-	}
+	//for (int i = 0; i <= max_sd; ++i)
+	//{
+	//	if (FD_ISSET(i, &master_set))
+	//		::closesocket(i);
+	//}
 
-	close();
 	return 0;
 }
 
@@ -207,6 +206,9 @@ void HttpServer::run(bool block)
 		if (this->start_non_block() < 0) {
 			Tools::report("start failed");
 			this->close();
+		}
+		else {
+			Tools::report("Server shutdown");
 		}
 	}
 

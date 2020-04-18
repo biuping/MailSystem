@@ -76,4 +76,6 @@ public:
 	*/
 	static const char* find_content(const char* start, const char* end,
 		char c_end, size_t& content_len, size_t& sum_len);
+
+	
 };
