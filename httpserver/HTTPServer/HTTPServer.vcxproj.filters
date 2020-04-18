@@ -206,6 +206,15 @@
     <ClInclude Include="mail_cli\smtp\SMTPClient.h">
       <Filter>Header Files\mail_client_include\smtp_include</Filter>
     </ClInclude>
+    <ClInclude Include="http\static\MultipartParser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="http\static\MultipartReader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="http\static\MultipartRecord.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

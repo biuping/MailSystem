@@ -166,6 +166,9 @@
     <ClCompile Include="tools\LogUtils.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="http\static\MultipartParser.h" />
+    <ClInclude Include="http\static\MultipartReader.h" />
+    <ClInclude Include="http\static\MultipartRecord.h" />
     <ClInclude Include="mail_cli\smtp\SMTPClient.h" />
     <ClInclude Include="tools\CharsetUtils.h" />
     <ClInclude Include="http\static\config.h" />

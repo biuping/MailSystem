@@ -12,7 +12,6 @@ void server_start() {
 
 	server.run();
 	server.close();
-	delete& socketInit;
 }
 
 void json_test()

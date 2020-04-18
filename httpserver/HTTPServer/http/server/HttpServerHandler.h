@@ -1,5 +1,7 @@
 #pragma once
 #include "..\server\HttpServer.h"
+#include "..\static\MultipartReader.h"
+#include "..\static\MultipartRecord.h"
 
 class HttpServerHandler
 {
@@ -26,5 +28,6 @@ public:
 	void RecvNoAttach(HttpResponse* response);
 	void DownloadAttach(HttpResponse* response);
 	void DeleteMail(HttpResponse* response);
+
 };
 

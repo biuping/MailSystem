@@ -25,3 +25,6 @@
 #define HTTP_URL_RECV_WITH_ATTACH	"/recv_mail_with_attach"
 #define HTTP_URL_DELETE_MAIL		"/delete_mail"
 #define HTTP_URL_DOWNLOAD_ATTACH	"/download_attach"
+
+#define HTTP_PREFIX_BOUNDARY		"boundary="
+#define HTTP_PREFIX_NAME			"name="

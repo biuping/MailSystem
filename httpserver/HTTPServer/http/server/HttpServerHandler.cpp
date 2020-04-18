@@ -39,7 +39,7 @@ void HttpServerHandler::handle_client()
 	size_t size = 0;
 	size_t len = 0;
 	char* temp_buff = new char[DEFAULT_BUFF_SIZE];
-	rstring temp_str;
+	rstring* temp_str = new rstring;
 	do
 	{
 		len = m_client->recv(temp_buff, DEFAULT_BUFF_SIZE, 0);
@@ -60,14 +60,15 @@ void HttpServerHandler::handle_client()
 		else
 		{
 			size += len;
-			temp_str.append(temp_buff, len);
+			temp_str->append(temp_buff, len);
 		}
 	} while (len > 0);
 
 	delete[] temp_buff;
 	//设置末尾0
 	m_readbuff = new char[size + 1];
-	memcpy(m_readbuff, &temp_str[0], size);
+	memcpy(m_readbuff, &(*temp_str)[0], size);
+	delete temp_str;
 	m_readbuff[size] = 0x00;
 
 	//解析请求
@@ -86,7 +87,7 @@ void HttpServerHandler::handle_client()
 		size_t len = strlen(buff);
 		m_client->send(buff, len, 0);
 		delete response;
-
+		delete[] m_readbuff;
 	}
 }
 
@@ -100,13 +101,15 @@ HttpResponse* HttpServerHandler::handle_request(HttpRequest& request)
 
 	const rstring& method = request.method();
 	const rstring& url = request.url();
-	const rstring& content_type = request.head_content(HTTP_HEAD_CONTENT_TYPE);
+	
+	MultipartReader reader;
+	MultipartRecord record(reader);
 
 	HttpResponse* response = new HttpResponse();
 
-	if (!content_type.empty() && method.compare("POST") == 0)
+	if (request.has_head(HTTP_HEAD_CONTENT_TYPE) && method.compare("POST") == 0)
 	{
-
+		const rstring& content_type = request.head_content(HTTP_HEAD_CONTENT_TYPE);
 		//处理post消息体
 		if (content_type.find(HTTP_HEAD_JSON_TYPE) != content_type.npos)
 		{
@@ -117,7 +120,23 @@ HttpResponse* HttpServerHandler::handle_request(HttpRequest& request)
 		else if (content_type.find(HTTP_HEAD_FORM_TYPE) != content_type.npos)
 		{
 			//TODO： 处理form-data
-			Tools::report(HTTP_HEAD_FORM_TYPE);
+			size_t start = content_type.find(HTTP_PREFIX_BOUNDARY);
+			rstring boundary = content_type.substr(start + strlen(HTTP_PREFIX_BOUNDARY)); //找到boundary
+
+			reader.setBoundary(boundary);
+			reader.feed(request.body(), request.body_len());
+
+			HttpHead_t* h = record.FindHeaderByName("file2");
+			if (h != nullptr)
+			{
+				Tools::report(record.FindHeadContent(*h, "filename"));
+			}
+			HttpHead_t* h2 = record.FindHeaderByName("sender");
+			if (h2 != nullptr)
+			{
+				Tools::report(record.FindHeadContent(*h2, "Content"));
+			}
+				
 		}
 		else
 		{
@@ -153,6 +172,7 @@ HttpResponse* HttpServerHandler::handle_request(HttpRequest& request)
 		response->build_not_found();
 	}
 
+	record.ClearList();
 
 	return response;
 }
@@ -192,4 +212,5 @@ void HttpServerHandler::DownloadAttach(HttpResponse* response)
 void HttpServerHandler::DeleteMail(HttpResponse* response)
 {
 }
+
 
