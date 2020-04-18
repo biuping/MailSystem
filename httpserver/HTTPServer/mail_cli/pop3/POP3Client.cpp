@@ -390,9 +390,7 @@ bool POP3Client::deleteMail(size_t i)
     }
 
     char* reply;
-    char okBuf[10], octetsBuf[20];
     int replyLen, deleRet;
-    size_t mailsize;
     bool ret = false;
 
     // i+1 为删除邮件所使用的序号

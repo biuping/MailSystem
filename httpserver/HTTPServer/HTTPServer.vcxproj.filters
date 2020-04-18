@@ -126,6 +126,11 @@
     <ClCompile Include="mail_cli\smtp\SMTPClient.cpp">
       <Filter>Source Files\mail_client_src\smtp_src</Filter>
     </ClCompile>
+    <ClCompile Include="tests\huang_test\huang.cpp">
+      <Filter>Source Files</Filter>
+    <ClCompile Include="mail_cli\MessagePart.cpp">
+      <Filter>Source Files\mail_client_src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="tools\EncodeUtils.h">
@@ -188,9 +193,6 @@
     <ClInclude Include="tests\zhang_test\zhang.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="tests\my.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="tools\CharsetUtils.h">
       <Filter>Header Files\tools_include</Filter>
     </ClInclude>
@@ -214,6 +216,16 @@
     </ClInclude>
     <ClInclude Include="http\static\MultipartRecord.h">
       <Filter>Header Files</Filter>
+    <ClInclude Include="tests\my.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\huang_test\huang.h">
+      <Filter>Header Files</Filter>
+    <ClInclude Include="mail_cli\MessagePart.h">
+      <Filter>Header Files\mail_client_include</Filter>
+    </ClInclude>
+    <ClInclude Include="mail_cli\ContentTypes.h">
+      <Filter>Header Files\mail_client_include</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
