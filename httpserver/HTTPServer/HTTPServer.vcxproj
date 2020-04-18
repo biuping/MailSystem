@@ -42,7 +42,7 @@
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v142</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -142,6 +142,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="mail_cli\smtp\SMTPClient.cpp" />
+    <ClCompile Include="tests\huang_test\huang.cpp" />
     <ClCompile Include="tools\CharsetUtils.cpp" />
     <ClCompile Include="http\client\HttpClient.cpp" />
     <ClCompile Include="http\client\HttpRequest.cpp" />
@@ -167,6 +168,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="mail_cli\smtp\SMTPClient.h" />
+    <ClInclude Include="tests\huang_test\huang.h" />
+    <ClInclude Include="tests\my.h" />
     <ClInclude Include="tools\CharsetUtils.h" />
     <ClInclude Include="http\static\config.h" />
     <ClInclude Include="http\client\HttpClient.h" />
@@ -184,7 +187,6 @@
     <ClInclude Include="mail_cli\mime\MIMEParser.h" />
     <ClInclude Include="mail_cli\mime\MIMEDecoder.h" />
     <ClInclude Include="tests\mao_test\mao.h" />
-    <ClInclude Include="tests\my.h" />
     <ClInclude Include="tests\test.h" />
     <ClInclude Include="socket\TCPClientSocket.h" />
     <ClInclude Include="http\static\Tools.h" />
