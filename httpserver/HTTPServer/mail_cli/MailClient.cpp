@@ -77,13 +77,57 @@ bool MailClient::Login(const rstring& mailAddr, const rstring& passwd, rstring& 
 
 	if (mSender != nullptr) {
 		// sender
+		if (!mSender->Login(mailAddr, passwd, description))
+		{
+			return false;
+		}
 
 	}
 
 	description = "OK";
 	return true;
 }
+rstring MailClient::SendMail(const rstring& targetAddr,const rstring& theme,const rstring& content,std::vector<Attachment>& attachments) 
+{
+	if (mSender == nullptr)
+	{
+		// 未绑定sender
+		return "";
+	}
+	for (int i = 0; i < attachments.size(); i++)
+		mSender->AddAttachment(attachments[i]);
+	int num = mSender->SendEmail_Ex();
+	switch (num)
+	{
+		/*错误码的说明:1.网络错误导致的错误2.用户名错误3.密码错误4.文件不存在0.成功*/
+	case 0:
+	{
+		return "Send success!";
+		break;
+	}
+	case 1:
+	{
+		return  "Send failed, Internet error!";
+		break;
+	}
+	case 2:
+	{
+		return  "Send failed, user name error!";
+		break;
+	}
+	case 3:
+	{
+		return  "Send failed, password error!";
+		break;
+	}
+	case 4:
+	{
+		return "Send failed, password error!";
+		break;
+	}
+	}
 
+}
 const rstring MailClient::RecvMail(rstring& description)
 {
 	if (mReceiver == nullptr) {

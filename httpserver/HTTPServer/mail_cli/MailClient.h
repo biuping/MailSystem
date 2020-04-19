@@ -40,7 +40,7 @@ public:
 		const rstring& targetAddr,
 		const rstring& theme,
 		const rstring& content,
-		std::list<Attachment*>& attachments
+		std::vector<Attachment>& attachments
 	);
 	/*
 	½ÓÊÕÓÊ¼ş
