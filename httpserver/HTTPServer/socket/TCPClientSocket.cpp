@@ -12,12 +12,12 @@ TCPClientSocket::TCPClientSocket(const TCPClientSocket& tcpcliSocket)
 {
 }
 
-// ¹¹Ôì TCPClientSocket ¶ÔÏó£¬²¢Á¬½Óµ½ (addr,port,TCP) Ö¸¶¨µÄÍøÂç½ø³ÌÌ×½Ó×Ö
-// addr ¿ÉÎªÓòÃû»òipµØÖ·
-// tmo Îª³¬Ê±Ê±¼ä£¨µ¥Î»Ãë£©£¬Îª0Ê±ÎŞÏŞµÈ´ı
+// æ„é€  TCPClientSocket å¯¹è±¡ï¼Œå¹¶è¿æ¥åˆ° (addr,port,TCP) æŒ‡å®šçš„ç½‘ç»œè¿›ç¨‹å¥—æ¥å­—
+// addr å¯ä¸ºåŸŸåæˆ–ipåœ°å€
+// tmo ä¸ºè¶…æ—¶æ—¶é—´ï¼ˆå•ä½ç§’ï¼‰ï¼Œä¸º0æ—¶æ— é™ç­‰å¾…
 TCPClientSocket::TCPClientSocket(const char* addr, USHORT port, int tmo) : TCPClientSocket()
 {
-	connect2Server(addr, port, tmo);
+	connect(addr, port, tmo);
 }
 
 TCPClientSocket::~TCPClientSocket() {
@@ -29,7 +29,7 @@ const sockaddr& TCPClientSocket::getServerAddr()
 	return mServerAddr;
 }
 
-// ¹Ø±ÕÌ×½Ó×Ö
+// å…³é—­å¥—æ¥å­—
 void TCPClientSocket::closeSocket()
 {
 	if (mSocket != INVALID_SOCKET) {
@@ -38,43 +38,43 @@ void TCPClientSocket::closeSocket()
 	}
 }
 
-// ·µ»ØÌ×½Ó×ÖÊÇ·ñÒÑÁ¬½Ó£¨Ì×½Ó×Ö´´½¨³É¹¦£©
+// è¿”å›å¥—æ¥å­—æ˜¯å¦å·²è¿æ¥ï¼ˆå¥—æ¥å­—åˆ›å»ºæˆåŠŸï¼‰
 bool TCPClientSocket::connected()
 {
 	return mSocket != INVALID_SOCKET;
 }
 
-// ´´½¨·Ç×èÈûÄ£Ê½µÄÌ×½Ó×Ö²¢Á¬½Óµ½ info ÖĞÖ¸¶¨µØÖ·µÄÌ×½Ó×Ö
-// ´´½¨³É¹¦·µ»Ø true£¬mSocketÉèÎª¶ÔÓ¦Ì×½Ó×Ö
-// ´´½¨Ê§°Ü·µ»Ø false£¬mSocketÉèÎª INVALID_SOCKET
-// tmo Îª³¬Ê±Ê±¼ä£¨µ¥Î»Ãë£©£¬Îª0Ê±ÎŞÏŞµÈ´ı
+// åˆ›å»ºéé˜»å¡æ¨¡å¼çš„å¥—æ¥å­—å¹¶è¿æ¥åˆ° info ä¸­æŒ‡å®šåœ°å€çš„å¥—æ¥å­—
+// åˆ›å»ºæˆåŠŸè¿”å› trueï¼ŒmSocketè®¾ä¸ºå¯¹åº”å¥—æ¥å­—
+// åˆ›å»ºå¤±è´¥è¿”å› falseï¼ŒmSocketè®¾ä¸º INVALID_SOCKET
+// tmo ä¸ºè¶…æ—¶æ—¶é—´ï¼ˆå•ä½ç§’ï¼‰ï¼Œä¸º0æ—¶æ— é™ç­‰å¾…
 bool TCPClientSocket::createNBSocketAndConnect(addrinfo* info, int tmo) 
 {
 	mSocket = INVALID_SOCKET;
 	mSocket = socket(info->ai_family, info->ai_socktype, info->ai_protocol);
 
 	if (mSocket == INVALID_SOCKET) {
-		// ´´½¨Ì×½Ó×ÖÊ§°Ü
+		// åˆ›å»ºå¥—æ¥å­—å¤±è´¥
 		rstring errstr = "connect to server failed: socket returned ";
 		errstr.append(std::to_string(WSAGetLastError()));
 		report(errstr);
 		return false;
 	}
 	else {
-		// Ì×½Ó×Ö´´½¨³É¹¦
+		// å¥—æ¥å­—åˆ›å»ºæˆåŠŸ
 		report("create socket success");
 
 		DWORD arg = 1;
-		ioctlsocket(mSocket, FIONBIO, &arg);  // ÉèÖÃ·Ç×èÈûÄ£Ê½
+		ioctlsocket(mSocket, FIONBIO, &arg);  // è®¾ç½®éé˜»å¡æ¨¡å¼
 
-		// Á¬½Óµ½·şÎñÆ÷µØÖ·
-		int iRet = connect(mSocket, info->ai_addr, (int)info->ai_addrlen);
+		// è¿æ¥åˆ°æœåŠ¡å™¨åœ°å€
+		int iRet = ::connect(mSocket, info->ai_addr, (int)info->ai_addrlen);
 		if (iRet == SOCKET_ERROR) {
-			// ³¢ÊÔÁ¬½ÓÊ§°Ü
+			// å°è¯•è¿æ¥å¤±è´¥
 			int error = WSAGetLastError();
 			
 			if (error != WSAEWOULDBLOCK) {
-				// ·Ç WSAEWOULDBLOCK ´íÎó£¬ÎŞ·¨Á¬½Ó
+				// é WSAEWOULDBLOCK é”™è¯¯ï¼Œæ— æ³•è¿æ¥
 				rstring errstr = "connect to server failed: connect returned ";
 				errstr.append(std::to_string(error));
 				report(errstr);
@@ -83,13 +83,13 @@ bool TCPClientSocket::createNBSocketAndConnect(addrinfo* info, int tmo)
 				return false;
 			}
 			else {
-				// WSAEWOULDBLOCK ´íÎó£¬Á¬½ÓÎŞ·¨Á¢¼´½¨Á¢£¬ÔÚÖ®ºó select µ÷ÓÃ¶ÔÌ×½Ó×ÖĞ´Ê±»á½øĞĞÁ¬½Ó
-				fd_set wrset, exset;   // Ì×½Ó×Ö¶Á²âÊÔ¡¢´íÎó¼ì²é²âÊÔ¼¯ºÏ
-				// ·Ç×èÈûÄ£Ê½ÏÂ£¬connect ÊÔÍ¼Á¬½ÓµÄÊ§°Ü»á±íÏÖÔÚ exceptfds ÖĞ
+				// WSAEWOULDBLOCK é”™è¯¯ï¼Œè¿æ¥æ— æ³•ç«‹å³å»ºç«‹ï¼Œåœ¨ä¹‹å select è°ƒç”¨å¯¹å¥—æ¥å­—å†™æ—¶ä¼šè¿›è¡Œè¿æ¥
+				fd_set wrset, exset;   // å¥—æ¥å­—è¯»æµ‹è¯•ã€é”™è¯¯æ£€æŸ¥æµ‹è¯•é›†åˆ
+				// éé˜»å¡æ¨¡å¼ä¸‹ï¼Œconnect è¯•å›¾è¿æ¥çš„å¤±è´¥ä¼šè¡¨ç°åœ¨ exceptfds ä¸­
 				FD_ZERO(&wrset); FD_ZERO(&exset);
 				FD_SET(mSocket, &wrset); FD_SET(mSocket, &exset);
 
-				// ÉèÖÃ select ³¬Ê±Ê±¼ä
+				// è®¾ç½® select è¶…æ—¶æ—¶é—´
 				struct timeval timeout;
 				timeout.tv_sec = tmo;
 				timeout.tv_usec = 0;
@@ -109,7 +109,7 @@ bool TCPClientSocket::createNBSocketAndConnect(addrinfo* info, int tmo)
 				}
 
 				if (FD_ISSET(mSocket, &exset)) {
-					// ¼ì²éµ½Á¬½ÓÊ§°ÜµÄ´íÎó
+					// æ£€æŸ¥åˆ°è¿æ¥å¤±è´¥çš„é”™è¯¯
 					report("connect to server failed: select found error in exceptfds");
 
 					this->closeSocket();
@@ -117,21 +117,21 @@ bool TCPClientSocket::createNBSocketAndConnect(addrinfo* info, int tmo)
 				}
 			}
 		}
-		// Á¬½Ó³É¹¦
+		// è¿æ¥æˆåŠŸ
 		report("connect to server success");
 
-		mServerAddr = *info->ai_addr; // ±£´æ·şÎñÆ÷µØÖ·
+		mServerAddr = *info->ai_addr; // ä¿å­˜æœåŠ¡å™¨åœ°å€
 
 		return true;
 	}
 }
 
-// ¸ø¶¨·şÎñÆ÷µØÖ·£¨ip»òÓòÃû£©ºÍ¶Ë¿Ú£¬´´½¨Ì×½Ó×Ö²¢Á¬½Óµ½·şÎñÆ÷µØÖ·
-// addr ¿ÉÒÔÎªÓòÃû»òipµØÖ·
-// ·µ»ØÊÇ·ñÁ¬½Ó³É¹¦
-bool TCPClientSocket::connect2Server(const char* addr, USHORT port, int tmo)
+// ç»™å®šæœåŠ¡å™¨åœ°å€ï¼ˆipæˆ–åŸŸåï¼‰å’Œç«¯å£ï¼Œåˆ›å»ºå¥—æ¥å­—å¹¶è¿æ¥åˆ°æœåŠ¡å™¨åœ°å€
+// addr å¯ä»¥ä¸ºåŸŸåæˆ–ipåœ°å€
+// è¿”å›æ˜¯å¦è¿æ¥æˆåŠŸ
+bool TCPClientSocket::connect(const char* addr, USHORT port, int tmo)
 {
-	closeSocket();  // Èç¹ûÖ®Ç°´æÔÚÒÑ½¨Á¢µÄÌ×½Ó×ÖÔò¹Ø±Õ
+	closeSocket();  // å¦‚æœä¹‹å‰å­˜åœ¨å·²å»ºç«‹çš„å¥—æ¥å­—åˆ™å…³é—­
 
 	addrinfo* res = nullptr,
 		* ptr = nullptr,
@@ -139,43 +139,43 @@ bool TCPClientSocket::connect2Server(const char* addr, USHORT port, int tmo)
 	int iRet;
 
 	ZeroMemory(&hints, sizeof(hints));
-	hints.ai_family = AF_UNSPEC; // Î´Ö¸Ã÷·µ»ØÀàĞÍ
+	hints.ai_family = AF_UNSPEC; // æœªæŒ‡æ˜è¿”å›ç±»å‹
 	hints.ai_socktype = SOCK_STREAM; // TCP
 	hints.ai_protocol = IPPROTO_TCP;
 
-	// »ñÈ¡·şÎñÆ÷µØÖ·ĞÅÏ¢
+	// è·å–æœåŠ¡å™¨åœ°å€ä¿¡æ¯
 	iRet = getaddrinfo(addr, std::to_string(port).c_str(), &hints, &res);
 	if (iRet != 0) {
-		// »ñÈ¡·şÎñÆ÷µØÖ·ĞÅÏ¢Ê§°Ü
+		// è·å–æœåŠ¡å™¨åœ°å€ä¿¡æ¯å¤±è´¥
 		rstring errstr = "connect to server failed: getaddrinfo returned ";
 		errstr.append(std::to_string(iRet));
 		report(errstr);
 		return false;
 	}
-	// »ñÈ¡³É¹¦
+	// è·å–æˆåŠŸ
 	ptr = res;
 	while (ptr) {
-		// ·ÃÎÊµØÖ·ĞÅÏ¢Á´±í£¬Öğ¸ö´´½¨Ì×½Ó×Ö¼°Á¬½ÓÖ±µ½³É¹¦Á¬½Ó
+		// è®¿é—®åœ°å€ä¿¡æ¯é“¾è¡¨ï¼Œé€ä¸ªåˆ›å»ºå¥—æ¥å­—åŠè¿æ¥ç›´åˆ°æˆåŠŸè¿æ¥
 		if (createNBSocketAndConnect(ptr)) {
-			// ´´½¨Ì×½Ó×Ö²¢Á¬½Ó³É¹¦
+			// åˆ›å»ºå¥—æ¥å­—å¹¶è¿æ¥æˆåŠŸ
 			break;
 		}
 
-		// Á¬½ÓÊ§°Ü£¬È¡ÏÂÒ»¸öµØÖ·½øĞĞ³¢ÊÔ
+		// è¿æ¥å¤±è´¥ï¼Œå–ä¸‹ä¸€ä¸ªåœ°å€è¿›è¡Œå°è¯•
 		ptr = ptr->ai_next;
 	}
 
 	freeaddrinfo(res);
-	// ptr²»Îª¿ÕËµÃ÷Á¬½Ó³É¹¦
+	// pträ¸ä¸ºç©ºè¯´æ˜è¿æ¥æˆåŠŸ
 	if (ptr)
 		return true;
 
 	return false;
 }
 
-// ´ÓÌ×½Ó×ÖÖĞ¶ÁÈ¡Ò»ĞĞµÄÊı¾İ
-// tmo Îª³¬Ê±Ê±¼ä£¨µ¥Î»Ãë£©£¬Îª0Ê±ÎŞÏŞµÈ´ı
-// ·µ»Ø¶ÁÈ¡µÄ×Ö½ÚÊı£¬Ê§°Ü·µ»Ø-1
+// ä»å¥—æ¥å­—ä¸­è¯»å–ä¸€è¡Œçš„æ•°æ®
+// tmo ä¸ºè¶…æ—¶æ—¶é—´ï¼ˆå•ä½ç§’ï¼‰ï¼Œä¸º0æ—¶æ— é™ç­‰å¾…
+// è¿”å›è¯»å–çš„å­—èŠ‚æ•°ï¼Œå¤±è´¥è¿”å›-1
 int TCPClientSocket::readline(char* buf, int len, int tmo)
 {
 	if (mSocket == INVALID_SOCKET) {
@@ -183,22 +183,22 @@ int TCPClientSocket::readline(char* buf, int len, int tmo)
 	}
 
 	int sz = 0;
-	fd_set rdset;  // ¼ì²éÌ×½Ó×ÖÊÇ·ñ¿É¶ÁµÄ¼¯ºÏ
+	fd_set rdset;  // æ£€æŸ¥å¥—æ¥å­—æ˜¯å¦å¯è¯»çš„é›†åˆ
 
-	// ¶Áµ½»»ĞĞÇ°²»¶ÏÈ¡Êı¾İ
+	// è¯»åˆ°æ¢è¡Œå‰ä¸æ–­å–æ•°æ®
 	while (sz < len) {
-		FD_ZERO(&rdset);  // Çå¿Õ
-		FD_SET(mSocket, &rdset);  // ½«Ì×½Ó×ÖÌí¼Óµ½¼¯ºÏÖĞ½øĞĞ¶Á²âÊÔ
+		FD_ZERO(&rdset);  // æ¸…ç©º
+		FD_SET(mSocket, &rdset);  // å°†å¥—æ¥å­—æ·»åŠ åˆ°é›†åˆä¸­è¿›è¡Œè¯»æµ‹è¯•
 
-		// ÉèÖÃ³¬Ê±Ê±¼ä
+		// è®¾ç½®è¶…æ—¶æ—¶é—´
 		struct timeval timeout;
 		timeout.tv_sec = tmo;
 		timeout.tv_usec = 0;
 
-		// ²âÊÔÊÇ·ñ¿É¶Á
+		// æµ‹è¯•æ˜¯å¦å¯è¯»
 		int status = select(mSocket+1, &rdset, nullptr, nullptr, tmo != 0 ? &timeout : nullptr);
 		if (status <= 0) {
-			// µ÷ÓÃÊ§°Ü
+			// è°ƒç”¨å¤±è´¥
 			if (status == 0)
 				report("readline failed: select timeout");
 			else {
@@ -209,10 +209,10 @@ int TCPClientSocket::readline(char* buf, int len, int tmo)
 
 			return -1;
 		}
-		// È¡ĞÂÊı¾İ
+		// å–æ–°æ•°æ®
 		int r = recv(mSocket, buf + sz, len - 1 - sz, 0);
 		if (r <= 0) {
-			// recvÊ§°Ü
+			// recvå¤±è´¥
 			if (r == 0) {
 				report("readline failed: recv returned 0 (connection terminated)");
 			}
@@ -225,11 +225,11 @@ int TCPClientSocket::readline(char* buf, int len, int tmo)
 		}
 
 		sz += r;
-		buf[sz] = '\0';  // ÔİÊ±µÄ½áÊø±ê¼Ç
+		buf[sz] = '\0';  // æš‚æ—¶çš„ç»“æŸæ ‡è®°
 
-		char* str = strstr(buf, "\r\n");  // ÕÒĞĞ½áÊø±ê¼Ç
+		char* str = strstr(buf, "\r\n");  // æ‰¾è¡Œç»“æŸæ ‡è®°
 		if (str) {
-			*str = '\0';  // Æşµô»»ĞĞ
+			*str = '\0';  // ææ‰æ¢è¡Œ
 			return sz;
 		}
 	}
@@ -237,9 +237,9 @@ int TCPClientSocket::readline(char* buf, int len, int tmo)
 	return sz;
 }
 
-// ¶ÁÈ¡Ò»¿éÊı¾İ
-// tmo Îª³¬Ê±Ê±¼ä£¨µ¥Î»Ãë£©£¬Îª0Ê±ÎŞÏŞµÈ´ı
-// ·µ»Ø¶ÁÈ¡µÄ×Ö½ÚÊı£¬Ê§°Ü·µ»Ø-1
+// è¯»å–ä¸€å—æ•°æ®
+// tmo ä¸ºè¶…æ—¶æ—¶é—´ï¼ˆå•ä½ç§’ï¼‰ï¼Œä¸º0æ—¶æ— é™ç­‰å¾…
+// è¿”å›è¯»å–çš„å­—èŠ‚æ•°ï¼Œå¤±è´¥è¿”å›-1
 int TCPClientSocket::readblock(char* buf, int len, int tmo)
 {
 	if (mSocket == INVALID_SOCKET) {
@@ -248,19 +248,19 @@ int TCPClientSocket::readblock(char* buf, int len, int tmo)
 
 	int cur_len = 0;
 
-	fd_set rdset;  // ¼ì²éÌ×½Ó×ÖÊÇ·ñ¿É¶ÁµÄ¼¯ºÏ
+	fd_set rdset;  // æ£€æŸ¥å¥—æ¥å­—æ˜¯å¦å¯è¯»çš„é›†åˆ
 	FD_ZERO(&rdset);
 	FD_SET(mSocket, &rdset);
 
-	// ÉèÖÃ³¬Ê±Ê±¼ä
+	// è®¾ç½®è¶…æ—¶æ—¶é—´
 	struct timeval timeout;
 	timeout.tv_sec = tmo;
 	timeout.tv_usec = 0;
 
-	int status = select(mSocket + 1, &rdset, nullptr, nullptr, tmo != 0 ? &timeout : nullptr);  // ¼ì²éÊÇ·ñ¿É¶Á
+	int status = select(mSocket + 1, &rdset, nullptr, nullptr, tmo != 0 ? &timeout : nullptr);  // æ£€æŸ¥æ˜¯å¦å¯è¯»
 
 	if (status <= 0) {
-		// µ÷ÓÃÊ§°Ü
+		// è°ƒç”¨å¤±è´¥
 		if (status == 0)
 			report("readblock failed: select timeout");
 		else {
@@ -274,7 +274,7 @@ int TCPClientSocket::readblock(char* buf, int len, int tmo)
 
 	cur_len = recv(mSocket, buf, len, 0);
 	if (cur_len <= 0) {
-		// recvÊ§°Ü
+		// recvå¤±è´¥
 		if (cur_len == 0) {
 			report("readblock failed: recv returned 0 (connection terminated)");
 		}
@@ -289,32 +289,32 @@ int TCPClientSocket::readblock(char* buf, int len, int tmo)
 	return cur_len;
 }
 
-// ÍùÌ×½Ó×ÖÖĞĞ´Êı¾İ
-// tmo Îª³¬Ê±Ê±¼ä£¨µ¥Î»Ãë£©£¬Îª0Ê±ÎŞÏŞµÈ´ı
-// ·µ»ØĞ´ÈëµÄ×Ö½ÚÊı£¬Ê§°Ü·µ»Ø-1
+// å¾€å¥—æ¥å­—ä¸­å†™æ•°æ®
+// tmo ä¸ºè¶…æ—¶æ—¶é—´ï¼ˆå•ä½ç§’ï¼‰ï¼Œä¸º0æ—¶æ— é™ç­‰å¾…
+// è¿”å›å†™å…¥çš„å­—èŠ‚æ•°ï¼Œå¤±è´¥è¿”å›-1
 int TCPClientSocket::write(const char* buf, int len, int tmo) 
 {
 	if (mSocket == INVALID_SOCKET) {
 		return -1;
 	}
 
-	int sz = 0;  // ÒÑ¾­Ğ´ÁËµÄ×Ö½ÚÊı
-	fd_set wrset;  // ¼ì²éÌ×½Ó×ÖÊÇ·ñ¿ÉĞ´µÄ¼¯ºÏ
+	int sz = 0;  // å·²ç»å†™äº†çš„å­—èŠ‚æ•°
+	fd_set wrset;  // æ£€æŸ¥å¥—æ¥å­—æ˜¯å¦å¯å†™çš„é›†åˆ
 
-	// ²»¶ÏĞ´Ö±µ½Ğ´Íê
+	// ä¸æ–­å†™ç›´åˆ°å†™å®Œ
 	while (sz < len) {
 		FD_ZERO(&wrset);
-		FD_SET(mSocket, &wrset);  // ½«Ì×½Ó×ÖÌí¼Óµ½²âÊÔ¼¯ºÏÖĞ
+		FD_SET(mSocket, &wrset);  // å°†å¥—æ¥å­—æ·»åŠ åˆ°æµ‹è¯•é›†åˆä¸­
 
-		// ÉèÖÃ³¬Ê±Ê±¼ä
+		// è®¾ç½®è¶…æ—¶æ—¶é—´
 		struct timeval timeout;
 		timeout.tv_sec = tmo;
 		timeout.tv_usec = 0;
 
-		// ¼ì²éÊÇ·ñ¿ÉĞ´
+		// æ£€æŸ¥æ˜¯å¦å¯å†™
 		int status = select(mSocket + 1, nullptr, &wrset, nullptr, tmo != 0 ? &timeout : nullptr);
 		if (status <= 0) {
-			// µ÷ÓÃÊ§°Ü
+			// è°ƒç”¨å¤±è´¥
 			if (status == 0)
 				report("wriet failed: select timeout");
 			else {
@@ -328,10 +328,12 @@ int TCPClientSocket::write(const char* buf, int len, int tmo)
 
 		int r = send(mSocket, buf + sz, len - sz, 0);
 		if (r <= 0) {
-			// sendÊ§°Ü
+			// sendå¤±è´¥
 			rstring errstr = "write failed: send returned ";
 			errstr.append(std::to_string(WSAGetLastError()));
 			report(errstr);
+
+			return -1;
 		}
 
 		sz += r;
@@ -340,7 +342,7 @@ int TCPClientSocket::write(const char* buf, int len, int tmo)
 	return sz;
 }
 
-// ±¨¸æĞÅÏ¢
+// æŠ¥å‘Šä¿¡æ¯
 void TCPClientSocket::report(const rstring& msg)
 {
 	LogUtil::report("TCPClientSocket " + msg);
