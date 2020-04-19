@@ -16,8 +16,14 @@ namespace GeneralUtil {
 	void strTrim(rstring& str);
 	void strRemoveQuotes(rstring& str);
 	bool strEndsWith(const rstring& source, const rstring& suffix, bool caseIgnore=false);
+	bool strEndsWith(const str_citer& begin, const str_citer& end, 
+		const rstring& suffix, bool caseIgnore = false);
 	bool strStartWith(const rstring& source, const rstring& prefix, bool caseIgnore = false);
+	bool strStartWith(const str_citer& begin, const str_citer& end,
+		const rstring& prefix, bool caseIgnore = false);
 	size_t strFindLineEnd(const str_citer& begin, const str_citer& end);
+	size_t strSkipWhiteSpaces(const str_citer& begin, const str_citer& end);
+	size_t strStripCharsIn(rstring& str, const rstring& chars);
 
 	static const char* whitespaces = " \f\v\t\r\n";
 };

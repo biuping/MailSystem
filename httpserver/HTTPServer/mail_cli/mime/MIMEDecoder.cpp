@@ -45,18 +45,13 @@ void MIMEDecoder::decodeWord(const rstring& encoded, rstring& decoded)
 void MIMEDecoder::decodeMailBody(const rstring& encoded, const rstring& charset,
 	ContentTransferEncoding encoding, rstring& decoded)
 {
-	char* buf;
 	switch (encoding)
 	{
 	case ContentTransferEncoding::QuotedPrintable:
-		EncodeUtil::quoted_printable_decode(encoded, decoded, false);
+		quotedPrintableDecode(encoded, decoded, false);
 		break;
 	case ContentTransferEncoding::Base64:
-		buf = new char[encoded.size() + 1];
-		EncodeUtil::base64_decode(encoded.c_str(), encoded.size(), buf);
-
-		decoded = buf;
-		delete[] buf;
+		base64Decode(encoded, decoded);
 		break;
 	case ContentTransferEncoding::SevenBit:
 	case ContentTransferEncoding::EightBit:
@@ -79,19 +74,16 @@ const rstring MIMEDecoder::decode(const rstring& encoded,
 	// decode first
 	if (_strnicmp(encoding.c_str(), "B", 1) == 0) {
 		// base64 encoding
-		char* buf = new char[encoded.size()+1];
-		EncodeUtil::base64_decode(encoded.c_str(), encoded.size(), buf);
-		
-		decoded = buf;
-		delete[] buf;
+		base64Decode(encoded, decoded);
 	}
 	else if (_strnicmp(encoding.c_str(), "Q", 1) == 0) {
 		// quoted-printable encoding
-		EncodeUtil::quoted_printable_decode(encoded, decoded, true);
+		quotedPrintableDecode(encoded, decoded, true);
 	}
 	// else unknow encoding
 
-	return EncodeUtil::encodeAsciiWithCharset(decoded, charset);
+	return decoded;
+	//return EncodeUtil::encodeAsciiWithCharset(decoded, charset);
 }
 
 
@@ -131,6 +123,28 @@ void MIMEDecoder::rfc2231Decode(const rstring& raw, str_kvlist & kvs)
 
 
 	MIMEDecoder::rfc2231DecodePairs(kvs);
+}
+
+// base64 解码
+void MIMEDecoder::base64Decode(const rstring& encoded, rstring& decoded)
+{
+	// 去除非法的空白字符
+	decoded = encoded;
+	GeneralUtil::strReplaceAll(decoded, "\r\n", "");
+	GeneralUtil::strStripCharsIn(decoded, "\t ");
+
+	// 使用工具解码
+	char* buf = new char[decoded.size() + 1];
+	ZeroMemory(buf, sizeof(char) * (decoded.size() + 1));
+	EncodeUtil::base64_decode(decoded.c_str(), decoded.size(), buf);
+
+	decoded = buf;
+	delete[] buf;
+}
+
+void MIMEDecoder::quotedPrintableDecode(const rstring& encoded, rstring& decoded, bool variant)
+{
+	EncodeUtil::quoted_printable_decode(encoded, decoded, variant);
 }
 
 void MIMEDecoder::rfc2231DecodePairs(str_kvlist& kvs)

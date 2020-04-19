@@ -38,7 +38,7 @@ void MIMEParser::parseMail(const rstring& raw, Mail* mail)
 	str_citer end = raw.end();
 	if (pos != rstring::npos) {
 		// 解析信头部分
-		parseHeader(begin, begin+pos, header);
+		parseHeader(begin, begin + pos + 2, header);
 	}
 	else {
 		pos = 0;
@@ -58,10 +58,14 @@ void MIMEParser::parseMail(const rstring& raw, Mail* mail)
 // header: 信头结构引用
 void MIMEParser::parseHeader(const str_citer& begin, const str_citer& end, mail_header_t& header)
 {
+	if (begin >= end) {
+		return;
+	}
+
 	str_kv_t field;			// 字段
 	size_t sz = 0;		// 辅助迭代器进行定位，已读字符数
 
-	while (begin + sz < end) {
+	while (sz < end - begin) {
 		// 取出一个字段
 		size_t temp = extractField(begin + sz, end, field);
 		if (temp == 0) {
@@ -80,14 +84,24 @@ void MIMEParser::parseBody(const str_citer& begin, const str_citer& end,
 	const mail_header_t& header, mail_body_t& body)
 {
 	rstring raw = rstring(begin, end);
+	cleanBody(raw);
 	GeneralUtil::strTrim(raw);
+	clearParts(body);
 
-	if (GeneralUtil::strStartWith(header.content_type.media, "multipart/", true)) {
+	if (GeneralUtil::strStartWith(header.content_type.media, "multipart/", true) &&
+		header.content_type.boundary.size() > 0) {
 		// has multipart
 		// 解析多部分的信体内容
 		slist parts;
 		extractParts(begin, end, header.content_type.boundary, parts);
 		
+		for (rstring p : parts) {
+			if (p.size() > 0) {
+				MessagePart* part = new MessagePart();
+				parseMessagePart(p, part);
+				body.parts.push_back(part);
+			}
+		}
 	}
 	else {
 		// non multipart message
@@ -112,13 +126,15 @@ void MIMEParser::parseContentType(const str_citer& begin, const str_citer& end,
 		GeneralUtil::strTrim(val);
 		GeneralUtil::strRemoveQuotes(val);
 
+		size_t keylen = key.size();
+		size_t vallen = val.size();
 		// 解析字段
-		if (key.size() == 0) {
+		if (keylen == 0) {
 			// media type
 			if (!mediaSet) {
 				// 检查 illegal type
-				if (_strnicmp(val.c_str(), "text", 4) == 0 ||
-					_strnicmp(val.c_str(), "text/", 5) == 0) {
+				if (_strnicmp(val.c_str(), "text", vallen) == 0 ||
+					_strnicmp(val.c_str(), "text/", vallen) == 0) {
 					val = "text/plain";
 				}
 
@@ -128,15 +144,15 @@ void MIMEParser::parseContentType(const str_citer& begin, const str_citer& end,
 			}
 			// else 有多个media type，只使用第一个
 		}
-		else if (_strnicmp(key.c_str(), "boundary", 8) == 0) {
+		else if (_strnicmp(key.c_str(), "boundary", keylen) == 0) {
 			// set boundary
 			contentType.boundary = val;
 		}
-		else if (_strnicmp(key.c_str(), "charset", 7) == 0) {
+		else if (_strnicmp(key.c_str(), "charset", keylen) == 0) {
 			// set charset
 			contentType.charset = val;
 		}
-		else if (_strnicmp(key.c_str(), "name", 4) == 0) {
+		else if (_strnicmp(key.c_str(), "name", keylen) == 0) {
 			// set name
 			contentType.name = val;
 		}
@@ -149,7 +165,7 @@ void MIMEParser::parseContentType(const str_citer& begin, const str_citer& end,
 
 // 解析内容排布
 void MIMEParser::parseContentDispostion(const str_citer& begin, const str_citer& end,
-	mail_content_disposition& contentDisposition)
+	mail_content_disposition_t& contentDisposition)
 {
 	str_kvlist params;
 	MIMEDecoder::rfc2231Decode(rstring(begin, end), params);
@@ -162,23 +178,26 @@ void MIMEParser::parseContentDispostion(const str_citer& begin, const str_citer&
 		GeneralUtil::strTrim(val);
 		GeneralUtil::strRemoveQuotes(val);
 
-		if (key.size() == 0) {
+		size_t keylen = key.size();
+		if (keylen == 0) {
 			contentDisposition.type = val;
 		}
-		else if (_strnicmp(key.c_str(), "name", 4) == 0 ||
-			_strnicmp(key.c_str(), "filename", 8) == 0) {
-			contentDisposition.filename = val;
+		else if (_strnicmp(key.c_str(), "name", keylen) == 0 ||
+			_strnicmp(key.c_str(), "filename", keylen) == 0) {
+			rstring decoded = val;
+			MIMEDecoder::decodeWord(val, decoded);
+			contentDisposition.filename = decoded;
 		}
-		else if (_strnicmp(key.c_str(), "size", 4) == 0) {
+		else if (_strnicmp(key.c_str(), "size", keylen) == 0) {
 			parseSize(val.begin(), val.end(), contentDisposition.size);
 		}
-		else if (_strnicmp(key.c_str(), "creation-date", 13) == 0) {
+		else if (_strnicmp(key.c_str(), "creation-date", keylen) == 0) {
 			contentDisposition.creation_date = val;
 		}
-		else if (_strnicmp(key.c_str(), "modification-date", 17) == 0) {
+		else if (_strnicmp(key.c_str(), "modification-date", keylen) == 0) {
 			contentDisposition.modification_date = val;
 		}
-		else if (_strnicmp(key.c_str(), "read-date", 9) == 0) {
+		else if (_strnicmp(key.c_str(), "read-date", keylen) == 0) {
 			contentDisposition.read_date = val;
 		}
 		else {
@@ -194,19 +213,20 @@ void MIMEParser::parseContentTransferEncoding(const str_citer& begin, const str_
 	rstring val = rstring(begin, end);
 	GeneralUtil::strTrim(val);
 
-	if (_strnicmp(val.c_str(), "7bit", 4) == 0) {
+	size_t vallen = val.size();
+	if (_strnicmp(val.c_str(), "7bit", vallen) == 0) {
 		encoding = ContentTransferEncoding::SevenBit;
 	}
-	else if (_strnicmp(val.c_str(), "8bit", 4) == 0) {
+	else if (_strnicmp(val.c_str(), "8bit", vallen) == 0) {
 		encoding = ContentTransferEncoding::EightBit;
 	}
-	else if (_strnicmp(val.c_str(), "quoted-printable", 16) == 0) {
+	else if (_strnicmp(val.c_str(), "quoted-printable", vallen) == 0) {
 		encoding = ContentTransferEncoding::QuotedPrintable;
 	}
-	else if (_strnicmp(val.c_str(), "base64", 6) == 0) {
+	else if (_strnicmp(val.c_str(), "base64", vallen) == 0) {
 		encoding = ContentTransferEncoding::Base64;
 	}
-	else if (_strnicmp(val.c_str(), "binary", 6) == 0) {
+	else if (_strnicmp(val.c_str(), "binary", vallen) == 0) {
 		encoding = ContentTransferEncoding::Binary;
 	}
 	else {
@@ -215,22 +235,123 @@ void MIMEParser::parseContentTransferEncoding(const str_citer& begin, const str_
 	}
 }
 
-void MIMEParser::parseSize(const str_citer& begin, const str_citer& end, long& size)
+void MIMEParser::parseSize(const str_citer& begin, const str_citer& end, long long& size)
 {
+	if (begin >= end) {
+		size = 0;
+	}
+
+	rstring val = rstring(begin, end);
+	GeneralUtil::strTrim(val);
+
+	size_t passed = 0;
+	while (passed < end - begin) {
+		char ch = *(begin + passed);
+		if ('0' > ch || '9' < ch) {
+			break;
+		}
+
+		++passed;
+	}
+
+	if (passed == 0) {
+		// invalid
+		size = 0;
+	}
+	else {
+		// 提取单位前的值
+		double val = 0;
+		sscanf(rstring(begin, begin + passed).c_str(), "%lf", &val);
+		// 提取单位
+		while (passed < end - begin && *(begin + passed) == ' ') {
+			// 去掉空格
+			++passed;
+		}
+		rstring unit = rstring(begin + passed, end);
+		if (sizeMap.find(unit) == sizeMap.end()) {
+			// 无法识别单位，采用 byte
+			unit = "B";
+		}
+		long long multi = sizeMap.find(unit)->second;
+		size = (long long)(val * multi);
+	}
 }
 
-// 跳过空白字符
-// begin: 字符串开始位置const_iterator
-// end: 字符串结束位置const_iterator
-// return: 跳过的字符数
-size_t MIMEParser::skipWhiteSpaces(const str_citer& begin, const str_citer& end)
+void MIMEParser::parseMessagePart(const rstring& raw, MessagePart* part)
 {
-	size_t tot = 0;
-	// skip white spaces
-	while (begin < end && strchr(whitespaces, *(begin + tot))) {
-		++tot;
+	if (raw.size() == 0 || part == nullptr) {
+		return;
 	}
-	return tot;
+
+	// 寻找子部份的头部和信体的空行分隔
+	size_t pos = raw.find("\r\n\r\n", 0);
+
+	str_citer begin = raw.begin();
+	str_citer end = raw.end();
+	if (pos != rstring::npos) {
+		// 解析子部份信头部分
+		parseMessagePartHeader(begin, begin + pos + 2, part);
+	}
+	else {
+		pos = 0;
+	}
+	// 解析子部分的信体
+	parseMessagePartBody(begin + pos + 4, end, part);
+}
+
+void MIMEParser::parseMessagePartHeader(const str_citer& begin, const str_citer& end, MessagePart* part)
+{
+	if (begin >= end) {
+		return;
+	}
+
+	str_kv_t field;			// 字段
+	size_t sz = 0;		// 辅助迭代器进行定位，已读字符数
+
+	while (sz < end - begin) {
+		// 取出一个字段
+		size_t temp = extractField(begin + sz, end, field);
+		if (temp == 0) {
+			break;
+		}
+		sz += temp;
+		setPartHeaderField(part, field);
+	}
+}
+
+void MIMEParser::parseMessagePartBody(const str_citer& begin, const str_citer& end, MessagePart* part)
+{
+	if (begin >= end || part == nullptr) {
+		return;
+	}
+
+	rstring raw = rstring(begin, end);
+	GeneralUtil::strTrim(raw);
+	part->clearParts();
+
+	if (GeneralUtil::strStartWith(part->getContentType().media, "multipart/", true) &&
+		part->getContentType().boundary.size() > 0) {
+		// has multipart
+		// 解析多部分的信体内容
+		slist parts;
+		extractParts(begin, end, part->getContentType().boundary, parts);
+
+		for (rstring p : parts) {
+			if (p.size() > 0) {
+				MessagePart* subpart = new MessagePart();
+				parseMessagePart(p, subpart);
+				part->addPartBack(subpart);
+			}
+		}
+	}
+	else {
+		// non multipart message
+		// 直接根据字符集与编码方式解码
+		rstring message = "";
+		MIMEDecoder::decodeMailBody(raw, part->getContentType().charset,
+			part->getEncoding(), message);
+		part->setMessage(message);
+	}
 }
 
 // 从 raw 中抽取一个字段，不进行特定解码
@@ -239,14 +360,18 @@ size_t MIMEParser::skipWhiteSpaces(const str_citer& begin, const str_citer& end)
 // return: 返回该字段在原始字符串中的长度
 size_t MIMEParser::extractField(const str_citer& begin, const str_citer& end, str_kv_t& field)
 {
-	if (*begin == '\r' && begin + 1 < end && *(begin + 1) == '\n') {
+	if (begin >= end) {
+		return 0;
+	}
+
+	if (*begin == '\r' && 1 < end - begin && *(begin + 1) == '\n') {
 		// 出现空行
 		return 0;
 	}
 
 	size_t keysz = 0, valsz = 0;
 	// 字段名解析
-	while (begin + keysz < end) {
+	while (keysz < end - begin) {
 		if (*(begin + keysz) == ':') {
 			field.first = rstring(begin, begin + keysz);
 			++keysz;
@@ -257,11 +382,11 @@ size_t MIMEParser::extractField(const str_citer& begin, const str_citer& end, st
 	}
 
 	// 跳过空白符
-	keysz += skipWhiteSpaces(begin + keysz, end);
+	keysz += GeneralUtil::strSkipWhiteSpaces(begin + keysz, end);
 
 	// 字段值解析
 	field.second.clear();
-	while (begin + keysz + valsz < end) {
+	while (keysz + valsz < end - begin) {
 		size_t pos = keysz + valsz;
 
 		if (*(begin + pos) == '\r' && begin + pos + 1 < end && *(begin + pos + 1) == '\n') {
@@ -271,7 +396,7 @@ size_t MIMEParser::extractField(const str_citer& begin, const str_citer& end, st
 			keysz = keysz + valsz;
 			valsz = 0;
 			// 包含空白符则表示有多行值
-			if (skipWhiteSpaces(begin + keysz + valsz, end) > 0) {
+			if (GeneralUtil::strSkipWhiteSpaces(begin + keysz + valsz, end) > 0) {
 				continue;
 			}
 			else {
@@ -280,6 +405,11 @@ size_t MIMEParser::extractField(const str_citer& begin, const str_citer& end, st
 		}
 
 		++valsz;
+	}
+
+	if (keysz + valsz == end - begin) {
+		// 结尾无换行符
+		field.second.append(rstring(begin + keysz, begin + keysz + valsz));
 	}
 
 	return keysz + valsz;
@@ -292,37 +422,41 @@ void MIMEParser::setHeaderField(mail_header_t& header, const str_kv_t& field)
 {
 	// 字段名
 	rstring key = field.first;
+	size_t keylen = key.size();
 	
 	// 跟绝字段名进行具体设置
-	if (_strnicmp(key.c_str(), "Subject", 7) == 0) {
+	if (_strnicmp(key.c_str(), "Subject", keylen) == 0) {
 		setSubject(header, field.second);
 	}
-	else if (_strnicmp(key.c_str(), "Date", 4) == 0) {
+	else if (_strnicmp(key.c_str(), "Date", keylen) == 0) {
 		setDate(header, field.second);
 	}
-	else if (_strnicmp(key.c_str(), "From", 4) == 0) {
+	else if (_strnicmp(key.c_str(), "From", keylen) == 0) {
 		setFrom(header, field.second);
 	}
-	else if (_strnicmp(key.c_str(), "Received", 8) == 0) {
+	else if (_strnicmp(key.c_str(), "Received", keylen) == 0) {
 		setReceived(header, field.second);
 	}
-	else if (_strnicmp(key.c_str(), "Mime-Version", 12) == 0) {
+	else if (_strnicmp(key.c_str(), "Mime-Version", keylen) == 0) {
 		setMimeVersion(header, field.second);
 	}
-	else if (_strnicmp(key.c_str(), "To", 2) == 0) {
+	else if (_strnicmp(key.c_str(), "To", keylen) == 0) {
 		setTo(header, field.second);
 	}
-	else if (_strnicmp(key.c_str(), "Cc", 2) == 0) {
+	else if (_strnicmp(key.c_str(), "Cc", keylen) == 0) {
 		setCc(header, field.second);
 	}
-	else if (_strnicmp(key.c_str(), "Bcc", 4) == 0) {
+	else if (_strnicmp(key.c_str(), "Bcc", keylen) == 0) {
 		setBcc(header, field.second);
 	}
-	else if (_strnicmp(key.c_str(), "Content-Type", 12) == 0) {
+	else if (_strnicmp(key.c_str(), "Content-Type", keylen) == 0) {
 		setHeaderContentType(header, field.second);
 	}
-	else if (_strnicmp(key.c_str(), "Content-Transfer-Encoding", 25) == 0) {
+	else if (_strnicmp(key.c_str(), "Content-Transfer-Encoding", keylen) == 0) {
 		setHeaderContentTransferEncoding(header, field.second);
+	}
+	else if (_strnicmp(key.c_str(), "Content-Disposition", keylen) == 0) {
+		setHeaderContentDisposition(header, field.second);
 	}
 	else {
 		setOthers(header, key, field.second);
@@ -610,32 +744,151 @@ void MIMEParser::stripRfc822Ctls(rstring& raw)
 	delete[] buf;
 }
 
+// 对 body 中填充的内容进行清理（点填充）
+void MIMEParser::cleanBody(rstring& rawbody)
+{
+	size_t sz = 0;
+	rstring cleaned = "";
+	str_citer begin = rawbody.begin();
+	str_citer end = rawbody.end();
+
+	while (sz < end - begin) {
+		// 查看一行
+		size_t linepos = GeneralUtil::strFindLineEnd(begin + sz, end);
+		size_t lineEnd = 0;
+		if (linepos == rstring::npos) {
+			// 将 linepos 和 lineEnd 均设为 end 位置
+			linepos = end - begin - sz;
+			lineEnd = end - begin - sz;
+		}
+		else {
+			// 将 lineEnd 设为跳过 \r\n 之后的字符
+			lineEnd = linepos + 2;
+		}
+
+		if (linepos == 2 && *(begin + sz) == '.' && *(begin + sz + 1) == '.') {
+			// 一行内容仅为 ..\r\n，跳过第一个字符
+			cleaned.append(begin + sz + 1, begin + sz + lineEnd);
+		}
+		else {
+			// 直接加入
+			cleaned.append(begin + sz, begin + sz + lineEnd);
+		}
+
+		sz += lineEnd;
+	}
+}
+
 void MIMEParser::extractParts(const str_citer& begin, const str_citer& end,
 	const rstring& boundary, slist& parts)
 {
+	if (begin >= end) {
+		return;
+	}
+
 	parts.clear();
 	size_t passed = 0;
-	rstring line;
+	size_t boundstart = 0;
 
-	while (begin + passed < end) {
-		// fetch a new line
-		size_t linepos = GeneralUtil::strFindLineEnd(begin + passed, end);
-		if (linepos == rstring::npos) {
-			line = rstring(begin + passed, end);
+	boundstart = findBoundary(begin, end, boundary);
+	if (boundstart == rstring::npos ||
+		GeneralUtil::strStartWith(rstring(begin+boundstart, end), "--" + boundary + "--", true)) {
+		// 找不到起始边界入口
+		// 或找到的是结束边界
+		return;
+	}
+	
+	// 边界起始前的字节以及之后的换行符忽略（如果没有换行符则认为报文已经结束）
+	// 注意边界的大小为 boundary.size() + 2（前缀 -- ）
+	passed += boundstart + boundary.size() + 4;
+	while (passed < end - begin) {
+		size_t next = findBoundary(begin + passed, end, boundary);
+		if (next == rstring::npos) {
+			// 找不到下一个边界，认为剩下的部分均为part内的
+			parts.emplace_back(begin + passed, end);
 			passed = end - begin;
 		}
 		else {
-			line = rstring(begin + passed, begin + passed + linepos);
-			passed = passed + linepos + 2;
-		}
-
-		if (GeneralUtil::strStartWith(line, "--", true)) {
-			// 进入边界
-
+			// 找到了下一个边界
+			if (next != 0) {
+				// 防止出现空part
+				parts.emplace_back(begin + passed, begin + passed + next);
+			}
+			// 加上边界长度（2为前缀 -- ）
+			passed += next + boundary.size() + 2;
+			if (*(begin + passed) == '-' &&
+				passed + 1 < end - begin &&
+				*(begin + passed + 1) == '-') {
+				// 为结束边界
+				return;
+			}
+			passed += 2;		// 否则应以 \r\n 结尾
 		}
 	}
 }
 
 void MIMEParser::parseMessage(const rstring& raw, rstring& message)
 {
+}
+
+size_t MIMEParser::findBoundary(const str_citer& begin, const str_citer& end, const rstring& boundary)
+{
+	if (begin >= end) {
+		return rstring::npos;
+	}
+
+	size_t passed = 0;
+	rstring line;
+	
+	// 遍历每一行
+	while (passed < end - begin) {
+		size_t linepos = GeneralUtil::strFindLineEnd(begin + passed, end);
+		if (linepos != rstring::npos) {
+			line = rstring(begin + passed, begin + passed + linepos);
+		}
+		else {
+			line = rstring(begin + passed, end);
+		}
+
+		if (GeneralUtil::strStartWith(line, "--" + boundary, true)) {
+			// 找到边界
+			return passed;
+		}
+
+		passed += line.size() + 2;
+	}
+
+	return rstring::npos;
+}
+
+void MIMEParser::setPartHeaderField(MessagePart* part, const str_kv_t& field)
+{
+	if (part == nullptr) {
+		return;
+	}
+
+	// 字段名
+	rstring key = field.first;
+	size_t keylen = key.size();
+
+	// 跟绝字段名进行具体设置
+	if (_strnicmp(key.c_str(), "Content-Type", keylen) == 0) {
+		mail_content_type_t temp;
+		parseContentType(field.second.begin(), field.second.end(), temp);
+		part->setContentType(temp);
+	}
+	else if (_strnicmp(key.c_str(), "Content-Transfer-Encoding", keylen) == 0) {
+		ContentTransferEncoding encoding = ContentTransferEncoding::SevenBit;
+		parseContentTransferEncoding(field.second.begin(), field.second.end(),
+			encoding);
+		part->setEncoding(encoding);
+	}
+	else if (_strnicmp(key.c_str(), "Content-Disposition", keylen) == 0) {
+		mail_content_disposition_t disposition;
+		parseContentDispostion(field.second.begin(), field.second.end(), disposition);
+		part->setContentDisposition(disposition);
+	}
+	else {
+		part->setOrAddParam(key, field.second);
+	}
 }
