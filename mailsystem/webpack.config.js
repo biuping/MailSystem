@@ -13,7 +13,7 @@ module.exports={
 	},
 	devServer:{
 		open:'chrome',
-		port:8006,
+		port:3000,
 		contentBase:'static',
 		hot:true
 	},

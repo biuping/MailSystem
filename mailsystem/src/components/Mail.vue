@@ -10,12 +10,19 @@
         </div>
 		<div class="form-group">
 		     <input type="file" id="thisfile" ref="inputFile" style="display:none" >
-		     <div id="uplode_group" class="uplode">
-		         <button class="btn btn-info mybtn" id="input_display" >
+			 
+		     <div id="uplode_group" class="uplode" v-show="aShow">
+				<span class="glyphicon glyphicon-save myspan" aria-hidden="true">附件</span>
+				<ul class="attachment_ul">
+					<li v-for="(value,index) in this.mail.attatchmentName" :key="index">
+						{{value}}
+					</li>
+				</ul>
+		         <!-- <button class="btn btn-info mybtn" id="input_display" >
 		             <span class="glyphicon glyphicon-save myspan" aria-hidden="true"></span>下载附件
-		         </button>
+		         </button> -->
 		         
-		         <input type="text" name="" id="filePath" disabled >
+		         <!-- <input type="text" name="" id="filePath" disabled > -->
 		     </div>
 		     <textarea class="form-control" rows="22" readonly="" v-model="mail.content"></textarea>
 		</div>
@@ -72,7 +79,7 @@
 		top: -50%;
 		left: 7%;
 		padding: 0;
-		width: 15%;
+		width: auto;
 		border-bottom: 2px solid #ff000075;
 		border-left: 0 transparent;
 		border-top: 0 transparent;
@@ -96,7 +103,9 @@
 	.uplode{
 	    position: relative;
 	    margin-top: 1%;
-	    margin-bottom: 1%;
+	    margin-bottom: 0;
+		display: flex;
+		flex-direction: row;
 	}
 	.uplode input{
 	    position: relative;
@@ -110,6 +119,8 @@
 	.myspan{
 	    position: relative;
 	    margin: 2px;
+		font-size: 25px;
+		color: rgb(11, 104, 47);
 	}
 	.button_frame{
 		position: relative;
@@ -121,18 +132,47 @@
 		position: relative;
 		margin-left: 20px;
 	}
+	.attachment_ul{
+		list-style: none;
+		margin-left: 0;
+		padding-left: 10px;
+		/* background-color: brown; */
+	}
+	li{
+		display: inline;
+		line-height: 10px;
+		float: left;
+		margin-right: 20px;
+		border: 2px solid #210beb75;
+		border-radius: 8px;
+		text-align: center;
+		font-size: 20px;
+		padding: 10px;
+		background-color: rgba(248, 216, 200, 0.623);
+	}
+	li:hover{
+		cursor: pointer;
+		background-color: rgba(119, 189, 230, 0.459);
+	}
 </style>
 <script>
+import Axios from 'axios'
+import Vue from 'vue'
+Vue.prototype.$axios = Axios
 export default {
     data(){
 		return{
-			mail:Object
+			mail:Object,
+			aShow:false
 		}
 	},
 	methods:{
 		showMail(mail){
 			this.mail=mail
-			console.log(mail.theme)
+			this.aShow=false
+			if(this.mail.attatchmentName.length>0){
+				this.aShow=true
+			}
 		},
 		comeback:function(){
 			this.$emit('backMailBox')
@@ -143,6 +183,34 @@ export default {
 				this.$emit('deleteFromMail')
 			}
 			
+		},
+		download:function(){
+			const url = "http://127.0.0.1:8006/download_attach"
+			let self = this
+			let data = JSON.stringify({
+				//TODO 传输要下载邮件的id
+			})
+			self.$axios({
+				method:"post",
+				url:url,
+				data:data,
+				responseType:"blob"
+			}).then(
+				function(response){
+					data=response.data
+					// 创建一个a标签进行下载，但是不会跳转
+					let url = window.URL.createObjectURL(new Blob([data]))
+					let link = document.createElement("a")
+					link.style.display="none"
+					link.href=url
+					// "name" 代指，TODO，从attachmentName里面获取文件下载的名字
+					link.setAttribute("download","name")
+					document.body.appendChild(link)
+					link.click()
+				}
+			).catch(function(err){
+				console.log(err)
+			})
 		}
 	}
 }
