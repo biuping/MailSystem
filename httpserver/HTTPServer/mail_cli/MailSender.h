@@ -2,8 +2,10 @@
 #define _MAIL_SENDER_H_
 
 #include <string>
-#include "MailClient.h"
 #include "../http/static/Tools.h"
+
+
+
 class MailSender
 {
 public:
