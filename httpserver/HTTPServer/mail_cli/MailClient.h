@@ -47,22 +47,22 @@ public:
 	description: 结果说明
 	return: 失败返回空字符串，否则则为邮件的json结构
 	*/
-	const rstring RecvMail(rstring& description);
+	const rstring RecvMail();
 
 	/*
 	删除邮件
 	mailId：邮件id
 	*/
-	rstring DeleteMail(const std::list<rstring>& mailId);
+	const rstring DeleteMail(const std::list<rstring>& mailId);
 	
 	/*
 	下载附件
 	mailId: 邮件id
 	attachIndex：邮件序号
 	*/
-	rstring DownloadAttach(
+	const Json::Value DownloadAttach(
 		const rstring& mailId,
-		const rstring& attachIndex
+		const int attachIndex
 	);
 
 	/* mail interfaces */
@@ -75,7 +75,7 @@ private:
 	MailSender* mSender;
 
 	/* tools */
-	const rstring MailToJson(Mail* mail);
+	const Json::Value MailToJson(Mail* mail, size_t index);
 };
 
 
