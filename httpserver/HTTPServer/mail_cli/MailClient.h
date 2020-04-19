@@ -36,7 +36,7 @@ public:
 		const rstring& targetAddr,
 		const rstring& theme,
 		const rstring& content,
-		std::list<Attachment>& attachments
+		std::list<Attachment*>& attachments
 	);
 	/*
 	½ÓÊÕÓÊ¼ş

@@ -21,6 +21,7 @@ HttpServerHandler::~HttpServerHandler()
 		delete[] m_readbuff;
 		m_readbuff = nullptr;
 	}
+	ClearUsers();
 	//if (m_object != nullptr)
 	//{
 	//	delete m_object;
@@ -119,23 +120,11 @@ HttpResponse* HttpServerHandler::handle_request(HttpRequest& request)
 		}
 		else if (content_type.find(HTTP_HEAD_FORM_TYPE) != content_type.npos)
 		{
-			//TODO： 处理form-data
 			size_t start = content_type.find(HTTP_PREFIX_BOUNDARY);
 			rstring boundary = content_type.substr(start + strlen(HTTP_PREFIX_BOUNDARY)); //找到boundary
 
 			reader.setBoundary(boundary);
 			reader.feed(request.body(), request.body_len());
-
-			HttpHead_t* h = record.FindHeaderByName("file2");
-			if (h != nullptr)
-			{
-				Tools::report(record.FindHeadContent(*h, "filename"));
-			}
-			HttpHead_t* h2 = record.FindHeaderByName("sender");
-			if (h2 != nullptr)
-			{
-				Tools::report(record.FindHeadContent(*h2, "Content"));
-			}
 				
 		}
 		else
@@ -151,13 +140,13 @@ HttpResponse* HttpServerHandler::handle_request(HttpRequest& request)
 		Login(response);
 		
 	}
-	else if (url.compare(HTTP_URL_SEND_NO_ATTACH) == 0)
+	else if (url.compare(HTTP_URL_SEND_WITH_ATTACH) == 0)
 	{
-		SendNoAttach(response);
+		SendWithAttach(response, record);
 	}
-	else if (url.compare(HTTP_URL_RECV_NO_ATTACH) == 0)
+	else if (url.compare(HTTP_URL_RECV_WITH_ATTACH) == 0)
 	{
-		RecvNoAttach(response);
+		RecvWithAttach(response);
 	}
 	else if (url.compare(HTTP_URL_DELETE_MAIL) == 0)
 	{
@@ -177,21 +166,119 @@ HttpResponse* HttpServerHandler::handle_request(HttpRequest& request)
 	return response;
 }
 
+UserInfo* HttpServerHandler::FindUserByUUID(rstring& uuid)
+{
+	UserStore::iterator itor = userStore.find(uuid);
+	if(itor==userStore.end())
+		return nullptr;
+	return itor->second;
+}
+
+rstring HttpServerHandler::AddUser(rstring& email_addr, rstring& pass)
+{
+	rstring uuid = Tools::getUUID();
+	UserInfo* user = new UserInfo;
+	user->email_address = email_addr;
+	user->pass = pass;
+	userStore[uuid] = user;
+	return uuid;
+}
+
+void HttpServerHandler::ClearUsers()
+{
+	UserStore::const_iterator itor;
+	for (itor = userStore.begin(); itor!=userStore.end(); itor++)
+	{
+		delete itor->second;
+	}
+}
+
 void HttpServerHandler::Login(HttpResponse* response)
 {
+	rstring email = m_object["email_address"].asString();
+	rstring pass = m_object["password"].asString();
+
+	//todo
+	//MailSender* sender = new SMTP();
+	//MailReceiver* receiver = new POP3Client();
+
+	rstring uuid = AddUser(email, pass);
+	UserInfo* info = FindUserByUUID(uuid);
+
+	Json::Value root;
+	root["id"] = uuid;
+	root["success"] = true;
+	root["description"] = "login ok";
+
+	rstring res;
+	Tools::json_write(root, res);
+
 	response->build_ok();
+	response->build_body(res);
 	response->add_head(HTTP_HEAD_CONTENT_TYPE, HTTP_HEAD_JSON_TYPE);
 }
 
-void HttpServerHandler::SendWithAttach(HttpResponse* response)
+void HttpServerHandler::SendWithAttach(HttpResponse* response, MultipartRecord& record)
 {
+	Attachment* attach_ptr;
+	std::list<Attachment*> attachs;
+	rstring id_str;
+	rstring email_address;
+	rstring password;
+	rstring recver_str;
+	rstring theme_str;
+	rstring content_str;
+	
+	HttpHead_t* attach = record.FindHeaderByName("attachment");
+	if (attach != nullptr)
+	{
+		attach_ptr = new Attachment;
+		attach_ptr->file_name = record.FindHeadContent(*attach, HTTP_FORM_FILENAME);
+		attach_ptr->content_type = record.FindHeadContent(*attach, HTTP_FORM_CONTENT_TYPE);
+		attach_ptr->content = record.FindHeadContent(*attach, HTTP_FORM_CONTENT);
+		attachs.push_back(attach_ptr);
+	}
+	HttpHead_t* id = record.FindHeaderByName("id");
+	if (id != nullptr)
+	{
+		id_str = record.FindHeadContent(*id, HTTP_FORM_CONTENT);
+		UserInfo* info = FindUserByUUID(id_str);
+		if (info != nullptr)
+		{
+			email_address = info->email_address;
+			password = info->pass;
+		}
+		else
+		{
+			response->set_status("403", "NO AUTHENTICATION");
+			response->set_common();
+			return;
+		}
+	}
+	HttpHead_t* theme = record.FindHeaderByName("theme");
+	if (theme != nullptr)
+	{
+		theme_str = record.FindHeadContent(*theme, HTTP_FORM_CONTENT);
+	}
+	HttpHead_t* recver = record.FindHeaderByName("recver");
+	if (recver != nullptr)
+	{
+		recver_str = record.FindHeadContent(*recver, HTTP_FORM_CONTENT);
+	}
+	HttpHead_t* content = record.FindHeaderByName("content");
+	if (content != nullptr)
+	{
+		content_str = record.FindHeadContent(*content, HTTP_FORM_CONTENT);
+	}
+
+	response->add_head(HTTP_HEAD_CONTENT_TYPE, HTTP_HEAD_JSON_TYPE);
 }
 
 void HttpServerHandler::SendNoAttach(HttpResponse* response)
 {
 }
 
-void HttpServerHandler::RecvWitnAttach(HttpResponse* response)
+void HttpServerHandler::RecvWithAttach(HttpResponse* response)
 {
 }
 

@@ -5,16 +5,28 @@
 #include "http_const.h"
 #include <map>
 #include "json/json.h"
+#include <stdio.h>  
+#include <objbase.h>
+
+#define GUID_LEN 64
 
 typedef std::string rstring;
 typedef std::map<rstring, rstring> HttpHead_t;
 typedef std::pair<rstring, rstring> HttpHeadPair_t;
 
-typedef struct Attachment{
-	const rstring& content_type;
-	const rstring& file_name;
-	const rstring& content;
+//附件结构
+typedef struct Attachment{ 
+	rstring content_type;
+	rstring file_name;
+	rstring content;
 };
+//用户信息结构
+typedef struct UserInfo {
+	rstring email_address;
+	rstring pass;
+};
+
+typedef std::map<rstring, UserInfo*> UserStore;
 
 class Tools
 {
@@ -28,6 +40,8 @@ public:
 	static void to_lower(rstring& s);
 	//转大写
 	static void to_upper(rstring& s);
+	//获得uuid
+	static rstring getUUID();
 
 public:
 	/*

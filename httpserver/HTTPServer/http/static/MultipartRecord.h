@@ -26,7 +26,7 @@ public:
 	{
 		for (auto h : lists)
 		{
-			rstring res = FindHeadContent(*h, "name");
+			rstring res = FindHeadContent(*h, HTTP_FORM_NAME);
 			if (res.compare(name) == 0)
 				return h;
 		}
@@ -39,7 +39,7 @@ public:
 		if (itor != header.end())
 			return itor->second;
 
-		rstring dis = FindHeadContent(header, "Content-Disposition");
+		rstring dis = FindHeadContent(header, HTTP_FORM_DISPOSITION);
 		rstring prefix = key + "=";
 		rstring res = "";
 		if (dis.find(prefix) != dis.npos)
@@ -77,7 +77,6 @@ public:
 		if (m_header == nullptr)
 			m_header = new HttpHead_t;
 		MultipartHeaders::const_iterator it;
-		MultipartHeaders::const_iterator end = headers.end();
 		for (it = headers.begin(); it != headers.end(); it++) {
 			//printf("  %s = %s\n", it->first.c_str(), it->second.c_str());
 			(*m_header)[it->first] = it->second;
