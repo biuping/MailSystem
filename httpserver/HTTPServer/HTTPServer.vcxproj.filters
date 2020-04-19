@@ -43,6 +43,18 @@
     <Filter Include="Header Files\mail_client_include\pop3_include">
       <UniqueIdentifier>{2cd6dd06-56fc-466b-ae63-9eb3d5fba64d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\mail_client_include\smtp_include">
+      <UniqueIdentifier>{1c45976a-17f2-40fa-80f4-ee551ffcf061}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\mail_client_src\smtp_src">
+      <UniqueIdentifier>{edea0cba-c540-4e9a-8df4-fd462c41df03}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\mail_client_src\mime_src">
+      <UniqueIdentifier>{9e268d78-8712-4817-b712-f9b1f578f18d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\mail_client_include\mime_include">
+      <UniqueIdentifier>{cb689b98-1e9b-420b-8ae5-28cf03026646}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="mail_cli\Mail.cpp">
@@ -98,6 +110,26 @@
     </ClCompile>
     <ClCompile Include="tests\mao_test\mao.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="tools\CharsetUtils.cpp">
+      <Filter>Source Files\tools_src</Filter>
+    </ClCompile>
+    <ClCompile Include="tools\GeneralUtils.cpp">
+      <Filter>Source Files\tools_src</Filter>
+    </ClCompile>
+    <ClCompile Include="mail_cli\mime\MIMEDecoder.cpp">
+      <Filter>Source Files\mail_client_src\mime_src</Filter>
+    </ClCompile>
+    <ClCompile Include="mail_cli\mime\MIMEParser.cpp">
+      <Filter>Source Files\mail_client_src\mime_src</Filter>
+    </ClCompile>
+    <ClCompile Include="mail_cli\smtp\SMTPClient.cpp">
+      <Filter>Source Files\mail_client_src\smtp_src</Filter>
+    </ClCompile>
+    <ClCompile Include="tests\huang_test\huang.cpp">
+      <Filter>Source Files</Filter>
+    <ClCompile Include="mail_cli\MessagePart.cpp">
+      <Filter>Source Files\mail_client_src</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -161,8 +193,39 @@
     <ClInclude Include="tests\zhang_test\zhang.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="tools\CharsetUtils.h">
+      <Filter>Header Files\tools_include</Filter>
+    </ClInclude>
+    <ClInclude Include="tools\GeneralUtils.h">
+      <Filter>Header Files\tools_include</Filter>
+    </ClInclude>
+    <ClInclude Include="mail_cli\mime\MIMEDecoder.h">
+      <Filter>Header Files\mail_client_include\mime_include</Filter>
+    </ClInclude>
+    <ClInclude Include="mail_cli\mime\MIMEParser.h">
+      <Filter>Header Files\mail_client_include\mime_include</Filter>
+    </ClInclude>
+    <ClInclude Include="mail_cli\smtp\SMTPClient.h">
+      <Filter>Header Files\mail_client_include\smtp_include</Filter>
+    </ClInclude>
+    <ClInclude Include="http\static\MultipartParser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="http\static\MultipartReader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="http\static\MultipartRecord.h">
+      <Filter>Header Files</Filter>
     <ClInclude Include="tests\my.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\huang_test\huang.h">
+      <Filter>Header Files</Filter>
+    <ClInclude Include="mail_cli\MessagePart.h">
+      <Filter>Header Files\mail_client_include</Filter>
+    </ClInclude>
+    <ClInclude Include="mail_cli\ContentTypes.h">
+      <Filter>Header Files\mail_client_include</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

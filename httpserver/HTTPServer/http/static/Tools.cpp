@@ -30,6 +30,27 @@ void Tools::to_upper(rstring& s)
 	}
 }
 
+rstring Tools::getUUID()
+{
+	char buf[GUID_LEN] = { 0 };
+	GUID guid;
+
+	if (CoCreateGuid(&guid))
+	{
+		return std::move(std::string(""));
+	}
+
+	sprintf(buf,
+		"%08X-%04X-%04x-%02X%02X-%02X%02X%02X%02X%02X%02X",
+		guid.Data1, guid.Data2, guid.Data3,
+		guid.Data4[0], guid.Data4[1], guid.Data4[2],
+		guid.Data4[3], guid.Data4[4], guid.Data4[5],
+		guid.Data4[6], guid.Data4[7]);
+
+	return std::move(std::string(buf));
+	return "";
+}
+
 void Tools::json_read(const char* start, size_t len, Json::Value& json_object, Json::String& errs)
 {
 	Json::CharReaderBuilder read_builder;
@@ -48,6 +69,7 @@ void Tools::json_write(Json::Value& root,rstring& res, bool beautify)
 	std::ostringstream os;
 	json_writer->write(root, &os);
 	res = os.str();
+
 }
 
 size_t Tools::cal_len(const char* start, const char* end)

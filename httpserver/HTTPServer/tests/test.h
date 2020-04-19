@@ -1,5 +1,5 @@
 #pragma once
-#include "my.h" //自己定义的头文件，写上define即可，在.gitignore中已忽略
+#include "my.h" //鑷繁瀹氫箟鐨勫ご鏂囦欢锛屽啓涓奷efine鍗冲彲锛屽湪.gitignore涓凡蹇界暐
 
 #ifdef MAO_TEST
 void start_mao();

@@ -13,26 +13,40 @@ class POP3Client : public MailReceiver
 {
 public:
 	enum class POP3State {
-		Unconnected,		// Î´Á¬½Óµ½·şÎñÆ÷
-		Authorization,		// ÑéÖ¤×´Ì¬
-		Transaction,		// ÊÂÎñ×´Ì¬
-		Update				// ¸üĞÂ×´Ì¬
+		Unconnected,		// æœªè¿æ¥åˆ°æœåŠ¡å™¨
+		Authorization,		// éªŒè¯çŠ¶æ€
+		Transaction,		// äº‹åŠ¡çŠ¶æ€
+		Update				// æ›´æ–°çŠ¶æ€
 	};
 
 	POP3Client();
 	POP3Client(const POP3Client& pop3cli);
 	virtual ~POP3Client();
 
-	bool open(const rstring& at);
-	bool open(const rstring& at, USHORT port);
-	bool authenticate(const rstring& usr, const rstring& passwd);
-	void collectmail();
-	void logout();
+	/* interfaces implemented */
+	virtual bool open(const rstring& at);
+	virtual bool open(const rstring& at, USHORT port);
+	virtual void close();
+	virtual bool alive();
+	virtual bool authenticate(const rstring& usr, const rstring& passwd);
+
+	virtual bool getStatus(size_t& mailnum, size_t& totsize);
+	virtual bool getMailListWithSize(std::vector<Mail*>& mails);
+	virtual bool getMailListWithUID(std::vector<Mail*>& mails);
+	virtual bool retrMail(size_t i, Mail* mail);
+	virtual bool retrMail(const rstring& uid, Mail* mail);
+	virtual bool deleteMail(size_t i);
+	virtual bool deleteMail(const rstring& uid);
+	virtual void deleteMails(const slist& uids, slist& completed);
+
+	slist& getCapabilities();
 
 private:
-	TCPClientSocket* mConn;		// Ì×½Ó×Ö
-	POP3State mState;			// »á»°×´Ì¬	
+	TCPClientSocket* mConn;		// å¥—æ¥å­—
+	POP3State mState;			// ä¼šè¯çŠ¶æ€
+	slist capabilities;			// å…¼å®¹æ€§
 
+	size_t getNo(const rstring& uid);
 
 	inline char* prefix(const char* host);
 	
@@ -41,6 +55,7 @@ private:
 	inline int cmdWithSingLineReply(const char* cmd, char** reply, int* outlen);
 	inline int cmdWithMultiLinesReply(const char* cmd, const char* ends, char** reply, int* outlen);
 
+	int conn(const char* addr, USHORT port, char** reply = nullptr, int* outlen = nullptr);
 	/* command list */
 	int user(const char* usr, char** reply = nullptr, int* outlen = nullptr);
 	int pass(const char* passwd, char** reply = nullptr, int* outlen = nullptr);
@@ -49,14 +64,14 @@ private:
 	int noop(char** reply = nullptr, int* outlen = nullptr);
 	int stat(char** reply, int* outlen);
 	int list(char** reply, int* outlen, int no = -1);
-	int retr(char** reply, int* outlen, int no);
-	int top(char** reply, int* outlen, int no, int lines = 0);
-	int dele(int no, char** reply = nullptr, int* outlen = nullptr);
+	int retr(char** reply, int* outlen, size_t no);
+	int top(char** reply, int* outlen, size_t no, size_t lines = 0);
+	int dele(size_t no, char** reply = nullptr, int* outlen = nullptr);
 	int rest(char** reply = nullptr, int* outlen = nullptr);
 	int uidl(char** reply, int* outlen, int no = -1);
 	int capa(char** reply, int* outlen);
 
-	// ±¨¸æĞÅÏ¢
+	// æŠ¥å‘Šä¿¡æ¯
 	virtual void report(const rstring& msg);
 };
 

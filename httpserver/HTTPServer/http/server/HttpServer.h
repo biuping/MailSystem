@@ -16,13 +16,17 @@ public:
 	HttpServer(USHORT port=PORT_NUM);
 	~HttpServer();
 	SOCKET get_socket();
-	//³õÊ¼»¯
+	//åˆå§‹åŒ–
 	int start(int backlog=BACKLOG_SIZE);
-	//¹Ø±Õ·şÎñ¶Ë
+	//éé˜»å¡æ–¹å¼å¯åŠ¨
+	int start_non_block(int backlog = BACKLOG_SIZE);
+	//å…³é—­æœåŠ¡ç«¯
 	int close();
 	bool is_close();
-	//¿ªÊ¼ÔËĞĞ£¨°üº¬³õÊ¼»¯£©
-	void run();
+	//å¼€å§‹è¿è¡Œï¼ˆåŒ…å«åˆå§‹åŒ–ï¼‰
+	//é»˜è®¤éé˜»å¡å½¢å¼
+	void run(bool block=false);
+
 protected:
 	HttpClient* accept();
 

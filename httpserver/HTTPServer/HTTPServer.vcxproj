@@ -29,7 +29,7 @@
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v142</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -42,7 +42,7 @@
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v142</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -89,6 +89,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>Default</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -140,6 +141,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="mail_cli\smtp\SMTPClient.cpp" />
+    <ClCompile Include="tests\huang_test\huang.cpp" />
+    <ClCompile Include="mail_cli\MessagePart.cpp" />
+    <ClCompile Include="tools\CharsetUtils.cpp" />
     <ClCompile Include="http\client\HttpClient.cpp" />
     <ClCompile Include="http\client\HttpRequest.cpp" />
     <ClCompile Include="http\client\HttpResponse.cpp" />
@@ -152,14 +157,26 @@
     <ClCompile Include="mail_cli\MailSender.cpp" />
     <ClCompile Include="mail_cli\pop3\POP3Client.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="mail_cli\mime\MIMEParser.cpp" />
+    <ClCompile Include="mail_cli\mime\MIMEDecoder.cpp" />
     <ClCompile Include="socket\TCPClientSocket.cpp" />
     <ClCompile Include="http\static\Tools.cpp" />
     <ClCompile Include="tests\mao_test\mao.cpp" />
     <ClCompile Include="tests\zhang_test\zhang.cpp" />
     <ClCompile Include="tools\EncodeUtils.cpp" />
+    <ClCompile Include="tools\GeneralUtils.cpp" />
     <ClCompile Include="tools\LogUtils.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="http\static\MultipartParser.h" />
+    <ClInclude Include="http\static\MultipartReader.h" />
+    <ClInclude Include="http\static\MultipartRecord.h" />
+    <ClInclude Include="mail_cli\ContentTypes.h" />
+    <ClInclude Include="mail_cli\smtp\SMTPClient.h" />
+    <ClInclude Include="tests\huang_test\huang.h" />
+    <ClInclude Include="tests\my.h" />
+    <ClInclude Include="mail_cli\MessagePart.h" />
+    <ClInclude Include="tools\CharsetUtils.h" />
     <ClInclude Include="http\static\config.h" />
     <ClInclude Include="http\client\HttpClient.h" />
     <ClInclude Include="http\client\HttpRequest.h" />
@@ -173,12 +190,14 @@
     <ClInclude Include="mail_cli\MailReceiver.h" />
     <ClInclude Include="mail_cli\MailSender.h" />
     <ClInclude Include="mail_cli\pop3\POP3Client.h" />
+    <ClInclude Include="mail_cli\mime\MIMEParser.h" />
+    <ClInclude Include="mail_cli\mime\MIMEDecoder.h" />
     <ClInclude Include="tests\mao_test\mao.h" />
-    <ClInclude Include="tests\my.h" />
     <ClInclude Include="tests\test.h" />
     <ClInclude Include="socket\TCPClientSocket.h" />
     <ClInclude Include="http\static\Tools.h" />
     <ClInclude Include="tests\zhang_test\zhang.h" />
+    <ClInclude Include="tools\GeneralUtils.h" />
     <ClInclude Include="tools\LogUtils.h" />
     <ClInclude Include="tools\EncodeUtils.h" />
   </ItemGroup>

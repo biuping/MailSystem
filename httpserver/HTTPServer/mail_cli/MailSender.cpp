@@ -3,6 +3,7 @@
 
 MailSender::MailSender()
 {
+	
 }
 
 MailSender::~MailSender()

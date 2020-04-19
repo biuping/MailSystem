@@ -12,23 +12,23 @@ public:
 	~HttpRequest();
 
 	int load_packet(const char* msg, size_t msglen);
-	//»ñÈ¡±¨ÎÄÆğÊ¼ĞĞ
+	//è·å–æŠ¥æ–‡èµ·å§‹è¡Œ
 	const rstring& start_line();
-	//»ñÈ¡http±¨ÎÄ·½·¨
+	//è·å–httpæŠ¥æ–‡æ–¹æ³•
 	const rstring& method();
-	//»ñÈ¡±¨ÎÄurl
+	//è·å–æŠ¥æ–‡url
 	const rstring& url();
-	//»ñÈ¡http°æ±¾
+	//è·å–httpç‰ˆæœ¬
 	const rstring& version();
-	//»ñÈ¡Í·²¿map
+	//è·å–å¤´éƒ¨map
 	const HttpHead_t& headers();
-	//ÊÇ·ñÍ·²¿Ä³ÊôĞÔ
+	//æ˜¯å¦å¤´éƒ¨æŸå±æ€§
 	bool has_head(const rstring& key);
-	//¸ù¾İÃû³ÆÕÒµ½Í·²¿ÄÚÈİ
+	//æ ¹æ®åç§°æ‰¾åˆ°å¤´éƒ¨å†…å®¹
 	const rstring& head_content(const rstring& key);
-	//body³¤¶È
+	//bodyé•¿åº¦
 	const size_t body_len();
-	//bodyÄÚÈİ
+	//bodyå†…å®¹
 	const char* body();
 private:
 	/*
