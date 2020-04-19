@@ -10,6 +10,11 @@ typedef std::string rstring;
 typedef std::map<rstring, rstring> HttpHead_t;
 typedef std::pair<rstring, rstring> HttpHeadPair_t;
 
+typedef struct Attachment{
+	const rstring& content_type;
+	const rstring& file_name;
+	const rstring& content;
+};
 
 class Tools
 {
