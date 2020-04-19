@@ -1,5 +1,6 @@
 #include "EncodeUtils.h"
 #include "CharsetUtils.h"
+#include "GeneralUtils.h"
 
 
 // encode 'text' into base64 str into 'buf'
@@ -138,26 +139,26 @@ const rstring EncodeUtil::encodeAsciiWithCharset(const rstring& asciitext, const
 {
     size_t charsetlen = charset.size();
     // TODO: 可以继续完善
-    if (_strnicmp(charset.c_str(), "binary", charsetlen) == 0 ||
-        _strnicmp(charset.c_str(), "US-ASCII", charsetlen) == 0 ||
-        _strnicmp(charset.c_str(), "iso-8859-", 9) == 0 ||
-        _strnicmp(charset.c_str(), "ANSI", charsetlen) == 0) {
+    if (GeneralUtil::strEquals(charset.c_str(), "binary", true) ||
+        GeneralUtil::strEquals(charset.c_str(), "US-ASCII", true) ||
+        GeneralUtil::strStartWith(charset.c_str(), "iso-8859-", true) ||
+        GeneralUtil::strEquals(charset.c_str(), "ANSI", true)) {
         // ascii
         return asciitext;
     }
-    else if (_strnicmp(charset.c_str(), "UTF-8", charsetlen) == 0) {
+    else if (GeneralUtil::strEquals(charset.c_str(), "UTF-8", true)) {
         // utf8
         return CharsetUtil::AnsiToUtf8(asciitext);
     }
-    else if (_strnicmp(charset.c_str(), "gb2312", charsetlen) == 0) {
+    else if (GeneralUtil::strEquals(charset.c_str(), "gb2312", true)) {
         // gb2312
         return CharsetUtil::UnicodeToUtf8(CharsetUtil::AnsiToUnicode(asciitext));
     }
-    else if (_strnicmp(charset.c_str(), "GBK", charsetlen) == 0) {
+    else if (GeneralUtil::strEquals(charset.c_str(), "GBK", true)) {
         // gbk
         return CharsetUtil::Utf8ToGBK(CharsetUtil::AnsiToUtf8(asciitext));
     }
-    else if (_strnicmp(charset.c_str(), "gb", 2) == 0) {
+    else if (GeneralUtil::strStartWith(charset.c_str(), "gb", true) == 0) {
         // 其他 gb 规范，采用 GBK 尝试编码
         return CharsetUtil::Utf8ToGBK(CharsetUtil::AnsiToUtf8(asciitext));
     }

@@ -360,7 +360,7 @@ bool POP3Client::getMailListWithUID(std::vector<Mail*>& mails)
 
 // 取回第 i 封邮件
 // i: 邮件序号，从0开始
-// mail: 邮件指针，不能为空
+// mail: 邮件指针，不能为空，需在外部生成对象，防止忘记释放资源
 bool POP3Client::retrMail(size_t i, Mail* mail)
 {
     if (mState != POP3State::Transaction) {
@@ -400,7 +400,7 @@ bool POP3Client::retrMail(size_t i, Mail* mail)
 
 // 取回唯一标识为 uid 的邮件
 // uid: 邮件序号，从0开始
-// mail: 邮件指针，不能为空
+// mail: 邮件指针，不能为空，需在外部生成对象，防止忘记释放资源
 bool POP3Client::retrMail(const rstring& uid, Mail* mail)
 {
     if (mState != POP3State::Transaction) {

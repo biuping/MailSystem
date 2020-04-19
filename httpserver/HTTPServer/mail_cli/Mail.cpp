@@ -44,7 +44,7 @@ bool Mail::isBodyText()
 	return mHeader.mime_version.size() == 0 ||
 		mHeader.content_type.media.size() == 0 ||
 		GeneralUtil::strStartWith(mHeader.content_type.media, "text/", true) ||
-		(_strnicmp(mHeader.content_type.media.c_str(), "message/rfc822", mHeader.content_type.media.size()) == 0);
+		(GeneralUtil::strEquals(mHeader.content_type.media.c_str(), "message/rfc822") == 0);
 }
 
 // 获取指定 media type 的第一个出现的 MessagePart

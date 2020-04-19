@@ -7,15 +7,17 @@
 #include "../../mail_cli/mime/MIMEDecoder.h"
 #include "../../tools/CharsetUtils.h"
 #include "../../tools/GeneralUtils.h"
+#include "../../mail_cli/MailClient.h"
 
 
 void start_zhang()
 {
-	pop3_test();
+	//pop3_test();
 	//utility_test();
 	//string_test();
 	//decode_test();
 	//charset_test();
+	mailcli_test();
 }
 
 
@@ -185,6 +187,36 @@ void pop3_test()
 	}
 
 	delete popcli;
+}
+
+void mailcli_test()
+{
+	HttpSocket socketInit;
+
+	MailClient cli;
+	POP3Client* popcli = new POP3Client();
+	cli.setReceiver(popcli);
+
+	rstring mailaddr = TEST_MAIL_ADDR;
+	rstring passwd = TEST_MAIL_PASSWD;
+
+	/* Login */
+	rstring desc;
+	if (cli.Login(mailaddr, passwd, desc)) {
+		LogUtil::report(desc);
+
+		/* RecvMail */
+		//LogUtil::report(cli.RecvMail());
+
+		/* DownloadAttach */
+		rstring att;
+		Json::Value attObj = cli.DownloadAttach("1tbiAQcHBFmj3-i-OgANsQ", 0);
+		Tools::json_write(attObj, att, true);
+		LogUtil::report(att);
+
+		/* Delete Mail */
+		LogUtil::report(cli.DeleteMail(slist{ "1tbiAQcHBFmj3-i-OgANsQ" }));
+	}
 }
 
 

@@ -9,6 +9,7 @@ void string_test();
 void pop3_test();
 void decode_test();
 void charset_test();
+void mailcli_test();
 
 
 #endif // !_ZHANG_H_
