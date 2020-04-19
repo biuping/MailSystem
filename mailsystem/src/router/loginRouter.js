@@ -12,7 +12,7 @@ var router = new VueRouter({
     base: './',
     routes:[
         {path:'/mainpage',component:mainPage,children:[
-            {path:'/mainpage/mailbox',component:mailbox},
+            {path:'/mainpage/mailbox',component:mailbox,params:{childF:true}},
             {path:'/mainpage/sendmail',component:sendmail},
             {path:'/mainpage/draft',component:draft}
         ]},

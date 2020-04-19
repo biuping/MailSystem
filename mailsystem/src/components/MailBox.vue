@@ -206,8 +206,11 @@ export default {
 			this.$refs.mailshow.showMail(mailinfo)
         },
 		backMailBox:function(){
-			this.flag=!this.flag
-            this.childFlag=!this.childFlag
+            if(this.flag==false){
+                this.flag=!this.flag
+                this.childFlag=!this.childFlag
+            }
+
         },
         deleteFromMail:function(){
             this.maillist.splice(this.choosedMailindex,1)
@@ -236,6 +239,8 @@ export default {
 		}
     },
 	mounted() {
+        console.log(this.$route.params.childF)
+        console.log('ch'+this.childFlag)
 		this.flag=true
 	}
 }

@@ -9,7 +9,7 @@
             <transition  enter-active-class="slideInRight" :="{endter:400}">
                 <div class="account-group animated" v-if="flag" >
                     <label v-if="flag"><span class="glyphicon glyphicon-user" aria-hidden="true"></span>用户</label>
-                    <input type="email" class="form-control" id="exampleInputEmail1" placeholder="Email" v-model="account">
+                    <input type="email" class="form-control" id="exampleInputEmail1" placeholder="Email" v-model="logininfo.account">
                 </div>
             </transition>
 
@@ -20,7 +20,7 @@
                         <span class="glyphicon glyphicon-lock" aria-hidden="true"></span>密码
                     </label>
                     
-                    <input type="password" class="form-control" id="exampleInputPassword1" placeholder="Password" v-model="password">
+                    <input type="password" class="form-control" id="exampleInputPassword1" placeholder="Password" v-model="logininfo.password">
                 </div>
             </transition>
             <transition  enter-active-class="flipInY" :="{endter:400}">             
@@ -104,12 +104,12 @@
 
 </style>
 <script>
+    import $ from 'jquery'
     export default{
         data(){
             return{
                 flag:false,
-                account:'',
-                password:''
+                logininfo:{account:'',password:''}                               
             }
         },
         methods:{
@@ -118,7 +118,33 @@
             },
             login:function(){
                 // TODO 登录请求
-                this.$router.push({path:'/mainpage',params:{account:this.account}})
+                if(this.logininfo.account==''){
+                    alert('用户名不能为空')
+                }else if(this.logininfo.password==''){
+                    alert('密码不能为空')
+                }else{
+                    const url = "http://127.0.0.1:8006/login"
+                    $.ajax({
+                        url:url,
+                        type: "post",
+                        contentType: "application/json;charset=UTF-8",
+                        dataType: "json",
+                        // jsonp:"callback",
+                        // jsonpCallback:"callbackFunction",
+                        data:JSON.stringify({
+                            "email_address":this.logininfo.account,
+                            "password":this.logininfo.password
+                        }),
+                        success:function(data){
+                             console.log('success')
+                             console.log(data)
+                        }
+
+                    })
+
+                }
+
+                // this.$router.push({path:'/mainpage',params:{account:this.account}})
             }
         },
         mounted(){

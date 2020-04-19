@@ -191,9 +191,6 @@
     <ClInclude Include="tests\zhang_test\zhang.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="tests\my.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="tools\CharsetUtils.h">
       <Filter>Header Files\tools_include</Filter>
     </ClInclude>

@@ -5,7 +5,7 @@ const htmlwebpackplugin = require('html-webpack-plugin')
 const VueLoaderPlugin = require('vue-loader/lib/plugin')
 
 module.exports={
-	entry: {main:'./src/main.js',page:'./src/page.js'},  //入口表示webpack打包文件
+	entry: {main:'./src/main.js'},  //入口表示webpack打包文件
 	output:{
 		// 输出文件配置
 		path:path.resolve(__dirname, './dist'),  // 指定打包到的路径
@@ -13,7 +13,7 @@ module.exports={
 	},
 	devServer:{
 		open:'chrome',
-		port:3000,
+		port:8006,
 		contentBase:'static',
 		hot:true
 	},
@@ -23,12 +23,6 @@ module.exports={
 			filename: 'index.html', //指定生成的页面名称
 			inject:true,
 			chunks:['main']
-		}),
-		new htmlwebpackplugin({  
-			template: path.resolve(__dirname,'./static/mainpage.html'),   
-			filename: 'mainPage.html', 
-			inject:true,
-			chunks:['page']
 		}),
 		new VueLoaderPlugin()
 	],
