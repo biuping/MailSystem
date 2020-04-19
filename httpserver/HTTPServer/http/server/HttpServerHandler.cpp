@@ -102,7 +102,7 @@ HttpResponse* HttpServerHandler::handle_request(HttpRequest& request)
 
 	const rstring& method = request.method();
 	const rstring& url = request.url();
-	
+
 	MultipartReader reader;
 	MultipartRecord record(reader);
 
@@ -125,7 +125,7 @@ HttpResponse* HttpServerHandler::handle_request(HttpRequest& request)
 
 			reader.setBoundary(boundary);
 			reader.feed(request.body(), request.body_len());
-				
+
 		}
 		else
 		{
@@ -138,7 +138,7 @@ HttpResponse* HttpServerHandler::handle_request(HttpRequest& request)
 	if (url.compare(HTTP_URL_LOGIN) == 0)
 	{
 		Login(response);
-		
+
 	}
 	else if (url.compare(HTTP_URL_SEND_WITH_ATTACH) == 0)
 	{
@@ -169,7 +169,7 @@ HttpResponse* HttpServerHandler::handle_request(HttpRequest& request)
 UserInfo* HttpServerHandler::FindUserByUUID(rstring& uuid)
 {
 	UserStore::iterator itor = userStore.find(uuid);
-	if(itor==userStore.end())
+	if (itor == userStore.end())
 		return nullptr;
 	return itor->second;
 }
@@ -187,9 +187,19 @@ rstring HttpServerHandler::AddUser(rstring& email_addr, rstring& pass)
 void HttpServerHandler::ClearUsers()
 {
 	UserStore::const_iterator itor;
-	for (itor = userStore.begin(); itor!=userStore.end(); itor++)
+	for (itor = userStore.begin(); itor != userStore.end(); itor++)
 	{
 		delete itor->second;
+	}
+}
+
+void HttpServerHandler::ClearUserByUUID(rstring& uuid)
+{
+	UserStore::const_iterator itor;
+	for (itor = userStore.begin(); itor != userStore.end(); itor++)
+	{
+		if (itor->first == uuid)
+			delete itor->second;
 	}
 }
 
@@ -197,18 +207,26 @@ void HttpServerHandler::Login(HttpResponse* response)
 {
 	rstring email = m_object["email_address"].asString();
 	rstring pass = m_object["password"].asString();
+	rstring description;
+	rstring uuid = "";
+	bool success = false;
 
-	//todo
-	//MailSender* sender = new SMTP();
-	//MailReceiver* receiver = new POP3Client();
+	MailReceiver* receiver = new POP3Client();
+	MailClient client;
+	client.setReceiver(receiver);
+	success = client.Login(email, pass, description);//登录验证
 
-	rstring uuid = AddUser(email, pass);
-	UserInfo* info = FindUserByUUID(uuid);
+	//成功返回uuid
+	if (success)
+	{
+		uuid = AddUser(email, pass);
+	}
 
+	//build返回json
 	Json::Value root;
 	root["id"] = uuid;
-	root["success"] = true;
-	root["description"] = "login ok";
+	root["success"] = success;
+	root["description"] = description;
 
 	rstring res;
 	Tools::json_write(root, res);
@@ -228,7 +246,32 @@ void HttpServerHandler::SendWithAttach(HttpResponse* response, MultipartRecord& 
 	rstring recver_str;
 	rstring theme_str;
 	rstring content_str;
-	
+	MailClient client;
+	MailSender* sender = new SMTPClient();
+
+
+	//检查id
+	HttpHead_t* id = record.FindHeaderByName("id");
+	if (id != nullptr)
+	{
+		id_str = record.FindHeadContent(*id, HTTP_FORM_CONTENT);
+		if (!AuthLogin(response, client, sender, nullptr, id_str))
+		{
+			return;
+		}
+		//UserInfo* info = AuthUserById(response, id_str);
+		//if (info != nullptr)
+		//{
+		//	email_address = info->email_address;
+		//	password = info->pass;
+		//}
+		//else
+		//{
+		//	return;
+		//}
+	}
+
+	//检查附件
 	HttpHead_t* attach = record.FindHeaderByName("attachment");
 	if (attach != nullptr)
 	{
@@ -237,23 +280,6 @@ void HttpServerHandler::SendWithAttach(HttpResponse* response, MultipartRecord& 
 		attach_ptr->content_type = record.FindHeadContent(*attach, HTTP_FORM_CONTENT_TYPE);
 		attach_ptr->content = record.FindHeadContent(*attach, HTTP_FORM_CONTENT);
 		attachs.push_back(attach_ptr);
-	}
-	HttpHead_t* id = record.FindHeaderByName("id");
-	if (id != nullptr)
-	{
-		id_str = record.FindHeadContent(*id, HTTP_FORM_CONTENT);
-		UserInfo* info = FindUserByUUID(id_str);
-		if (info != nullptr)
-		{
-			email_address = info->email_address;
-			password = info->pass;
-		}
-		else
-		{
-			response->set_status("403", "NO AUTHENTICATION");
-			response->set_common();
-			return;
-		}
 	}
 	HttpHead_t* theme = record.FindHeaderByName("theme");
 	if (theme != nullptr)
@@ -280,6 +306,13 @@ void HttpServerHandler::SendNoAttach(HttpResponse* response)
 
 void HttpServerHandler::RecvWithAttach(HttpResponse* response)
 {
+	MailClient client;
+	MailReceiver* receiver = new POP3Client();
+	rstring id = m_object["id"].asString();
+	if (!AuthLogin(response, client, nullptr, receiver, id))
+	{
+		return;
+	}
 }
 
 void HttpServerHandler::RecvNoAttach(HttpResponse* response)
@@ -288,6 +321,14 @@ void HttpServerHandler::RecvNoAttach(HttpResponse* response)
 
 void HttpServerHandler::DownloadAttach(HttpResponse* response)
 {
+	MailClient client;
+	MailReceiver* receiver = new POP3Client();
+	rstring id = m_object["id"].asString();
+	if (!AuthLogin(response, client, nullptr, receiver, id))
+	{
+		return;
+	}
+
 	rstring down = "dGhpcyBpcyB0ZXN0Mg0KDQoNCi0tLS0tLS0tLS0tLQ0KLS0NCi0tLS0tLS0tLS0tLQ==";
 	response->add_head(HTTP_HEAD_CONTENT_TYPE, "text / plain; name = \"test2.txt\"");
 	response->build_ok();
@@ -298,6 +339,70 @@ void HttpServerHandler::DownloadAttach(HttpResponse* response)
 
 void HttpServerHandler::DeleteMail(HttpResponse* response)
 {
+	MailClient client;
+	MailReceiver* receiver = new POP3Client();
+	rstring id = m_object["id"].asString();
+	if (!AuthLogin(response, client, nullptr, receiver, id))
+	{
+		return;
+	}
+}
+
+UserInfo* HttpServerHandler::AuthUserById(HttpResponse* response, rstring& uuid)
+{
+	UserInfo* info = FindUserByUUID(uuid);
+	if (info == nullptr)
+	{
+		Json::Value root;
+		root["success"] = false;
+		root["description"] = "Please Login";
+
+		rstring res;
+		Tools::json_write(root, res);
+
+		response->set_status("403", "NO AUTHENTICATION");
+		response->set_common();
+		response->build_body(res);
+		response->add_head(HTTP_HEAD_CONTENT_TYPE, HTTP_HEAD_JSON_TYPE);
+	}
+	return info;
+
+}
+
+bool HttpServerHandler::AuthLogin(HttpResponse* response, MailClient& client, MailSender* sender, MailReceiver* receiver, rstring& uuid)
+{
+	UserInfo* info;
+	rstring description;
+
+	//查看是否登录
+	info = AuthUserById(response, uuid);
+	if (info == nullptr)
+		return false;
+
+
+	//登录验证
+	client.setSender(sender);
+	client.setReceiver(receiver);
+	bool success = false;
+	success = client.Login(info->email_address, info->pass, description);
+
+	//验证不成功
+	if (!success)
+	{
+		Json::Value root;
+		root["id"] = uuid;
+		root["success"] = success;
+		root["description"] = description;
+
+		rstring res;
+		Tools::json_write(root, res);
+
+		response->build_ok();
+		response->build_body(res);
+		response->add_head(HTTP_HEAD_CONTENT_TYPE, HTTP_HEAD_JSON_TYPE);
+		return false;
+	}
+	return true;
 }
 
 

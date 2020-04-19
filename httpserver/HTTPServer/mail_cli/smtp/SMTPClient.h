@@ -16,7 +16,7 @@ struct FILEINFO /*用来记录文件的一些信息*/
     char fileName[128]; /*文件名称*/
     char filePath[512]; /*文件绝对路径*/
 };
-class SMTPClient:MailSender
+class SMTPClient:public MailSender
 {
 public:
     SMTPClient(void);

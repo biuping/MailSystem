@@ -110,7 +110,7 @@ void HttpResponse::set_common()
 	this->add_head(HTTP_HEAD_CONNECTION, "close");
 }
 
-void HttpResponse::build_body(rstring& body)
+void HttpResponse::build_body(rstring body)
 {
 	this->add_head(HTTP_HEAD_CONTENT_LEN, std::to_string(body.size()));
 	this->set_body(&body[0], body.size());
