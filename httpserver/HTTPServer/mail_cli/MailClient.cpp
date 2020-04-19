@@ -83,7 +83,6 @@ bool MailClient::Login(const rstring& mailAddr, const rstring& passwd, rstring& 
 		}
 
 	}
-
 	description = "OK";
 	return true;
 }
