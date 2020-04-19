@@ -191,6 +191,7 @@ void HttpServerHandler::ClearUsers()
 	{
 		delete itor->second;
 	}
+	userStore.clear();
 }
 
 void HttpServerHandler::ClearUserByUUID(rstring& uuid)
@@ -198,8 +199,12 @@ void HttpServerHandler::ClearUserByUUID(rstring& uuid)
 	UserStore::const_iterator itor;
 	for (itor = userStore.begin(); itor != userStore.end(); itor++)
 	{
-		if (itor->first == uuid)
+		if (itor->first == uuid) 
+		{
 			delete itor->second;
+			userStore.erase(itor);
+		}
+			
 	}
 }
 
