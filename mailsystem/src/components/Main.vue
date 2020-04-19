@@ -99,8 +99,11 @@ export default {
     },
     methods:{
         rebackMail:function(){
+            console.log(1)
+            console.log(this.$refs.main_frame.backMailBox)
 
             if(this.$refs.main_frame.backMailBox!=undefined){
+                console.log("backmail")
                 this.$refs.main_frame.backMailBox()
             }
             

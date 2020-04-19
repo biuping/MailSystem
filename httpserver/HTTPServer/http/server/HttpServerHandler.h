@@ -36,6 +36,8 @@ public:
 	rstring AddUser(rstring& email_addr, rstring& pass);
 	//清理用户
 	void ClearUsers();
+	//通过uuid清理用户，登出效果
+	void ClearUserByUUID(rstring& uuid);
 
 public:
 	void Login(HttpResponse* response);
@@ -45,6 +47,8 @@ public:
 	void RecvNoAttach(HttpResponse* response);
 	void DownloadAttach(HttpResponse* response);
 	void DeleteMail(HttpResponse* response);
+	UserInfo* AuthUserById(HttpResponse* response, rstring& uuid);
+	bool AuthLogin(HttpResponse* response, MailClient& client, MailSender* sender, MailReceiver* receiver, rstring& uuid);
 
 };
 
