@@ -13,7 +13,7 @@ POP3Client::POP3Client(const POP3Client& pop3cli) : mConn(pop3cli.mConn), mState
 POP3Client::~POP3Client()
 {
     if (alive()) {
-        this->quit();
+        this->close();
     }
 
     delete mConn;
@@ -70,6 +70,19 @@ bool POP3Client::open(const rstring& at, USHORT port)
 
 void POP3Client::close()
 {
+    if (mState != POP3State::Unconnected && mState != POP3State::Update) {
+        this->quit();
+        report("connection closed");
+
+        if (mState == POP3State::Transaction) {
+            // 进入更新状态
+            mState = POP3State::Update;
+        }
+        else {
+            // 断开连接
+            mState = POP3State::Unconnected;
+        }
+    }
     return;
 }
 
@@ -116,7 +129,9 @@ bool POP3Client::authenticate(const rstring& usr, const rstring& passwd)
 slist& POP3Client::getCapabilities()
 {
     // 已连接且兼容指令列表为空
-    if (this->capabilities.size() == 0 && mState != POP3State::Unconnected) {
+    if (this->capabilities.size() == 0 &&
+        mState != POP3State::Unconnected &&
+        mState != POP3State::Update) {
         // 未获取兼容性列表
         char* reply = nullptr, * p;
         int len, capaRet = 0;
@@ -161,7 +176,12 @@ bool POP3Client::alive()
         report(errstr);
     }
 
-    return this->noop() == 0;
+    bool isAlive = this->noop() == 0;
+    if (!isAlive) {
+        report("the connection is missing");
+    }
+
+    return isAlive;
 }
 
 // 返回邮箱状态
@@ -702,7 +722,7 @@ int POP3Client::apop(const char* name, const char* digest, char** reply, int* ou
 {
     char buf[BUFFER_SIZE];
 
-    sprintf(buf, "APOP %s,%s\r\n", name, digest);
+    sprintf(buf, "APOP %s %s\r\n", name, digest);
 
     return cmdWithSingLineReply(buf, reply, outlen);
 }

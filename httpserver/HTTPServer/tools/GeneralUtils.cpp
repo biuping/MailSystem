@@ -97,6 +97,25 @@ bool GeneralUtil::strEndsWith(const rstring& source, const rstring& suffix, bool
 	return true;
 }
 
+bool GeneralUtil::strEndsWith(const str_citer& begin, const str_citer& end, const rstring& suffix, bool caseIgnore)
+{
+	if (begin + suffix.size() >= end) {
+		return false;
+	}
+
+	for (int sr = 1, su = suffix.size() - 1;
+		(size_t)sr + begin < end && su >= 0;
+		++sr, --su) {
+		char src = caseIgnore ? tolower(*(end - sr)) : *(end - sr);
+		char suc = caseIgnore ? tolower(suffix[su]) : suffix[su];
+		if (src != suc) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
 bool GeneralUtil::strStartWith(const rstring& source, const rstring& prefix, bool caseIgnore)
 {
 	if (source.size() < prefix.size()) {
@@ -118,6 +137,25 @@ bool GeneralUtil::strStartWith(const rstring& source, const rstring& prefix, boo
 	return true;
 }
 
+bool GeneralUtil::strStartWith(const str_citer& begin, const str_citer& end, const rstring& prefix, bool caseIgnore)
+{
+	if (begin + prefix.size() >= end) {
+		return false;
+	}
+
+	for (int sr = 0, su = 0;
+		(size_t)sr + begin < end && su >= 0;
+		++sr, ++su) {
+		char src = caseIgnore ? tolower(*(begin + sr)) : *(begin + sr);
+		char suc = caseIgnore ? tolower(prefix[su]) : prefix[su];
+		if (src != suc) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
 size_t GeneralUtil::strFindLineEnd(const str_citer& begin, const str_citer& end)
 {
 	size_t len = 0;
@@ -129,4 +167,36 @@ size_t GeneralUtil::strFindLineEnd(const str_citer& begin, const str_citer& end)
 	}
 
 	return begin + len < end ? len : rstring::npos;
+}
+
+// Ìø¹ý¿Õ°××Ö·û
+// begin: ×Ö·û´®¿ªÊ¼Î»ÖÃconst_iterator
+// end: ×Ö·û´®½áÊøÎ»ÖÃconst_iterator
+// return: Ìø¹ýµÄ×Ö·ûÊý
+size_t GeneralUtil::strSkipWhiteSpaces(const str_citer& begin, const str_citer& end)
+{
+	size_t tot = 0;
+	// skip white spaces
+	while (begin < end && strchr(whitespaces, *(begin + tot))) {
+		++tot;
+	}
+	return tot;
+}
+
+size_t GeneralUtil::strStripCharsIn(rstring& str, const rstring& chars)
+{
+	size_t k = 0;
+	size_t len = str.size();
+	for (size_t i = 0; i < len; ++i) {
+		if (strchr(chars.c_str(), str[i])) {
+			// °üº¬ÒªÈ¥³ýµÄ×Ö·û
+			++k;
+			continue;
+		}
+
+		str[i - k] = str[i];
+	}
+	str.erase(str.size() - k);
+
+	return k;
 }

@@ -34,7 +34,7 @@ typedef struct mail_header_t {
 	rstring mime_version;
 	ContentTransferEncoding content_transfer_encoding;
 	mail_content_type_t content_type;
-	mail_content_disposition content_disposition;
+	mail_content_disposition_t content_disposition;
 	maddr_list to;
 	maddr_list cc;
 	maddr_list bcc;
@@ -51,6 +51,10 @@ typedef struct {
 	rstring message;
 	std::list<MessagePart*> parts;
 } mail_body_t;
+
+
+/* body clear tool */
+void clearParts(mail_body_t& body);
 
 
 /* ” º˛¿‡ */
@@ -72,13 +76,15 @@ public:
 	void setSize(const size_t mailsize);
 	void setUID(const rstring& mailUID);
 
+	/* convenient type checking */
+	
+
 private:
 	mail_header_t mHeader;
 	mail_body_t mBody;
 	rstring mUID;
 	size_t mSize;
 
-	void clearParts();
 };
 
 
