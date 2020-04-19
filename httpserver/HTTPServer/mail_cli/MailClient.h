@@ -22,8 +22,12 @@ public:
 
 	/*
 	登录
+	mailAddr: 邮箱地址
+	passwd: 邮箱密码、独立密码或授权码
+	description: 结果说明
+	return: 是否成功登录
 	*/
-	rstring Login();
+	bool Login(const rstring& mailAddr, const rstring& passwd, rstring& description);
 
 	/*
 	发送邮件
@@ -40,14 +44,16 @@ public:
 	);
 	/*
 	接收邮件
+	description: 结果说明
+	return: 失败返回空字符串，否则则为邮件的json结构
 	*/
-	rstring RecvMail();
+	const rstring RecvMail(rstring& description);
 
 	/*
 	删除邮件
 	mailId：邮件id
 	*/
-	rstring DeleteMail(std::list<rstring>& mailId);
+	rstring DeleteMail(const std::list<rstring>& mailId);
 	
 	/*
 	下载附件
@@ -67,6 +73,9 @@ public:
 private:
 	MailReceiver* mReceiver;
 	MailSender* mSender;
+
+	/* tools */
+	const rstring MailToJson(Mail* mail);
 };
 
 
