@@ -108,7 +108,6 @@ void HttpResponse::set_common()
 	this->add_head("Access-Control-Max-Age", "3600");
 	this->set_version(HTTP_VERSION);
 	this->add_head(HTTP_HEAD_CONNECTION, "close");
-	
 }
 
 void HttpResponse::build_body(rstring& body)
