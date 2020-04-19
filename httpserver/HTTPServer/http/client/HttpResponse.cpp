@@ -103,6 +103,7 @@ void HttpResponse::set_common()
 {
 	this->set_version(HTTP_VERSION);
 	this->add_head(HTTP_HEAD_CONNECTION, "close");
+	this->add_head("Access-Control-Allow-Origin", "*");
 }
 
 void HttpResponse::build_body(rstring& body)
