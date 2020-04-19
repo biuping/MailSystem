@@ -65,7 +65,7 @@ public:
 	res：生成后的字符串
 	beautify：是否美化输出，默认为否
 	*/
-	static void json_write(Json::Value& root,rstring& res,bool beautify=false);
+	static void json_write(const Json::Value& root,rstring& res,bool beautify=false);
 public:
 	/*
 	计算开始指针与结束指针之间的长度
