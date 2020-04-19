@@ -7,6 +7,8 @@ import '../static/css/index.css'
 import animated from 'animate.css'
 import router from './router/loginRouter'
 import mainpage from './components/Main.vue'
+import 'axios/dist/axios'
+
 
 Vue.config.productionTip = false
 
