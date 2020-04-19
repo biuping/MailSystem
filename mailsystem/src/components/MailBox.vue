@@ -152,8 +152,9 @@ export default {
     data(){
         return{
             flag:true,
-            maillist:[{id:1,theme:'firstmail',sender:'tom',content:'内容',attatchmentName:'',attatchment:''},
-			{id:2,theme:'second mail',sender:'mike'},{id:3,theme:'third mail',sender:'jay'},
+            maillist:[{id:1,theme:'firstmail',sender:'tom',content:'内容',attatchmentName:['one.txt','two.txt','three.txt'],attatchment:''},
+            {id:2,theme:'second mail',sender:'mike',content:'内容2',attatchmentName:[],attatchment:''},
+            {id:3,theme:'third mail',sender:'jay'},
                 {id:4,theme:'first mail',sender:'tom'},{id:5,theme:'second mail',sender:'mike'},{id:6,theme:'third mail',sender:'jay'},
                 {id:7,theme:'first mail',sender:'tom'},{id:8,theme:'second mail',sender:'mike'},{id:9,theme:'third mail',sender:'jay'}
             ],
@@ -206,8 +207,11 @@ export default {
 			this.$refs.mailshow.showMail(mailinfo)
         },
 		backMailBox:function(){
-			this.flag=!this.flag
-            this.childFlag=!this.childFlag
+            if(this.flag==false){
+                this.flag=!this.flag
+                this.childFlag=!this.childFlag
+            }
+
         },
         deleteFromMail:function(){
             this.maillist.splice(this.choosedMailindex,1)
