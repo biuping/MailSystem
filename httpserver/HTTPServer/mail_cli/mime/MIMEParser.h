@@ -25,7 +25,7 @@ public:
 	void parseContentType(const str_citer& begin, const str_citer& end,
 		mail_content_type_t& contentType);
 	void parseContentDispostion(const str_citer& begin, const str_citer& end,
-		mail_content_disposition& contentDisposition);
+		mail_content_disposition_t& contentDisposition);
 	void parseContentTransferEncoding(const str_citer& begin, const str_citer& end,
 		ContentTransferEncoding& encoding);
 	void parseSize(const str_citer& begin, const str_citer& end, long long& size);

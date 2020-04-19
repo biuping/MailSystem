@@ -20,7 +20,7 @@ const mail_content_type_t& MessagePart::getContentType()
 	return mContentType;
 }
 
-const mail_content_disposition& MessagePart::getContentDisposition()
+const mail_content_disposition_t& MessagePart::getContentDisposition()
 {
 	return mContentDisposition;
 }
@@ -70,7 +70,7 @@ void MessagePart::setContentType(const mail_content_type_t& contenttype)
 	this->mContentType = contenttype;
 }
 
-void MessagePart::setContentDisposition(const mail_content_disposition& contentDisposition)
+void MessagePart::setContentDisposition(const mail_content_disposition_t& contentDisposition)
 {
 	this->mContentDisposition = contentDisposition;
 }
@@ -138,6 +138,7 @@ void MessagePart::clearParts()
 	mParts.clear();
 }
 
+// 获取文件名，非附件应返回空字符串
 const rstring& MessagePart::getFileName()
 {
 	return mContentDisposition.filename.size() == 0 ?
@@ -150,15 +151,78 @@ bool MessagePart::isMultipart()
 	return GeneralUtil::strStartWith(mContentType.media, "multipart/", true);
 }
 
+// 是否为文本类型
 bool MessagePart::isText()
 {
-	return GeneralUtil::strStartWith(mContentType.media, "text/", true) ||
-		(_strnicmp(mContentType.media.c_str(), "message/rfc822", 14) == 0);
+	return mContentType.media.size() == 0 ||
+		GeneralUtil::strStartWith(mContentType.media, "text/", true) ||
+		(_strnicmp(mContentType.media.c_str(), "message/rfc822", mContentType.media.size()) == 0);
 }
 
 // 是否为附件类型
 bool MessagePart::isAttachment()
 {
 	return (!isText() && !isMultipart()) ||
-		(_strnicmp(mContentDisposition.type.c_str(), "attachment", 10) == 0);
+		(_strnicmp(mContentDisposition.type.c_str(), "attachment", mContentDisposition.type.size()) == 0);
+}
+
+// 获取第一个媒体类型为 media 的部分
+MessagePart* MessagePart::getFirstPartOfMediaType(const rstring& media)
+{
+	if (mContentType.media.compare(media) == 0) {
+		return this;
+	}
+
+	if (this->isMultipart()) {
+		for (MessagePart* p : mParts) {
+			MessagePart* found = p->getFirstPartOfMediaType(media);
+			if (found != nullptr) {
+				return found;
+			}
+		}
+	}
+
+	return nullptr;
+}
+
+// 获取所有媒体类型为 media 的部分
+void MessagePart::getAllPartsOfMediaType(const rstring& media, std::list<MessagePart*>& parts)
+{
+	if (mContentType.media.compare(media) == 0) {
+		parts.push_back(this);
+	}
+
+	if (this->isMultipart()) {
+		for (MessagePart* p : mParts) {
+			p->getAllPartsOfMediaType(media, parts);
+		}
+	}
+}
+
+// 获取所有文本类型的部分
+void MessagePart::getAllTextParts(std::list<MessagePart*>& parts)
+{
+	if (this->isText()) {
+		parts.emplace_back(this);
+	}
+
+	if (this->isMultipart()) {
+		for (MessagePart* p : mParts) {
+			p->getAllTextParts(parts);
+		}
+	}
+}
+
+// 获取所有附件类型的部分
+void MessagePart::getAllAttachmentParts(std::list<MessagePart*>& parts)
+{
+	if (this->isAttachment()) {
+		parts.emplace_back(this);
+	}
+
+	if (this->isMultipart()) {
+		for (MessagePart* p : mParts) {
+			p->getAllAttachmentParts(parts);
+		}
+	}
 }

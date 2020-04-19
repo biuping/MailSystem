@@ -136,23 +136,24 @@ void EncodeUtil::quoted_printable_decode(const rstring& encoded, rstring& decode
 // charset: 字符集
 const rstring EncodeUtil::encodeAsciiWithCharset(const rstring& asciitext, const rstring& charset)
 {
+    size_t charsetlen = charset.size();
     // TODO: 可以继续完善
-    if (_strnicmp(charset.c_str(), "binary", 6) == 0 ||
-        _strnicmp(charset.c_str(), "US-ASCII", 8) == 0 ||
-        _strnicmp(charset.c_str(), "iso-8859-1", 10) == 0 ||
-        _strnicmp(charset.c_str(), "ANSI", 4) == 0) {
+    if (_strnicmp(charset.c_str(), "binary", charsetlen) == 0 ||
+        _strnicmp(charset.c_str(), "US-ASCII", charsetlen) == 0 ||
+        _strnicmp(charset.c_str(), "iso-8859-", 9) == 0 ||
+        _strnicmp(charset.c_str(), "ANSI", charsetlen) == 0) {
         // ascii
         return asciitext;
     }
-    else if (_strnicmp(charset.c_str(), "UTF-8", 5) == 0) {
+    else if (_strnicmp(charset.c_str(), "UTF-8", charsetlen) == 0) {
         // utf8
         return CharsetUtil::AnsiToUtf8(asciitext);
     }
-    else if (_strnicmp(charset.c_str(), "gb2312", 6) == 0) {
+    else if (_strnicmp(charset.c_str(), "gb2312", charsetlen) == 0) {
         // gb2312
         return CharsetUtil::UnicodeToUtf8(CharsetUtil::AnsiToUnicode(asciitext));
     }
-    else if (_strnicmp(charset.c_str(), "GBK", 3) == 0) {
+    else if (_strnicmp(charset.c_str(), "GBK", charsetlen) == 0) {
         // gbk
         return CharsetUtil::Utf8ToGBK(CharsetUtil::AnsiToUtf8(asciitext));
     }

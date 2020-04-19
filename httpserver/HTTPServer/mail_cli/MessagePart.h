@@ -15,7 +15,7 @@ public:
 	/* getters */
 	const ContentTransferEncoding getEncoding();
 	const mail_content_type_t& getContentType();
-	const mail_content_disposition& getContentDisposition();
+	const mail_content_disposition_t& getContentDisposition();
 	const rstring& getMessage();
 	const std::list<MessagePart*> getParts();
 	const int getPartsSize();
@@ -26,7 +26,7 @@ public:
 	/* setters */
 	void setEncoding(ContentTransferEncoding encoding);
 	void setContentType(const mail_content_type_t& contenttype);
-	void setContentDisposition(const mail_content_disposition& contentDisposition);
+	void setContentDisposition(const mail_content_disposition_t& contentDisposition);
 	void setMessage(const rstring& message);
 	void setParts(const std::list<MessagePart*>& parts);
 	void setParams(const str_kvmap& params);
@@ -44,10 +44,16 @@ public:
 	bool isText();
 	bool isAttachment();
 
+	/* convenient content getter */
+	MessagePart* getFirstPartOfMediaType(const rstring& media);
+	void getAllPartsOfMediaType(const rstring& media, std::list<MessagePart*>& parts);
+	void getAllTextParts(std::list<MessagePart*>& parts);
+	void getAllAttachmentParts(std::list<MessagePart*>& parts);
+
 private:
 	ContentTransferEncoding mEncoding;
 	mail_content_type_t mContentType;
-	mail_content_disposition mContentDisposition;
+	mail_content_disposition_t mContentDisposition;
 	rstring mMessage;
 	std::list<MessagePart*> mParts;
 	str_kvmap mParams;

@@ -82,7 +82,8 @@ const rstring MIMEDecoder::decode(const rstring& encoded,
 	}
 	// else unknow encoding
 
-	return EncodeUtil::encodeAsciiWithCharset(decoded, charset);
+	return decoded;
+	//return EncodeUtil::encodeAsciiWithCharset(decoded, charset);
 }
 
 
@@ -134,6 +135,7 @@ void MIMEDecoder::base64Decode(const rstring& encoded, rstring& decoded)
 
 	// 使用工具解码
 	char* buf = new char[decoded.size() + 1];
+	ZeroMemory(buf, sizeof(char) * (decoded.size() + 1));
 	EncodeUtil::base64_decode(decoded.c_str(), decoded.size(), buf);
 
 	decoded = buf;
