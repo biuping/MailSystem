@@ -55,6 +55,7 @@ bool MailReceiver::deleteMail(const rstring& uid)
 void MailReceiver::deleteMails(const slist& uids, slist& completed)
 {
 	report("deleteMails not implemented");
+
 }
 
 void MailReceiver::report(const rstring& msg)

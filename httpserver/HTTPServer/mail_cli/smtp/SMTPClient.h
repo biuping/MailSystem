@@ -6,8 +6,9 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include <vector>
 #include "../MailSender.h"
-
+using namespace std;
 const int MAXLEN = 1024;
 const int MAX_FILE_LEN = 6000;
 static const char base64Char[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
@@ -41,7 +42,7 @@ public:
     std::string title;
     std::string content;
 
-    std::list <FILEINFO*> listFile;
+    std::vector <Attachment> Attachments;
 public:
     char buff[MAXLEN + 1];
     int buffLen;
@@ -52,14 +53,15 @@ public:
     bool Recv();
     void FormatEmailHead(std::string& email);//格式化要发送的邮件头部
     int Login();
+    bool Login(string userCount, string userPass, string& description);
     bool SendEmailHead();       //发送邮件头部信息
     bool SendTextBody();        //发送文本信息
 
     int SendAttachment_Ex();
     bool SendEnd();
 public:
-    void AddAttachment(std::string& filePath); //添加附件
-    void DeleteAttachment(std::string& filePath); //删除附件
+    void AddAttachment(Attachment attachs); //添加附件
+    void DeleteAttachment(int index); //删除附件
     void DeleteAllAttachment(); //删除所有的附件
      /*错误码的说明:1.网络错误导致的错误2.用户名错误3.密码错误4.文件不存在0.成功*/
     int SendEmail_Ex();

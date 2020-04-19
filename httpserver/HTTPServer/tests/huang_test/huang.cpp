@@ -18,8 +18,12 @@ void start_huang()
 		"SMTP附件及多目标发送测试"      /*邮件正文*/
 	);
 
-	string filePath("C:\\Users\\hjx\\Desktop\\test.txt");
-	smtp.AddAttachment(filePath);
+	Attachment attahs = Attachment("123","hello.txt","application / octet - stream");
+	
+
+	
+	smtp.AddAttachment(attahs);
+
 	int err;
 	if ((err = smtp.SendEmail_Ex()) != 0)
 	{
