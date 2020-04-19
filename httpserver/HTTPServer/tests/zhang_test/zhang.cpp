@@ -169,7 +169,15 @@ void pop3_test()
 			rstring sub = mails[mailno]->getHeader().subject;
 			CharsetUtil::showHex(sub.c_str(), sub.size());
 			LogUtil::report(mails[mailno]->getHeader().subject);
-			LogUtil::report(mails[mailno]->getBody().message);
+			
+			std::list<MessagePart*> attachmentParts;
+			mails[mailno]->getAllAttachmentParts(attachmentParts);
+
+			std::list<MessagePart*> textParts;
+			mails[mailno]->getAllTextParts(textParts);
+
+			LogUtil::report(mails[mailno]->getFirstPlainTextMessage());
+			LogUtil::report(mails[mailno]->getFirstHtmlMessage());
 		}
 	}
 	else {

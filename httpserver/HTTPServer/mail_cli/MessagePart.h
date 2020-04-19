@@ -44,6 +44,12 @@ public:
 	bool isText();
 	bool isAttachment();
 
+	/* convenient content getter */
+	MessagePart* getFirstPartOfMediaType(const rstring& media);
+	void getAllPartsOfMediaType(const rstring& media, std::list<MessagePart*>& parts);
+	void getAllTextParts(std::list<MessagePart*>& parts);
+	void getAllAttachmentParts(std::list<MessagePart*>& parts);
+
 private:
 	ContentTransferEncoding mEncoding;
 	mail_content_type_t mContentType;

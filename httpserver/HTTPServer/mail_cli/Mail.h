@@ -77,7 +77,17 @@ public:
 	void setUID(const rstring& mailUID);
 
 	/* convenient type checking */
+	bool hasMultipart();
+	bool isBodyText();
 	
+	/* convenient body content getter */
+	MessagePart* getFirstPartOfMediaType(const rstring& media);
+	void getAllPartsOfMediaType(const rstring& media, std::list<MessagePart*>& parts);
+	void getAllAttachmentParts(std::list<MessagePart*>& parts);
+	const rstring getFirstPlainTextMessage();
+	const rstring getFirstHtmlMessage();
+	const rstring getFirstXmlMessage();
+	void getAllTextParts(std::list<MessagePart*>& messages);
 
 private:
 	mail_header_t mHeader;

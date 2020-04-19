@@ -30,7 +30,13 @@ bool MailReceiver::getMailListWithUID(std::vector<Mail*>& mails)
 
 bool MailReceiver::retrMail(size_t i, Mail* mail)
 {
-	report("retrMail not implemented");
+	report("retrMail i not implemented");
+	return false;
+}
+
+bool MailReceiver::retrMail(const rstring& uid, Mail* mail)
+{
+	report("retrMail uid not implemented");
 	return false;
 }
 
@@ -40,9 +46,15 @@ bool MailReceiver::deleteMail(size_t i)
 	return false;
 }
 
-bool MailReceiver::deleteMail(rstring uid)
+bool MailReceiver::deleteMail(const rstring& uid)
 {
 	report("deleteMail uid not implemented");
+	return false;
+}
+
+void MailReceiver::deleteMails(const slist& uids, slist& completed)
+{
+	report("deleteMails not implemented");
 	return false;
 }
 
