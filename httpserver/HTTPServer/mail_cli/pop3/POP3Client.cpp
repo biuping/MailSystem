@@ -360,11 +360,11 @@ bool POP3Client::getMailListWithUID(std::vector<Mail*>& mails)
 
 // 取回第 i 封邮件
 // i: 邮件序号，从0开始
-// mail: 邮件指针
+// mail: 邮件指针，不能为空
 bool POP3Client::retrMail(size_t i, Mail* mail)
 {
     if (mState != POP3State::Transaction) {
-        // 不处于验证状态
+        // 不处于事务状态
         rstring errstr = "mail retrieving not available in state ";
         errstr += static_cast<int>(mState);
         report(errstr);
@@ -398,12 +398,38 @@ bool POP3Client::retrMail(size_t i, Mail* mail)
     return ret;
 }
 
+// 取回唯一标识为 uid 的邮件
+// uid: 邮件序号，从0开始
+// mail: 邮件指针，不能为空
+bool POP3Client::retrMail(const rstring& uid, Mail* mail)
+{
+    if (mState != POP3State::Transaction) {
+        // 不处于事务状态
+        rstring errstr = "mail retrieving not available in state ";
+        errstr += static_cast<int>(mState);
+        report(errstr);
+    }
+
+    size_t no = this->getNo(uid);
+    if (no == 0) {
+        // 没有找到这样一封信，报告错误信息
+        rstring errstr = "retrieve mail ";
+        errstr.append(uid);
+        errstr.append(" failed: cannot find such a mail or encounter an IO error");
+        report(errstr);
+
+        return false;
+    }
+
+    return this->retrMail(no - 1, mail);
+}
+
 // 删除第 i 封邮件，删除邮件后列表变更，注意及时更新邮件列表
 // i: 邮件序号，从0开始
 bool POP3Client::deleteMail(size_t i)
 {
     if (mState != POP3State::Transaction) {
-        // 不处于验证状态
+        // 不处于事务状态
         rstring errstr = "mail deleting not available in state ";
         errstr += static_cast<int>(mState);
         report(errstr);
@@ -438,10 +464,10 @@ bool POP3Client::deleteMail(size_t i)
 
 // 删除指定 UID 的邮件，删除后列表变更，注意及时更新邮件列表
 // uid: 邮件 Unique ID
-bool POP3Client::deleteMail(rstring uid)
+bool POP3Client::deleteMail(const rstring& uid)
 {
     if (mState != POP3State::Transaction) {
-        // 不处于验证状态
+        // 不处于事务状态
         rstring errstr = "mail deleting not available in state ";
         errstr += static_cast<int>(mState);
         report(errstr);
@@ -461,8 +487,28 @@ bool POP3Client::deleteMail(rstring uid)
     return this->deleteMail(no - 1);
 }
 
-// 获取 uid 对应邮件的邮件序号
+// 删除指定的多个 UID 的邮件，删除后列表变更，注意及时更新邮件列表
+// uids: 多个邮件 Unique ID
+// completed: 成功删除的邮件 UID 列表
+void POP3Client::deleteMails(const slist& uids, slist& completed)
+{
+    if (mState != POP3State::Transaction) {
+        // 不处于事务状态
+        rstring errstr = "mail deleting not available in state ";
+        errstr += static_cast<int>(mState);
+        report(errstr);
+    }
+
+    for (rstring s : uids) {
+        if (deleteMail(s)) {
+            completed.emplace_back(s);
+        }
+    }
+}
+
+// 获取 uid 对应邮件的邮件序号，从 1 开始
 // uid: 邮件uid字符串
+// return: 邮件序号，从 1 开始
 size_t POP3Client::getNo(const rstring& uid)
 {
     char* reply;

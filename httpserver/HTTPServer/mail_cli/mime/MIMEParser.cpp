@@ -126,13 +126,15 @@ void MIMEParser::parseContentType(const str_citer& begin, const str_citer& end,
 		GeneralUtil::strTrim(val);
 		GeneralUtil::strRemoveQuotes(val);
 
+		size_t keylen = key.size();
+		size_t vallen = val.size();
 		// 解析字段
-		if (key.size() == 0) {
+		if (keylen == 0) {
 			// media type
 			if (!mediaSet) {
 				// 检查 illegal type
-				if (_strnicmp(val.c_str(), "text", 4) == 0 ||
-					_strnicmp(val.c_str(), "text/", 5) == 0) {
+				if (_strnicmp(val.c_str(), "text", vallen) == 0 ||
+					_strnicmp(val.c_str(), "text/", vallen) == 0) {
 					val = "text/plain";
 				}
 
@@ -142,15 +144,15 @@ void MIMEParser::parseContentType(const str_citer& begin, const str_citer& end,
 			}
 			// else 有多个media type，只使用第一个
 		}
-		else if (_strnicmp(key.c_str(), "boundary", 8) == 0) {
+		else if (_strnicmp(key.c_str(), "boundary", keylen) == 0) {
 			// set boundary
 			contentType.boundary = val;
 		}
-		else if (_strnicmp(key.c_str(), "charset", 7) == 0) {
+		else if (_strnicmp(key.c_str(), "charset", keylen) == 0) {
 			// set charset
 			contentType.charset = val;
 		}
-		else if (_strnicmp(key.c_str(), "name", 4) == 0) {
+		else if (_strnicmp(key.c_str(), "name", keylen) == 0) {
 			// set name
 			contentType.name = val;
 		}
@@ -176,25 +178,26 @@ void MIMEParser::parseContentDispostion(const str_citer& begin, const str_citer&
 		GeneralUtil::strTrim(val);
 		GeneralUtil::strRemoveQuotes(val);
 
-		if (key.size() == 0) {
+		size_t keylen = key.size();
+		if (keylen == 0) {
 			contentDisposition.type = val;
 		}
-		else if (_strnicmp(key.c_str(), "name", 4) == 0 ||
-			_strnicmp(key.c_str(), "filename", 8) == 0) {
+		else if (_strnicmp(key.c_str(), "name", keylen) == 0 ||
+			_strnicmp(key.c_str(), "filename", keylen) == 0) {
 			rstring decoded = val;
 			MIMEDecoder::decodeWord(val, decoded);
 			contentDisposition.filename = decoded;
 		}
-		else if (_strnicmp(key.c_str(), "size", 4) == 0) {
+		else if (_strnicmp(key.c_str(), "size", keylen) == 0) {
 			parseSize(val.begin(), val.end(), contentDisposition.size);
 		}
-		else if (_strnicmp(key.c_str(), "creation-date", 13) == 0) {
+		else if (_strnicmp(key.c_str(), "creation-date", keylen) == 0) {
 			contentDisposition.creation_date = val;
 		}
-		else if (_strnicmp(key.c_str(), "modification-date", 17) == 0) {
+		else if (_strnicmp(key.c_str(), "modification-date", keylen) == 0) {
 			contentDisposition.modification_date = val;
 		}
-		else if (_strnicmp(key.c_str(), "read-date", 9) == 0) {
+		else if (_strnicmp(key.c_str(), "read-date", keylen) == 0) {
 			contentDisposition.read_date = val;
 		}
 		else {
@@ -210,19 +213,20 @@ void MIMEParser::parseContentTransferEncoding(const str_citer& begin, const str_
 	rstring val = rstring(begin, end);
 	GeneralUtil::strTrim(val);
 
-	if (_strnicmp(val.c_str(), "7bit", 4) == 0) {
+	size_t vallen = val.size();
+	if (_strnicmp(val.c_str(), "7bit", vallen) == 0) {
 		encoding = ContentTransferEncoding::SevenBit;
 	}
-	else if (_strnicmp(val.c_str(), "8bit", 4) == 0) {
+	else if (_strnicmp(val.c_str(), "8bit", vallen) == 0) {
 		encoding = ContentTransferEncoding::EightBit;
 	}
-	else if (_strnicmp(val.c_str(), "quoted-printable", 16) == 0) {
+	else if (_strnicmp(val.c_str(), "quoted-printable", vallen) == 0) {
 		encoding = ContentTransferEncoding::QuotedPrintable;
 	}
-	else if (_strnicmp(val.c_str(), "base64", 6) == 0) {
+	else if (_strnicmp(val.c_str(), "base64", vallen) == 0) {
 		encoding = ContentTransferEncoding::Base64;
 	}
-	else if (_strnicmp(val.c_str(), "binary", 6) == 0) {
+	else if (_strnicmp(val.c_str(), "binary", vallen) == 0) {
 		encoding = ContentTransferEncoding::Binary;
 	}
 	else {
@@ -418,39 +422,40 @@ void MIMEParser::setHeaderField(mail_header_t& header, const str_kv_t& field)
 {
 	// 字段名
 	rstring key = field.first;
+	size_t keylen = key.size();
 	
 	// 跟绝字段名进行具体设置
-	if (_strnicmp(key.c_str(), "Subject", 7) == 0) {
+	if (_strnicmp(key.c_str(), "Subject", keylen) == 0) {
 		setSubject(header, field.second);
 	}
-	else if (_strnicmp(key.c_str(), "Date", 4) == 0) {
+	else if (_strnicmp(key.c_str(), "Date", keylen) == 0) {
 		setDate(header, field.second);
 	}
-	else if (_strnicmp(key.c_str(), "From", 4) == 0) {
+	else if (_strnicmp(key.c_str(), "From", keylen) == 0) {
 		setFrom(header, field.second);
 	}
-	else if (_strnicmp(key.c_str(), "Received", 8) == 0) {
+	else if (_strnicmp(key.c_str(), "Received", keylen) == 0) {
 		setReceived(header, field.second);
 	}
-	else if (_strnicmp(key.c_str(), "Mime-Version", 12) == 0) {
+	else if (_strnicmp(key.c_str(), "Mime-Version", keylen) == 0) {
 		setMimeVersion(header, field.second);
 	}
-	else if (_strnicmp(key.c_str(), "To", 2) == 0) {
+	else if (_strnicmp(key.c_str(), "To", keylen) == 0) {
 		setTo(header, field.second);
 	}
-	else if (_strnicmp(key.c_str(), "Cc", 2) == 0) {
+	else if (_strnicmp(key.c_str(), "Cc", keylen) == 0) {
 		setCc(header, field.second);
 	}
-	else if (_strnicmp(key.c_str(), "Bcc", 4) == 0) {
+	else if (_strnicmp(key.c_str(), "Bcc", keylen) == 0) {
 		setBcc(header, field.second);
 	}
-	else if (_strnicmp(key.c_str(), "Content-Type", 12) == 0) {
+	else if (_strnicmp(key.c_str(), "Content-Type", keylen) == 0) {
 		setHeaderContentType(header, field.second);
 	}
-	else if (_strnicmp(key.c_str(), "Content-Transfer-Encoding", 25) == 0) {
+	else if (_strnicmp(key.c_str(), "Content-Transfer-Encoding", keylen) == 0) {
 		setHeaderContentTransferEncoding(header, field.second);
 	}
-	else if (_strnicmp(key.c_str(), "Content-Disposition", 19) == 0) {
+	else if (_strnicmp(key.c_str(), "Content-Disposition", keylen) == 0) {
 		setHeaderContentDisposition(header, field.second);
 	}
 	else {
@@ -864,20 +869,21 @@ void MIMEParser::setPartHeaderField(MessagePart* part, const str_kv_t& field)
 
 	// 字段名
 	rstring key = field.first;
+	size_t keylen = key.size();
 
 	// 跟绝字段名进行具体设置
-	if (_strnicmp(key.c_str(), "Content-Type", 12) == 0) {
+	if (_strnicmp(key.c_str(), "Content-Type", keylen) == 0) {
 		mail_content_type_t temp;
 		parseContentType(field.second.begin(), field.second.end(), temp);
 		part->setContentType(temp);
 	}
-	else if (_strnicmp(key.c_str(), "Content-Transfer-Encoding", 25) == 0) {
+	else if (_strnicmp(key.c_str(), "Content-Transfer-Encoding", keylen) == 0) {
 		ContentTransferEncoding encoding = ContentTransferEncoding::SevenBit;
 		parseContentTransferEncoding(field.second.begin(), field.second.end(),
 			encoding);
 		part->setEncoding(encoding);
 	}
-	else if (_strnicmp(key.c_str(), "Content-Disposition", 19) == 0) {
+	else if (_strnicmp(key.c_str(), "Content-Disposition", keylen) == 0) {
 		mail_content_disposition_t disposition;
 		parseContentDispostion(field.second.begin(), field.second.end(), disposition);
 		part->setContentDisposition(disposition);

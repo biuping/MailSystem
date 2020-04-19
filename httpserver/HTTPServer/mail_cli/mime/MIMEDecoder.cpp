@@ -82,7 +82,8 @@ const rstring MIMEDecoder::decode(const rstring& encoded,
 	}
 	// else unknow encoding
 
-	return EncodeUtil::encodeAsciiWithCharset(decoded, charset);
+	return decoded;
+	//return EncodeUtil::encodeAsciiWithCharset(decoded, charset);
 }
 
 
