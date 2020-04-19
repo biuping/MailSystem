@@ -19,6 +19,13 @@ typedef struct Attachment{
 	rstring content_type;
 	rstring file_name;
 	rstring content;
+	Attachment(rstring contentType, rstring fileName, rstring contents) 
+	{
+		content_type = contentType;
+		file_name = fileName;
+		content = contents;
+	};
+	Attachment() {};
 };
 //用户信息结构
 typedef struct UserInfo {
