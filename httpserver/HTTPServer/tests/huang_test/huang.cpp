@@ -1,4 +1,5 @@
 #include "../test.h"
+#include "../../http/server/HttpServer.h"
 #include "huang.h"
 #include <iostream>
 #include <string>
@@ -6,12 +7,13 @@ using namespace std;
 
 void start_huang()
 {
-	SMTP smtp(
+	HttpSocket socketInit;
+	SMTPClient smtp(
 		25,                             /*smtp端口*/
 		"smtp.whu.edu.cn",                 /*smtp服务器地址*/
 		"2017302580306@whu.edu.cn",         /*你的邮箱地址*/
-		"	xxx",                   /*邮箱密码*/
-		"1092949763@qq.com 1310382135@qq.com",  /*目的邮箱地址,这一部分用空格分割可添加多个收信人*/
+		"wdrs14569",                   /*邮箱密码*/
+		"1092949763@qq.com",  /*目的邮箱地址,这一部分用空格分割可添加多个收信人*/
 		"测试",                           /*主题*/
 		"SMTP附件及多目标发送测试"      /*邮件正文*/
 	);

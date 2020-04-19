@@ -7,7 +7,7 @@ using namespace std;
 #pragma warning(disable:4996)
 
 //base64编码
-char* SMTP::base64Encode(char const* origSigned, unsigned origLength)
+char* SMTPClient::base64Encode(char const* origSigned, unsigned origLength)
 {
     unsigned char const* orig = (unsigned char const*)origSigned;
     if (orig == NULL) return NULL;
@@ -44,8 +44,8 @@ char* SMTP::base64Encode(char const* origSigned, unsigned origLength)
     result[numResultBytes] = '\0';
     return result;
 }
-//SMTP默认构造函数
-SMTP::SMTP(void)
+//SMTPClient默认构造函数
+SMTPClient::SMTPClient(void)
 {
     this->content = "";
     this->port = 25;
@@ -56,20 +56,18 @@ SMTP::SMTP(void)
     this->domain = "";
     WORD wVersionRequested;
     WSADATA wsaData;
-    int err;
     wVersionRequested = MAKEWORD(2, 1);
-    err = WSAStartup(wVersionRequested, &wsaData);
+    int err=0;
     this->sockClient = 0;
 }
-//SMTP析构函数
-SMTP::~SMTP(void)
+//SMTPClient析构函数
+SMTPClient::~SMTPClient(void)
 {
     DeleteAllAttachment();
     closesocket(sockClient);
-    WSACleanup();
 }
-//SMTP重载构造函数，需要传入...数据
-SMTP::SMTP(
+//SMTPClient重载构造函数，需要传入...数据
+SMTPClient::SMTPClient(
     int port,
     std::string srvDomain,
     std::string userName,
@@ -88,21 +86,20 @@ SMTP::SMTP(
     this->domain = srvDomain;
     WORD wVersionRequested;
     WSADATA wsaData;
-    int err;
+    int err=0;
     wVersionRequested = MAKEWORD(2, 1);
-    err = WSAStartup(wVersionRequested, &wsaData);
     this->sockClient = 0;
 }
 
 //建立连接
-bool SMTP::CreateConn()
+bool SMTPClient::CreateConn()
 {
     //为建立socket对象做准备，初始化环境
     SOCKET sockClient = socket(AF_INET, SOCK_STREAM, 0); //建立socket对象
     SOCKADDR_IN addrSrv;
     HOSTENT* pHostent;
     pHostent = gethostbyname(domain.c_str());  //得到有关于域名的信息
-    addrSrv.sin_addr.S_un.S_addr = *((DWORD*)pHostent->h_addr_list[0]);    //得到smtp服务器的网络字节序的ip地址   
+    addrSrv.sin_addr.S_un.S_addr = *((DWORD*)pHostent->h_addr_list[0]);    //得到SMTPClient服务器的网络字节序的ip地址   
     addrSrv.sin_family = AF_INET;
     addrSrv.sin_port = htons(port);
     int err = connect(sockClient, (SOCKADDR*)&addrSrv, sizeof(SOCKADDR));   //向服务器发送请求 
@@ -118,7 +115,7 @@ bool SMTP::CreateConn()
     return true;
 }
 //发送信息函数
-bool SMTP::Send(std::string& message)
+bool SMTPClient::Send(std::string& message)
 {
     int err = send(sockClient, message.c_str(), message.length(), 0);
     if (err == SOCKET_ERROR)
@@ -129,7 +126,7 @@ bool SMTP::Send(std::string& message)
     return true;
 }
 //接收信息函数
-bool SMTP::Recv()
+bool SMTPClient::Recv()
 {
     memset(buff, 0, sizeof(char) * (MAXLEN + 1));
     int err = recv(sockClient, buff, MAXLEN, 0); //接收数据
@@ -141,7 +138,7 @@ bool SMTP::Recv()
     return true;
 }
 //登录函数
-int SMTP::Login()
+int SMTPClient::Login()
 {
     std::string sendBuff;
     sendBuff = "EHLO ";
@@ -190,7 +187,7 @@ int SMTP::Login()
     return 0;
 }
 //发送邮件头部信息
-bool SMTP::SendEmailHead()     
+bool SMTPClient::SendEmailHead()     
 {
     std::string sendBuff;
     sendBuff = "MAIL FROM: <" + user + ">\r\n";
@@ -224,7 +221,7 @@ bool SMTP::SendEmailHead()
     return true;
 }
 //格式化要发送的内容
-void SMTP::FormatEmailHead(std::string& email)
+void SMTPClient::FormatEmailHead(std::string& email)
 {
     email = "From: ";
     email += user;
@@ -242,7 +239,7 @@ void SMTP::FormatEmailHead(std::string& email)
     email += "\r\n";
 }
 //发送邮件文本
-bool SMTP::SendTextBody() 
+bool SMTPClient::SendTextBody() 
 {
     std::string sendBuff;
     sendBuff = "--qwertyuiop\r\n";
@@ -253,7 +250,7 @@ bool SMTP::SendTextBody()
     return Send(sendBuff);
 }
 //发送附件
-int SMTP::SendAttachment_Ex() 
+int SMTPClient::SendAttachment_Ex() 
 {
     for (std::list<FILEINFO*>::iterator pIter = listFile.begin(); pIter != listFile.end(); pIter++)
     {
@@ -305,7 +302,7 @@ int SMTP::SendAttachment_Ex()
     return 0;
 }
 //发送结尾信息
-bool SMTP::SendEnd() 
+bool SMTPClient::SendEnd() 
 {
     std::string sendBuff;
     sendBuff = "--qwertyuiop--";
@@ -321,7 +318,7 @@ bool SMTP::SendEnd()
 }
 
 //发送邮件函数
-int SMTP::SendEmail_Ex()
+int SMTPClient::SendEmail_Ex()
 {
     if (false == CreateConn())
     {
@@ -354,7 +351,7 @@ int SMTP::SendEmail_Ex()
 }
 
 //添加附件函数
-void SMTP::AddAttachment(std::string& filePath)
+void SMTPClient::AddAttachment(std::string& filePath)
 {
     FILEINFO* pFile = new FILEINFO;
     strcpy_s(pFile->filePath, filePath.c_str());
@@ -364,7 +361,7 @@ void SMTP::AddAttachment(std::string& filePath)
 }
 
 //删除附件
-void SMTP::DeleteAttachment(std::string& filePath) 
+void SMTPClient::DeleteAttachment(std::string& filePath) 
 {
     std::list<FILEINFO*>::iterator pIter;
     for (pIter = listFile.begin(); pIter != listFile.end(); pIter++)
@@ -379,7 +376,7 @@ void SMTP::DeleteAttachment(std::string& filePath)
     }
 }
 //删除所有的文件
-void SMTP::DeleteAllAttachment() 
+void SMTPClient::DeleteAllAttachment() 
 {
     for (std::list<FILEINFO*>::iterator pIter = listFile.begin(); pIter != listFile.end();)
     {
@@ -389,31 +386,31 @@ void SMTP::DeleteAllAttachment()
     }
 }
 //set get函数
-void SMTP::SetSrvDomain(std::string& domain)
+void SMTPClient::SetSrvDomain(std::string& domain)
 {
     this->domain = domain;
 }
-void SMTP::SetUserName(std::string& user)
+void SMTPClient::SetUserName(std::string& user)
 {
     this->user = user;
 }
-void SMTP::SetPass(std::string& pass)
+void SMTPClient::SetPass(std::string& pass)
 {
     this->pass = pass;
 }
-void SMTP::SetTargetEmail(std::string& targetAddr)
+void SMTPClient::SetTargetEmail(std::string& targetAddr)
 {
     this->targetAddr = targetAddr;
 }
-void SMTP::SetEmailTitle(std::string& title)
+void SMTPClient::SetEmailTitle(std::string& title)
 {
     this->title = title;
 }
-void SMTP::SetContent(std::string& content)
+void SMTPClient::SetContent(std::string& content)
 {
     this->content = content;
 }
-void SMTP::SetPort(int port)
+void SMTPClient::SetPort(int port)
 {
     this->port = port;
 }
