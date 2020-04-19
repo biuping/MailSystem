@@ -101,6 +101,11 @@ const char* HttpResponse::serialize()
 
 void HttpResponse::set_common()
 {
+	this->add_head("Access-Control-Allow-Origin", "*");
+	this->add_head("Access-Control-Allow-Methods", "POST,GET,OPTIONS,DELETE");
+	this->add_head("Access-Control-Allow-Credentials", "true");
+	this->add_head("Access-Control-Allow-Headers", "x-requested-with,Authorization");
+	this->add_head("Access-Control-Max-Age", "3600");
 	this->set_version(HTTP_VERSION);
 	this->add_head(HTTP_HEAD_CONNECTION, "close");
 }
