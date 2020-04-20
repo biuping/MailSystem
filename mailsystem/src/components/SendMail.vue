@@ -113,6 +113,15 @@
 import savedraftutil from '../utils/saveDraftUtil'
 import Axios from 'axios'
 import Vue from 'vue'
+Axios.defaults.headers.post['Content-Type']='application/x-www-form-urlencoded'
+Axios.defaults.headers.get['Content-Type']='application/x-www-form-urlencoded'
+// Axios.defaults.transformRequest = [function (data) {
+//  let ret = ''
+//  for (let it in data) {
+//   ret += encodeURIComponent(it) + '=' + encodeURIComponent(data[it]) + '&'
+//  }
+//  return ret
+// }]
 Vue.prototype.$axios = Axios
 export default {
     data(){
@@ -137,6 +146,7 @@ export default {
             if(this.fileName!=''){
                 this.draftMail.attachmentName=this.fileName
                 this.draftMail.attachment=this.$refs.inputFile.files[0]
+                console.log(this.$refs.inputFile.files[0])
             }
             savedraftutil.saveData('draft_mail',this.draftMail)
             this.refresh()
@@ -145,18 +155,34 @@ export default {
         sendMail:function(){
             const url = "http://127.0.0.1:8006/send_mail_with_attach"
             let userid = savedraftutil.readData('userid')
-            let data = JSON.stringify({
+            // let data = {
+            //     "id":userid,
+            //     "attachment":this.$refs.inputFile.files[0],
+            //     "recver":this.draftMail.recipient,
+            //     "content":this.draftMail.content,
+            //     "theme":this.draftMail.theme
+            // }
+            this.$axios({
+                method:'post',
+                url:url,
+                data:{
                 "id":userid,
                 "attachment":this.$refs.inputFile.files[0],
                 "recver":this.draftMail.recipient,
                 "content":this.draftMail.content,
                 "theme":this.draftMail.theme
-            })
-            this.$axios({
-                method:'post',
-                url:url,
-                data:data,
-                headers:{'Content-Type':'application/json'}
+                 },
+                transformRequest:{
+                    function(data){
+                        let ret=''
+                        for(let it in data){
+                            ret += encodeURIComponent(it)+'='+encodeURIComponent(data[it])+'&'
+                        }
+                        ret = ret.substring(0,ret.lastIndexOf('&'))
+                        return ret
+                    }
+                },
+                headers:{'Content-Type':'application/x-www-form-urlencoded'}
             }).then(function(response){
                     console.log("SUCCESS")
                     let jstring = JSON.stringify(response.data)

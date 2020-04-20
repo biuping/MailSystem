@@ -2,7 +2,7 @@
     <div class="sendmail_frame" ref="main_frame">
         
         <ul class="nav nav-pills">
-            <li role="presentation" class="left"><button type="button" class="btn btn-primary">发送</button></li>
+            <li role="presentation" class="left"><button type="button" class="btn btn-primary" @click="sendMail">发送</button></li>
             <li role="presentation" class="left"><button type="button" class="btn btn-info" @click="saveDraft">保存</button></li>
             <li role="presentation" class="right"><button type="button" class="btn btn-danger" @click="deleteDraft">
                 <span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>
@@ -110,6 +110,10 @@
 </style>
 <script>
 import savedraftutil from '../utils/saveDraftUtil'
+import Axios from 'axios'
+import Vue from 'vue'
+Axios.defaults.headers.post['Content-Type']='application/x-www-form-urlencoded'
+Axios.defaults.headers.get['Content-Type']='application/x-www-form-urlencoded'
 export default {
     data(){
         return {
@@ -142,6 +146,41 @@ export default {
             savedraftutil.saveData('draft_mail',this.draftMail)
             console.log(this.draftMail)
             alert('保存成功')
+        },
+        sendMail:function(){
+            const url = "http://127.0.0.1:8006/send_mail_with_attach"
+            let userid = savedraftutil.readData('userid')
+            this.$axios({
+                method:'post',
+                url:url,
+                data:{
+                "id":userid,
+                "attachment":this.$refs.inputFile.files[0],
+                "recver":this.draftMail.recipient,
+                "content":this.draftMail.content,
+                "theme":this.draftMail.theme
+                 },
+                transformRequest:{
+                    function(data){
+                        let ret=''
+                        for(let it in data){
+                            ret += encodeURIComponent(it)+'='+encodeURIComponent(data[it])+'&'
+                        }
+                        ret = ret.substring(0,ret.lastIndexOf('&'))
+                        return ret
+                    }
+                },
+                headers:{'Content-Type':'application/x-www-form-urlencoded'}
+            }).then(function(response){
+                    console.log("SUCCESS")
+                    let jstring = JSON.stringify(response.data)
+                    let info=JSON.parse(jstring)
+                    console.log(info)
+                    console.log(response)
+                }.bind(this)).catch(function(error){
+                    console.log("ERROR")
+                    console.log(error)
+            })
         }               
     },
     mounted(){
