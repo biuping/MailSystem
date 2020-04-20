@@ -349,7 +349,7 @@ int SMTPClient::SendAttachment_Ex()
         {
             string subContent = contents.substr(MAX_FILE_LEN * index, MAX_FILE_LEN * (index + 1));
             /*文件使用base64加密传送*/
-            strncpy(fileBuff, subContent.c_str(), MAX_FILE_LEN);
+            memcpy(fileBuff, subContent.c_str(), MAX_FILE_LEN);
             fileBuff[MAX_FILE_LEN] = '\0';
             chSendBuff = base64Encode(fileBuff, MAX_FILE_LEN);
             chSendBuff[strlen(chSendBuff)] = '\r';
@@ -361,10 +361,11 @@ int SMTPClient::SendAttachment_Ex()
         
         string subContent = contents.substr(MAX_FILE_LEN * index, contents.size());
         /*文件使用base64加密传送*/
-        strncpy(fileBuff, subContent.c_str(), subContent.size());
+        memcpy(fileBuff, subContent.c_str(), subContent.size());
         fileBuff[subContent.size()] = '\0';
         chSendBuff = base64Encode(fileBuff, Attachments[i].content.size());
         chSendBuff[strlen(chSendBuff)] = '\r';
+        int counts = strlen(chSendBuff);
         chSendBuff[strlen(chSendBuff)] = '\n';
         int err = send(sockClient, chSendBuff, strlen(chSendBuff), 0);
         if (err != strlen(chSendBuff))
