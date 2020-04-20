@@ -189,6 +189,10 @@ int SMTPClient::Login()
 //登录函数 mailsender!
 bool SMTPClient::Login(string userCount, string userPass, string& description)
 {
+    if (false == CreateConn())
+    {
+        return false;
+    }
     string sendBuff;
     sendBuff = "EHLO ";
     sendBuff += userCount; // 这一部分需要通过telnet验证一下
