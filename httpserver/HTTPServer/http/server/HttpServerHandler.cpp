@@ -228,6 +228,8 @@ void HttpServerHandler::Login(HttpResponse* response)
 	MailReceiver* receiver = new POP3Client();
 	MailClient client;
 	client.setReceiver(receiver);
+	client.setSender(nullptr);
+
 	success = client.Login(email, pass, description);//登录验证
 
 	//成功返回uuid
@@ -321,7 +323,8 @@ void HttpServerHandler::RecvWithAttach(HttpResponse* response)
 	const rstring& res = client.RecvMail();
 	response->build_ok();
 	response->build_body(res);
-	response->add_head(HTTP_HEAD_CONTENT_TYPE, HTTP_HEAD_JSON_TYPE);
+
+	response->add_head(HTTP_HEAD_CONTENT_TYPE, "application/json;charset=utf-8");
 }
 
 void HttpServerHandler::RecvNoAttach(HttpResponse* response)
