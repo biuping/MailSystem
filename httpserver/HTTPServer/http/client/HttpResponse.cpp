@@ -104,14 +104,14 @@ void HttpResponse::set_common()
 	this->add_head("Access-Control-Allow-Origin", "*");
 	this->add_head("Access-Control-Allow-Methods", "POST,GET,OPTIONS,DELETE");
 	this->add_head("Access-Control-Allow-Credentials", "true");
-	this->add_head("Access-Control-Allow-Headers", "x-requested-with,Authorization");
+	this->add_head("Access-Control-Allow-Headers", "Origin,X-Custom-Header,Authorization,Content-Type");
 	this->add_head("Access-Control-Max-Age", "3600");
 	this->set_version(HTTP_VERSION);
 	this->add_head(HTTP_HEAD_CONNECTION, "close");
 	this->add_head("Access-Control-Allow-Origin", "*");
 }
 
-void HttpResponse::build_body(rstring body)
+void HttpResponse::build_body(const rstring& body)
 {
 	this->add_head(HTTP_HEAD_CONTENT_LEN, std::to_string(body.size()));
 	this->set_body(&body[0], body.size());
