@@ -4,7 +4,7 @@
             <ul class="mail_list">
                 <transition-group >
 					
-                    <li v-for="(mail,index) in maillist" :key="mail.id" class="animated">
+                    <li v-for="(mail,index) in maillist" :key="mail.order_id" class="animated">
 						
                         <input type="checkbox" v-model="checkModel" :value="index">
                         <div class="singleMail" @click="toMail(mail,index)">
@@ -157,12 +157,7 @@ export default {
     data(){
         return{
             flag:true,
-            maillist:[{id:1,theme:'firstmail',sender:'tom',content:'内容',attatchmentName:['one.txt','two.txt','three.txt'],attatchment:''},
-            {id:2,theme:'second mail',sender:'mike',content:'内容2',attatchmentName:[],attatchment:''},
-            {id:3,theme:'third mail',sender:'jay'},
-                {id:4,theme:'first mail',sender:'tom'},{id:5,theme:'second mail',sender:'mike'},{id:6,theme:'third mail',sender:'jay'},
-                {id:7,theme:'first mail',sender:'tom'},{id:8,theme:'second mail',sender:'mike'},{id:9,theme:'third mail',sender:'jay'}
-            ],
+            maillist:[],
             allchecked:false,   //是否全选判断
             childFlag:false,
 			choosedMailindex:0,
@@ -188,22 +183,46 @@ export default {
                     this.checkModel.push(this.maillist.indexOf(item))
                 })
             }
-            // this.getMails()
         },
         deleteMail:function(){
             // 通过index删除mail：存在问题，邮件index是变化的，
             // 比如要删除index为1和3，如果同时勾选删除(在checkModel数组中1在前的情况)，删除了1，导致index=3的变为index=2
             // 但是checkModel中没有变化，还是3，所以删除错误
             // 所以用originlength保持最开始maillist的长度
-            const originlength = this.maillist.length
-            if(this.allchecked){
-                this.$refs.checkbtn.textContent='全选'
+            var r = confirm("确认删除邮件？")
+            if (r){
+                const originlength = this.maillist.length
+                let mailids=[]
+                this
+                if(this.allchecked){
+                    this.$refs.checkbtn.textContent='全选'
+                }
+                this.checkModel.forEach((index)=>{
+                    let deleteIndex = index-(originlength-this.maillist.length)
+                    mailids.push(this.maillist[deleteIndex].mail_id)
+                    const url = "http://127.0.0.1:8006/delete_mail"
+                    let userid = saveutil.readData('userid')
+                    let data = JSON.stringify({
+                        "id":userid,
+                        "mail_id":mailids
+                    })
+                    this.$axios({
+                        method:'post',
+                        url:url,
+                        data:data,
+                        headers:{'Content-Type':'application/json'}
+                    }).then(function(response){
+                        console.log("SUCCESS")
+                    }.bind(this)).catch(function(error){
+                        console.log("ERROR")
+                        console.log(error)
+                    })
+                    this.maillist.splice(deleteIndex,1)
+                })
+                console.log(mailids)
+                this.checkModel=[]
             }
-            this.checkModel.forEach((index)=>{
-                let deleteIndex = index-(originlength-this.maillist.length)
-                this.maillist.splice(deleteIndex,1)
-            })
-            this.checkModel=[]
+
         },
         toMail:function(mailinfo,index){
             this.flag=!this.flag
@@ -222,29 +241,6 @@ export default {
         deleteFromMail:function(){
             this.maillist.splice(this.choosedMailindex,1)
             this.backMailBox()
-        },
-        getMails:function(){
-            let userid = saveutil.readData('userid')
-            let data = JSON.stringify({
-                "id":userid.id 
-            })
-            const url = "http://127.0.0.1:8006/recv_mail_with_attach"
-            this.$axios({
-                url:url,
-                method:'post',                      
-                data:data,
-                headers:{'Content-Type':'application/json'}
-            }).then(function(response){
-
-                console.log("data:"+JSON.stringify(response.data));
-                let jstring = JSON.stringify(response.data)
-                console.log(jstring)
-                console.log(response)
-
-            }.bind(this)).catch(function(error){
-                console.log(error)
-            })
-            console.log(userid.id)
         }
     },
 	components:{
@@ -272,7 +268,7 @@ export default {
         this.flag=true
         let userid = saveutil.readData('userid')
             let data = JSON.stringify({
-                "id":userid.id 
+                "id":userid
             })
             const url = "http://127.0.0.1:8006/recv_mail_with_attach"
             this.$axios({
@@ -281,16 +277,16 @@ export default {
                 data:data,
                 headers:{'Content-Type':'application/json'}
             }).then(function(response){
-
-                console.log("data:"+JSON.stringify(response.data));
+                console.log("SUCCESS")
                 let jstring = JSON.stringify(response.data)
-                console.log(jstring)
+                this.maillist=JSON.parse(jstring).mails
+                console.log(this.maillist)
                 console.log(response)
 
             }.bind(this)).catch(function(error){
+                console.log("ERROR")
                 console.log(error)
             })
-            console.log(userid.id)
         
 	}
 }

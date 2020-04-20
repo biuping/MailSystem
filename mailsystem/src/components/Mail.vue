@@ -14,8 +14,8 @@
 		     <div id="uplode_group" class="uplode" v-show="aShow">
 				<span class="glyphicon glyphicon-save myspan" aria-hidden="true">附件</span>
 				<ul class="attachment_ul">
-					<li v-for="(value,index) in this.mail.attatchmentName" :key="index">
-						{{value}}
+					<li v-for="(value,index) in this.mail.attachments" :key="index" @click="download(index,value.name)">
+						{{value.name}}  {{value.size}}
 					</li>
 				</ul>
 		         <!-- <button class="btn btn-info mybtn" id="input_display" >
@@ -79,7 +79,7 @@
 		top: -50%;
 		left: 7%;
 		padding: 0;
-		width: auto;
+		width: 80%;
 		border-bottom: 2px solid #ff000075;
 		border-left: 0 transparent;
 		border-top: 0 transparent;
@@ -159,6 +159,7 @@
 import Axios from 'axios'
 import Vue from 'vue'
 Vue.prototype.$axios = Axios
+import saveutil from '../utils/saveDraftUtil'
 export default {
     data(){
 		return{
@@ -170,7 +171,8 @@ export default {
 		showMail(mail){
 			this.mail=mail
 			this.aShow=false
-			if(this.mail.attatchmentName.length>0){
+			// 有附件才显示附件一行
+			if(this.mail.attachments.length>0){
 				this.aShow=true
 			}
 		},
@@ -180,15 +182,39 @@ export default {
 		deleteMail:function(){
 			var r = confirm("确认删除邮件？")
 			if(r){
+				const url = "http://127.0.0.1:8006/delete_mail"
+				let userid = saveutil.readData('userid')
+				let data = JSON.stringify({
+					"id":userid,
+					"mail_id":[this.mail.mail_id]
+				})
+				this.$axios({
+					method:'post',
+					url:url,
+					data:data,
+					headers:{'Content-Type':'application/json'}
+				}).then(function(response){
+						console.log("SUCCESS")
+						let jstring = JSON.stringify(response.data)
+						let info=JSON.parse(jstring)
+						console.log(info)
+						console.log(response)
+					}.bind(this)).catch(function(error){
+						console.log("ERROR")
+						console.log(error)
+					})
 				this.$emit('deleteFromMail')
 			}
 			
 		},
-		download:function(){
+		download:function(index,fileName){
 			const url = "http://127.0.0.1:8006/download_attach"
 			let self = this
+			let userid = saveutil.readData('userid')
 			let data = JSON.stringify({
-				//TODO 传输要下载邮件的id
+				"id":userid,
+				"mailId":this.mail.mail_id,
+				"attach_index":index
 			})
 			self.$axios({
 				method:"post",
@@ -203,8 +229,7 @@ export default {
 					let link = document.createElement("a")
 					link.style.display="none"
 					link.href=url
-					// "name" 代指，TODO，从attachmentName里面获取文件下载的名字
-					link.setAttribute("download","name")
+					link.setAttribute("download",fileName)
 					document.body.appendChild(link)
 					link.click()
 				}

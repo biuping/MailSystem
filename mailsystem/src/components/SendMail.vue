@@ -2,7 +2,7 @@
     <div class="sendmail_frame" ref="main_frame">
         
         <ul class="nav nav-pills">
-            <li role="presentation" class="left"><button type="button" class="btn btn-primary">发送</button></li>
+            <li role="presentation" class="left"><button type="button" class="btn btn-primary" @click="sendMail">发送</button></li>
             <li role="presentation" class="left"><button type="button" class="btn btn-info" @click="saveDraft">存草稿</button></li>
             <li role="presentation" class="right"><button type="button" class="btn btn-danger" @click="refresh">
                 <span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>
@@ -111,6 +111,9 @@
 </style>
 <script>
 import savedraftutil from '../utils/saveDraftUtil'
+import Axios from 'axios'
+import Vue from 'vue'
+Vue.prototype.$axios = Axios
 export default {
     data(){
         return {
@@ -138,6 +141,32 @@ export default {
             savedraftutil.saveData('draft_mail',this.draftMail)
             this.refresh()
             alert('保存草稿成功')
+        },
+        sendMail:function(){
+            const url = "http://127.0.0.1:8006/send_mail_with_attach"
+            let userid = savedraftutil.readData('userid')
+            let data = JSON.stringify({
+                "id":userid,
+                "attachment":this.$refs.inputFile.files[0],
+                "recver":this.draftMail.recipient,
+                "content":this.draftMail.content,
+                "theme":this.draftMail.theme
+            })
+            this.$axios({
+                method:'post',
+                url:url,
+                data:data,
+                headers:{'Content-Type':'application/json'}
+            }).then(function(response){
+                    console.log("SUCCESS")
+                    let jstring = JSON.stringify(response.data)
+                    let info=JSON.parse(jstring)
+                    console.log(info)
+                    console.log(response)
+                }.bind(this)).catch(function(error){
+                    console.log("ERROR")
+                    console.log(error)
+            })
         }
        
 

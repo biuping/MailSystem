@@ -148,7 +148,7 @@
                         console.log("data:"+JSON.stringify(response.data));
                         let jstring = JSON.stringify(response.data)
                         let mes = JSON.parse(jstring)
-                        let idstring = {id:mes.id}
+                        let idstring = mes.id
                         saveutil.saveId('userid',idstring)
                         console.log(mes.id)
                         console.log(response)
