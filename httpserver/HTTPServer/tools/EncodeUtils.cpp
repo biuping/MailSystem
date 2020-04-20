@@ -158,7 +158,7 @@ const rstring EncodeUtil::convert2UTF8(const rstring& bytes, const rstring& char
         // gb2312 和 gbk
         return CharsetUtil::GBKToUtf8(bytes);
     }
-    else if (GeneralUtil::strStartWith(charset.c_str(), "gb", true) == 0) {
+    else if (GeneralUtil::strStartWith(charset.c_str(), "gb", true)) {
         // 其他 gb 规范，目前采用 GBK 尝试转换
         return CharsetUtil::GBKToUtf8(bytes);
     }
