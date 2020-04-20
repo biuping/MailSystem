@@ -5,6 +5,8 @@ HttpServerHandler::HttpServerHandler()
 {
 	m_client = nullptr;
 	m_readbuff = nullptr;
+	UserInfo* info=new UserInfo(TEST_MAIL_ADDR, TEST_MAIL_PASSWD);
+	userStore["1"] = info;
 }
 
 HttpServerHandler::HttpServerHandler(HttpClient* client) :
@@ -88,8 +90,9 @@ void HttpServerHandler::handle_client()
 		size_t len = strlen(buff);
 		m_client->send(buff, len, 0);
 		delete response;
-		delete[] m_readbuff;
 	}
+	delete[] m_readbuff;
+	m_readbuff = nullptr;
 }
 
 void HttpServerHandler::set_client(HttpClient* client)
@@ -334,13 +337,12 @@ void HttpServerHandler::DownloadAttach(HttpResponse* response)
 	const Json::Value& root = client.DownloadAttach(mailId, attachIndex);
 	const rstring& filename = root["filename"].asString();
 	const rstring& content_type = root["content-type"].asString();
+	const rstring& content = root["content"].asString();
 
-	rstring down = "dGhpcyBpcyB0ZXN0Mg0KDQoNCi0tLS0tLS0tLS0tLQ0KLS0NCi0tLS0tLS0tLS0tLQ==";
-	response->add_head(HTTP_HEAD_CONTENT_TYPE, "text / plain; name = \"test2.txt\"");
+	response->add_head(HTTP_HEAD_CONTENT_TYPE, content_type+"; name="+filename);
 	response->build_ok();
-	response->add_head("Content-Disposition", "attachment; filename=\"test2.txt\"");
-	response->add_head("Content-Transfer-Encoding", "base64");
-	response->build_body(down);
+	response->add_head("Content-Disposition", "attachment; filename="+filename);
+	response->build_body(content);
 }
 
 void HttpServerHandler::DeleteMail(HttpResponse* response)
@@ -352,6 +354,16 @@ void HttpServerHandler::DeleteMail(HttpResponse* response)
 	{
 		return;
 	}
+	Json::Value mail_ids= m_object["mail_id"];
+	std::list<rstring> id_list;
+	for (int i = 0; i < mail_ids.size(); i++)
+	{
+		id_list.push_back(mail_ids[i].asString());
+	}
+	const rstring& res = client.DeleteMail(id_list);
+	response->build_ok();
+	response->build_body(res);
+	response->add_head(HTTP_HEAD_CONTENT_TYPE, HTTP_HEAD_JSON_TYPE);
 }
 
 UserInfo* HttpServerHandler::AuthUserById(HttpResponse* response, rstring& uuid)
