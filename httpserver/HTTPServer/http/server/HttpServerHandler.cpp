@@ -5,6 +5,8 @@ HttpServerHandler::HttpServerHandler()
 {
 	m_client = nullptr;
 	m_readbuff = nullptr;
+	UserInfo* info=new UserInfo(TEST_MAIL_ADDR, TEST_MAIL_PASSWD);
+	userStore["1"] = info;
 }
 
 HttpServerHandler::HttpServerHandler(HttpClient* client) :
@@ -88,8 +90,9 @@ void HttpServerHandler::handle_client()
 		size_t len = strlen(buff);
 		m_client->send(buff, len, 0);
 		delete response;
-		delete[] m_readbuff;
 	}
+	delete[] m_readbuff;
+	m_readbuff = nullptr;
 }
 
 void HttpServerHandler::set_client(HttpClient* client)
@@ -108,6 +111,12 @@ HttpResponse* HttpServerHandler::handle_request(HttpRequest& request)
 
 	HttpResponse* response = new HttpResponse();
 
+	//处理预请求
+	if (method.compare("OPTIONS") == 0)
+	{
+		response->build_ok();
+		return response;
+	}
 	if (request.has_head(HTTP_HEAD_CONTENT_TYPE) && method.compare("POST") == 0)
 	{
 		const rstring& content_type = request.head_content(HTTP_HEAD_CONTENT_TYPE);
@@ -243,8 +252,8 @@ void HttpServerHandler::Login(HttpResponse* response)
 
 void HttpServerHandler::SendWithAttach(HttpResponse* response, MultipartRecord& record)
 {
-	Attachment* attach_ptr;
-	std::list<Attachment*> attachs;
+	Attachment attach_ptr;
+	std::vector<Attachment> attachs;
 	rstring id_str;
 	rstring email_address;
 	rstring password;
@@ -264,26 +273,15 @@ void HttpServerHandler::SendWithAttach(HttpResponse* response, MultipartRecord& 
 		{
 			return;
 		}
-		//UserInfo* info = AuthUserById(response, id_str);
-		//if (info != nullptr)
-		//{
-		//	email_address = info->email_address;
-		//	password = info->pass;
-		//}
-		//else
-		//{
-		//	return;
-		//}
 	}
 
 	//检查附件
 	HttpHead_t* attach = record.FindHeaderByName("attachment");
 	if (attach != nullptr)
 	{
-		attach_ptr = new Attachment;
-		attach_ptr->file_name = record.FindHeadContent(*attach, HTTP_FORM_FILENAME);
-		attach_ptr->content_type = record.FindHeadContent(*attach, HTTP_FORM_CONTENT_TYPE);
-		attach_ptr->content = record.FindHeadContent(*attach, HTTP_FORM_CONTENT);
+		attach_ptr.file_name = record.FindHeadContent(*attach, HTTP_FORM_FILENAME);
+		attach_ptr.content_type = record.FindHeadContent(*attach, HTTP_FORM_CONTENT_TYPE);
+		attach_ptr.content = record.FindHeadContent(*attach, HTTP_FORM_CONTENT);
 		attachs.push_back(attach_ptr);
 	}
 	HttpHead_t* theme = record.FindHeaderByName("theme");
@@ -301,7 +299,9 @@ void HttpServerHandler::SendWithAttach(HttpResponse* response, MultipartRecord& 
 	{
 		content_str = record.FindHeadContent(*content, HTTP_FORM_CONTENT);
 	}
-
+	const rstring& res = client.SendMail(recver_str, theme_str, content_str, attachs);
+	response->build_ok();
+	response->build_body(res);
 	response->add_head(HTTP_HEAD_CONTENT_TYPE, HTTP_HEAD_JSON_TYPE);
 }
 
@@ -318,6 +318,10 @@ void HttpServerHandler::RecvWithAttach(HttpResponse* response)
 	{
 		return;
 	}
+	const rstring& res = client.RecvMail();
+	response->build_ok();
+	response->build_body(res);
+	response->add_head(HTTP_HEAD_CONTENT_TYPE, HTTP_HEAD_JSON_TYPE);
 }
 
 void HttpServerHandler::RecvNoAttach(HttpResponse* response)
@@ -333,13 +337,18 @@ void HttpServerHandler::DownloadAttach(HttpResponse* response)
 	{
 		return;
 	}
+	const rstring& mailId = m_object["mailId"].asString();
+	const int attachIndex = m_object["attach_index"].asInt();
+	
+	const Json::Value& root = client.DownloadAttach(mailId, attachIndex);
+	const rstring& filename = root["filename"].asString();
+	const rstring& content_type = root["content-type"].asString();
+	const rstring& content = root["content"].asString();
 
-	rstring down = "dGhpcyBpcyB0ZXN0Mg0KDQoNCi0tLS0tLS0tLS0tLQ0KLS0NCi0tLS0tLS0tLS0tLQ==";
-	response->add_head(HTTP_HEAD_CONTENT_TYPE, "text / plain; name = \"test2.txt\"");
+	response->add_head(HTTP_HEAD_CONTENT_TYPE, content_type+"; name="+filename);
 	response->build_ok();
-	response->add_head("Content-Disposition", "attachment; filename=\"test2.txt\"");
-	response->add_head("Content-Transfer-Encoding", "base64");
-	response->build_body(down);
+	response->add_head("Content-Disposition", "attachment; filename="+filename);
+	response->build_body(content);
 }
 
 void HttpServerHandler::DeleteMail(HttpResponse* response)
@@ -351,6 +360,16 @@ void HttpServerHandler::DeleteMail(HttpResponse* response)
 	{
 		return;
 	}
+	Json::Value mail_ids= m_object["mail_id"];
+	std::list<rstring> id_list;
+	for (int i = 0; i < mail_ids.size(); i++)
+	{
+		id_list.push_back(mail_ids[i].asString());
+	}
+	const rstring& res = client.DeleteMail(id_list);
+	response->build_ok();
+	response->build_body(res);
+	response->add_head(HTTP_HEAD_CONTENT_TYPE, HTTP_HEAD_JSON_TYPE);
 }
 
 UserInfo* HttpServerHandler::AuthUserById(HttpResponse* response, rstring& uuid)
@@ -365,7 +384,7 @@ UserInfo* HttpServerHandler::AuthUserById(HttpResponse* response, rstring& uuid)
 		rstring res;
 		Tools::json_write(root, res);
 
-		response->set_status("403", "NO AUTHENTICATION");
+		response->set_status("403", "Forbidden");
 		response->set_common();
 		response->build_body(res);
 		response->add_head(HTTP_HEAD_CONTENT_TYPE, HTTP_HEAD_JSON_TYPE);

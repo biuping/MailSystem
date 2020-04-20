@@ -7,5 +7,8 @@ export default{
     },
     deleteData(key){
         window.localStorage.removeItem(key)
+    },
+    saveId(key,id){
+        window.localStorage.setItem(key,JSON.stringify(id))
     }
 }

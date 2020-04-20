@@ -4,7 +4,7 @@
 #include "config.h"
 #include "http_const.h"
 #include <map>
-#include "json/json.h"
+#include <json/json.h>
 #include <stdio.h>  
 #include <objbase.h>
 
@@ -31,6 +31,12 @@ typedef struct Attachment{
 typedef struct UserInfo {
 	rstring email_address;
 	rstring pass;
+	UserInfo() {};
+	UserInfo(rstring email, rstring pass)
+	{
+		this->email_address = email;
+		this->pass = pass;
+	}
 };
 
 typedef std::map<rstring, UserInfo*> UserStore;

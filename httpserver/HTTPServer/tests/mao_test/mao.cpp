@@ -17,11 +17,20 @@ void server_start() {
 void json_test()
 {
 	const char* json_str = "{\n\t\"name\":\"13\",\n\t\"type\":\"pop\"\n}";
-
+	const char* json_arr = "{\"arr\":[\"1\",\"2\"]}";
 	Json::Value object;
 	Json::String err;
 	Tools::json_read(json_str, strlen(json_str), object, err);
 	std::cout << object["type"].asString() << std::endl;
+
+	Tools::json_read(json_arr, strlen(json_arr), object, err);
+	Json::Value arr = Json::Value(Json::ValueType::arrayValue);
+	arr = object["arr"];
+	for (int i = 0; i < arr.size(); i++)
+	{
+		Tools::report(arr[i].asString());
+	}
+
 
 	rstring write_res;
 	Json::Value root;

@@ -43,6 +43,7 @@ MailSender* MailClient::getSender()
 
 bool MailClient::Login(const rstring& mailAddr, const rstring& passwd, rstring& description)
 {
+	std::cout << mailAddr;
 	size_t at_pos = mailAddr.find('@');
 	if (at_pos == rstring::npos) {
 		// 邮箱格式错误
@@ -166,35 +167,52 @@ const rstring MailClient::RecvMail()
 	}
 	else {
 		// 连接正常
+
 		std::vector<Mail*> mails;
 		// 创建带UID的邮件数组
-		mReceiver->getMailListWithUID(mails);
-
-		size_t failedCount = 0;
-		for (size_t i = 0; i < mails.size(); ++i) {
-			// 取第 i 封邮件
-			if (mReceiver->retrMail(i, mails[i])) {
-				// 获取成功
-				mailsjson["mails"].append(MailToJson(mails[i], i));
-			}
-			else {
-				// 获取失败
-				mailsjson["mails"].append(Json::Value::nullSingleton());
-				++failedCount;
-			}
-		}
-
-		description = "Total :" + std::to_string(mails.size()) +
-			", success: " + std::to_string(mails.size() - failedCount) +
-			", failed: " + std::to_string(failedCount);
-		if (failedCount >= mails.size()) {
+		if (!mReceiver->getMailListWithUID(mails)) {
+			description = "Cannot get mailbox status and mail list correctly";
 			success = false;
 		}
+		else {
+			description = "";
 
-		// 释放资源
-		for (size_t i = 0; i < mails.size(); ++i) {
-			delete mails[i];
-			mails[i] = nullptr;
+			// 检查邮件数量是否过多
+			size_t i = 0;
+			if (mails.size() > MAX_RECVMAIL_NUMBER) {
+				// 邮件数量超过上限，从最新的开始取
+				i = mails.size() - MAX_RECVMAIL_NUMBER;
+				description += std::to_string(mails.size()) +
+					" mails (too many) in the mailbox, only latest " +
+					std::to_string(MAX_RECVMAIL_NUMBER) + " are collected\n";
+			}
+
+			size_t failedCount = 0;
+			for (; i < mails.size(); ++i) {
+				// 取第 i 封邮件
+				if (mReceiver->retrMail(i, mails[i])) {
+					// 获取成功
+					mailsjson["mails"].append(MailToJson(mails[i], i));
+				}
+				else {
+					// 获取失败
+					mailsjson["mails"].append(Json::Value::nullSingleton());
+					++failedCount;
+				}
+			}
+
+			description += "Total :" + std::to_string(mails.size()) +
+				", success: " + std::to_string(mails.size() - failedCount) +
+				", failed: " + std::to_string(failedCount);
+			if (failedCount >= mails.size()) {
+				success = false;
+			}
+
+			// 释放资源
+			for (size_t i = 0; i < mails.size(); ++i) {
+				delete mails[i];
+				mails[i] = nullptr;
+			}
 		}
 	}
 	mailsjson["success"] = success;

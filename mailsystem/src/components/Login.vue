@@ -104,10 +104,11 @@
 
 </style>
 <script>
-    // import jquery from 'jquery'
     import Axios from 'axios'
     import Vue from 'vue'
+    Axios.defaults.headers.post['Content-Type']='application/json'
     Vue.prototype.$axios = Axios
+    import saveutil from '../utils/saveDraftUtil'
     export default{
         data(){
             return{
@@ -126,52 +127,37 @@
                 }else if(this.logininfo.password==''){
                     alert('密码不能为空')
                 }else{
+                    console.log(this.logininfo.account)
                     const url = "http://127.0.0.1:8006/login"
-                    this.$axios({
-                        url:url,
-                        type: "post",
-                        dataType:"json",
-                        data:JSON.stringify({
+                    let data = JSON.stringify({
                             "email_address":this.logininfo.account,
                             "password":this.logininfo.password
                         })
+                    // this.$axios.post(url,data,{
+                    //     headers:{'Content-Type':'application/json'}
+                    // }).then(res=>{
+                    //     console.log(res)
+                    // })
+                    this.$axios({
+                        url:url,
+                        method:'post',                      
+                        data:data,
+                        headers:{'Content-Type':'application/json'}
                     }).then(function(response){
 
-                        console.log("data:"+response.data);
-                        console.log("status:"+response.status);
-                        console.log("statusText:"+response.statusText);
-                        console.log("headers:"+response.headers);
-                        console.log("config:"+response.config);
-                        console.log("list:"+response.list);
-                        console.log("response:"+response)
-                        this.$router.push({path:'/mainpage',params:{account:this.account}})
+                        console.log("data:"+JSON.stringify(response.data));
+                        let jstring = JSON.stringify(response.data)
+                        let mes = JSON.parse(jstring)
+                        let idstring = {id:mes.id}
+                        saveutil.saveId('userid',idstring)
+                        console.log(mes.id)
+                        console.log(response)
+                        this.$router.push({path:'/mainpage'})
 
                     }.bind(this)).catch(function(error){
                         console.log(error)
                     })
-                    // jquery.ajax({
-                    //     url:url,
-                    //     type: "post",
-                    //     contentType: "application/json;charset=UTF-8",
-                    //     dataType: "json",
-                    //     data:JSON.stringify({
-                    //         "email_address":this.logininfo.account,
-                    //         "password":this.logininfo.password
-                    //     }),
-                    //     success:function(data){
-                    //         console.log("success")
-                    //         // this.$router.push({path:'/mainpage',params:{account:this.account}})
-                    //         this.jumpto()
-                    //     },
-                    //     error:function(data){
-                    //         alert("登录失败："+JSON.stringify(data))
-                    //     }
-
-                    // })
-
                 }
-
-                // this.$router.push({path:'/mainpage',params:{account:this.account}})
             },
             jumpto:function(){
                 this.$router.push({path:'/mainpage',params:{account:this.account}})

@@ -185,7 +185,7 @@ bool POP3Client::alive()
 }
 
 // 返回邮箱状态
-bool POP3Client::getStatus(size_t& mailnum, size_t& totsize)
+bool POP3Client::getStatus(size_t& mailnum, unsigned long long& totsize)
 {
     if (mState != POP3State::Transaction) {
         // 不处于事务状态
@@ -200,7 +200,7 @@ bool POP3Client::getStatus(size_t& mailnum, size_t& totsize)
     bool ret = false;
 
     if ( (statRet = this->stat(&reply, &replyLen)) == 0) {
-        sscanf(reply, "%s %u %u", buf, &mailnum, &totsize);
+        sscanf(reply, "%s %u %I64u", buf, &mailnum, &totsize);
 
         ret = true;
     }
@@ -229,7 +229,8 @@ bool POP3Client::getMailListWithSize(std::vector<Mail*>& mails)
     char* reply;
     char buf[10];
     int replyLen, listRet;
-    size_t mailnum, totsize;
+    size_t mailnum = 0U;
+    unsigned long long totsize = 0ULL;
     bool ret = false;
 
 
@@ -238,7 +239,16 @@ bool POP3Client::getMailListWithSize(std::vector<Mail*>& mails)
 
         // 解析命令返回字符串
         char* p = strstr(reply, "\r\n");		// 第一行状态行
-        _snscanf(reply, p - reply, "%s %u %u", buf, &mailnum, &totsize);
+        _snscanf(reply, p - reply, "%s %u %I64u", buf, &mailnum, &totsize);
+
+        // list指令回复不标准，且传入数组未初始化
+        if (mailnum == 0 && mails.size() == 0) {
+            if (!this->getStatus(mailnum, totsize)) {
+                report("cannot get status correctly");
+                free(reply);
+                return false;
+            }
+        }
 
         // 检查邮件列表，size不等于当前邮件数目则clear，capacity不足则进行适当的reserve
         if (mails.size() != mailnum) {
@@ -258,7 +268,7 @@ bool POP3Client::getMailListWithSize(std::vector<Mail*>& mails)
             }
         }
 
-        size_t no, eachsize;
+        size_t no = 0, eachsize = 0;
         p += 2;
         // 读取每一行的数据
         for (size_t i = 0; i < mailnum; ++i) {
@@ -266,11 +276,11 @@ bool POP3Client::getMailListWithSize(std::vector<Mail*>& mails)
             char* ptemp = strstr(p + 2, "\r\n");
             _snscanf(p, ptemp - p, "%u %u", &no, &eachsize);
             // 为空则分配新资源
-            if (mails[no-1] == nullptr) {
+            if (mails[no - 1] == nullptr) {
                 // 序号从1开始
-                mails[no-1] = new Mail();
+                mails[no - 1] = new Mail();
             }
-            mails[no-1]->setSize(eachsize);
+            mails[no - 1]->setSize(eachsize);
 
             p = ptemp + 2;		// 下一行
         }
@@ -300,7 +310,8 @@ bool POP3Client::getMailListWithUID(std::vector<Mail*>& mails)
     char* reply;
     char buf[10];
     int replyLen, uidlRet;
-    size_t mailnum, totsize;
+    size_t mailnum = 0;
+    unsigned long long totsize = 0;
     bool ret = false;
 
 
@@ -309,7 +320,17 @@ bool POP3Client::getMailListWithUID(std::vector<Mail*>& mails)
 
         // 解析命令返回字符串
         char* p = strstr(reply, "\r\n");		// 第一行状态行
-        _snscanf(reply, p - reply, "%s %u %u", buf, &mailnum, &totsize);
+        _snscanf(reply, p - reply, "%s %u %I64u", buf, &mailnum, &totsize);
+
+        // uidl指令回复不标准，且传入数组未初始化
+        if (mailnum == 0 && mails.size() == 0) {
+            if (!this->getStatus(mailnum, totsize)) {
+                // 单独的出错处理
+                report("cannot get status correctly");
+                free(reply);
+                return false;
+            }
+        }
 
         // 检查邮件列表，size不等于当前邮件数目则clear，capacity不足则进行适当的reserve
         if (mails.size() != mailnum) {
@@ -329,7 +350,7 @@ bool POP3Client::getMailListWithUID(std::vector<Mail*>& mails)
             }
         }
 
-        size_t no;
+        size_t no = 0;
         char uid[BUFFER_SIZE];
         p += 2;
         // 读取每一行的数据
@@ -514,7 +535,8 @@ size_t POP3Client::getNo(const rstring& uid)
     char* reply;
     char buf[10];
     int replyLen, uidlRet;
-    size_t mailnum, totsize;
+    size_t mailnum = 0;
+    unsigned long long totsize;
     size_t ret = 0;
 
     if ((uidlRet = this->uidl(&reply, &replyLen)) == 0) {
@@ -522,7 +544,17 @@ size_t POP3Client::getNo(const rstring& uid)
         char* p = strstr(reply, "\r\n");		// 第一行状态行
         _snscanf(reply, p - reply, "%s %u %u", buf, &mailnum, &totsize);
 
-        size_t no;
+        // uidl 指令回复不标准
+        if (mailnum == 0) {
+            if (!this->getStatus(mailnum, totsize)) {
+                // 单独的出错处理
+                report("cannot get status correctly");
+                free(reply);
+                return 0;
+            }
+        }
+
+        size_t no = 0;
         char _uid[BUFFER_SIZE];
         p += 2;
         // 读取每一行的数据
