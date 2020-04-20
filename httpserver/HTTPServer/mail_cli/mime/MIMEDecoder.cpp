@@ -66,7 +66,7 @@ void MIMEDecoder::decodeMailBody(const rstring& encoded, const rstring& charset,
 		break;
 	}
 
-	decoded = EncodeUtil::encodeAsciiWithCharset(decoded, charset);
+	//decoded = EncodeUtil::encodeAsciiWithCharset(decoded, charset);
 }
 
 
