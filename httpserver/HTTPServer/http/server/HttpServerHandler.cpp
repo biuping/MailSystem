@@ -264,7 +264,7 @@ void HttpServerHandler::SendWithAttach(HttpResponse* response, MultipartRecord& 
 	rstring content_str;
 	MailClient client;
 	MailSender* sender = new SMTPClient();
-
+	
 
 	//检查id
 	HttpHead_t* id = record.FindHeaderByName("id");
