@@ -268,7 +268,7 @@ bool POP3Client::getMailListWithSize(std::vector<Mail*>& mails)
             }
         }
 
-        size_t no, eachsize;
+        size_t no = 0, eachsize = 0;
         p += 2;
         // 读取每一行的数据
         for (size_t i = 0; i < mailnum; ++i) {
@@ -350,7 +350,7 @@ bool POP3Client::getMailListWithUID(std::vector<Mail*>& mails)
             }
         }
 
-        size_t no;
+        size_t no = 0;
         char uid[BUFFER_SIZE];
         p += 2;
         // 读取每一行的数据
@@ -554,7 +554,7 @@ size_t POP3Client::getNo(const rstring& uid)
             }
         }
 
-        size_t no;
+        size_t no = 0;
         char _uid[BUFFER_SIZE];
         p += 2;
         // 读取每一行的数据
