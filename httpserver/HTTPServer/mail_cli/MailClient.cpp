@@ -43,6 +43,7 @@ MailSender* MailClient::getSender()
 
 bool MailClient::Login(const rstring& mailAddr, const rstring& passwd, rstring& description)
 {
+	std::cout << mailAddr;
 	size_t at_pos = mailAddr.find('@');
 	if (at_pos == rstring::npos) {
 		// ÓÊÏä¸ñÊ½´íÎó
