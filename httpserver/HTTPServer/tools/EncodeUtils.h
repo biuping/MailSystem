@@ -9,8 +9,8 @@ typedef std::regex r_regex;
 
 
 namespace EncodeUtil {
-	const char* base64_encode(const unsigned char* text, int size, char* buf, int* out_len);
-	int base64_decode(const char* text, int size, char* buf);
+	const char* base64_encode(const unsigned char* text, size_t size, char* buf, size_t* out_len);
+	size_t base64_decode(const char* text, size_t size, char* buf);
 
 	void quoted_printable_decode(const rstring& encoded, rstring& decoded, bool variant);
 

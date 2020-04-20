@@ -7,10 +7,10 @@ const rstring CharsetUtil::UnicodeToAnsi(const rwstring& unicode)
 {
     LPCWCH ptr = unicode.c_str();
     /** 分配目标空间, 一个16位Unicode字符最多可以转为4个字节int size = static_cast<int>( wstrSrc.size() * 4 + 10 );*/
-    int size = WideCharToMultiByte(CP_THREAD_ACP, 0, ptr, -1, NULL, 0, NULL, NULL);
+    int size = WideCharToMultiByte(CP_THREAD_ACP, 0, ptr, unicode.size(), NULL, 0, NULL, NULL);
 
     rstring strRet(size, 0);
-    int len = WideCharToMultiByte(CP_THREAD_ACP, 0, ptr, -1, (LPSTR)strRet.c_str(), size, NULL, NULL);
+    int len = WideCharToMultiByte(CP_THREAD_ACP, 0, ptr, unicode.size(), (LPSTR)strRet.c_str(), size, NULL, NULL);
 
     return strRet;
 }
@@ -19,10 +19,10 @@ const rstring CharsetUtil::UnicodeToAnsi(const rwstring& unicode)
 const rwstring CharsetUtil::AnsiToUnicode(const rstring& ansi)
 {
     LPCCH ptr = ansi.c_str();
-    int size = MultiByteToWideChar(CP_ACP, 0, ptr, -1, NULL, NULL);
+    int size = MultiByteToWideChar(CP_ACP, 0, ptr, ansi.size(), NULL, NULL);
 
     rwstring wstrRet(size, 0);
-    int len = MultiByteToWideChar(CP_ACP, 0, ptr, -1, (LPWSTR)wstrRet.c_str(), size);
+    int len = MultiByteToWideChar(CP_ACP, 0, ptr, ansi.size(), (LPWSTR)wstrRet.c_str(), size);
 
     return wstrRet;
 }
@@ -31,10 +31,10 @@ const rstring CharsetUtil::AnsiToUtf8(const rstring& ansi)
 {
     LPCCH ptr = ansi.c_str();
     /* 分配目标空间, 长度为 Ansi 编码的两倍 */
-    int size = MultiByteToWideChar(CP_ACP, 0, ptr, -1, NULL, NULL);
+    int size = MultiByteToWideChar(CP_ACP, 0, ptr, ansi.size(), NULL, NULL);
 
     rwstring wstrTemp(size, 0);
-    int len = MultiByteToWideChar(CP_ACP, 0, ptr, -1, (LPWSTR)wstrTemp.c_str(), size);
+    int len = MultiByteToWideChar(CP_ACP, 0, ptr, ansi.size(), (LPWSTR)wstrTemp.c_str(), size);
 
     return UnicodeToUtf8(wstrTemp);
 }
@@ -44,10 +44,10 @@ const rstring CharsetUtil::Utf8ToAnsi(const rstring& utf8)
     rwstring wstrTemp = Utf8ToUnicode(utf8);
 
     LPCWCH ptr = wstrTemp.c_str();
-    int size = WideCharToMultiByte(CP_ACP, 0, ptr, -1, NULL, 0, NULL, NULL);
+    int size = WideCharToMultiByte(CP_ACP, 0, ptr, utf8.size(), NULL, 0, NULL, NULL);
 
     rstring strRet(size, 0);
-    int len = WideCharToMultiByte(CP_ACP, 0, ptr, -1, (LPSTR)strRet.c_str(), size, NULL, NULL);
+    int len = WideCharToMultiByte(CP_ACP, 0, ptr, utf8.size(), (LPSTR)strRet.c_str(), size, NULL, NULL);
 
     return strRet;
 }
@@ -56,10 +56,10 @@ const rstring CharsetUtil::UnicodeToUtf8(const rwstring& unicode)
 {
     /* 分配目标空间, 一个16位Unicode字符最多可以转为4个字节 */
     LPCWCH ptr = unicode.c_str();
-    int size = WideCharToMultiByte(CP_UTF8, 0, ptr, -1, NULL, 0, NULL, NULL);
+    int size = WideCharToMultiByte(CP_UTF8, 0, ptr, unicode.size(), NULL, 0, NULL, NULL);
 
     rstring strRet(size, 0);
-    int len = WideCharToMultiByte(CP_UTF8, 0, ptr, -1, (char*)strRet.c_str(), size, NULL, NULL);
+    int len = WideCharToMultiByte(CP_UTF8, 0, ptr, unicode.size(), (char*)strRet.c_str(), size, NULL, NULL);
 
     return strRet;
 }
@@ -67,10 +67,10 @@ const rstring CharsetUtil::UnicodeToUtf8(const rwstring& unicode)
 const rwstring CharsetUtil::Utf8ToUnicode(const rstring& utf8)
 {
     LPCCH ptr = utf8.c_str();
-    int size = MultiByteToWideChar(CP_UTF8, 0, ptr, -1, NULL, NULL);
+    int size = MultiByteToWideChar(CP_UTF8, 0, ptr, utf8.size(), NULL, NULL);
 
     rwstring wstrRet(size, 0);
-    int len = MultiByteToWideChar(CP_UTF8, 0, ptr, -1, (LPWSTR)wstrRet.c_str(), size);
+    int len = MultiByteToWideChar(CP_UTF8, 0, ptr, utf8.size(), (LPWSTR)wstrRet.c_str(), size);
 
     return wstrRet;
 }
@@ -135,10 +135,10 @@ bool CharsetUtil::IsUTF8(const void* pBuffer, long size)
 const rwstring CharsetUtil::GB2312ToUnicode(const rstring& gb2312)
 {
     UINT nCodePage = 936; //GB2312
-    int size = MultiByteToWideChar(nCodePage, 0, gb2312.c_str(), -1, NULL, 0);
+    int size = MultiByteToWideChar(nCodePage, 0, gb2312.c_str(), gb2312.size(), NULL, 0);
 
     rwstring wstrRet(size, 0);
-    MultiByteToWideChar(nCodePage, 0, gb2312.c_str(), -1, (LPWSTR)wstrRet.c_str(), size);
+    MultiByteToWideChar(nCodePage, 0, gb2312.c_str(), gb2312.size(), (LPWSTR)wstrRet.c_str(), size);
 
     return wstrRet;
 }
@@ -147,10 +147,10 @@ const rwstring CharsetUtil::GB2312ToUnicode(const rstring& gb2312)
 const rwstring CharsetUtil::BIG5ToUnicode(const rstring& big5)
 {
     UINT nCodePage = 950; //BIG5
-    int size = MultiByteToWideChar(nCodePage, 0, big5.c_str(), -1, NULL, 0);
+    int size = MultiByteToWideChar(nCodePage, 0, big5.c_str(), big5.size(), NULL, 0);
 
     rwstring wstrRet(size, 0);
-    MultiByteToWideChar(nCodePage, 0, big5.c_str(), -1, (LPWSTR)wstrRet.c_str(), size);
+    MultiByteToWideChar(nCodePage, 0, big5.c_str(), big5.size(), (LPWSTR)wstrRet.c_str(), size);
 
     return wstrRet;
 }
@@ -159,10 +159,10 @@ const rwstring CharsetUtil::BIG5ToUnicode(const rstring& big5)
 const rstring CharsetUtil::UnicodeToGB2312(const rwstring& unicode)
 {
     UINT nCodePage = 936; //GB2312
-    int size = WideCharToMultiByte(nCodePage, 0, unicode.c_str(), -1, NULL, 0, NULL, NULL);
+    int size = WideCharToMultiByte(nCodePage, 0, unicode.c_str(), unicode.size(), NULL, 0, NULL, NULL);
 
     rstring strRet(size, 0);
-    WideCharToMultiByte(nCodePage, 0, unicode.c_str(), -1, (LPSTR)strRet.c_str(), size, NULL, NULL);
+    WideCharToMultiByte(nCodePage, 0, unicode.c_str(), unicode.size(), (LPSTR)strRet.c_str(), size, NULL, NULL);
 
     return strRet;
 }
@@ -171,10 +171,10 @@ const rstring CharsetUtil::UnicodeToGB2312(const rwstring& unicode)
 const rstring CharsetUtil::UnicodeToBIG5(const rwstring& unicode)
 {
     UINT nCodePage = 950; //BIG5
-    int size = WideCharToMultiByte(nCodePage, 0, unicode.c_str(), -1, NULL, 0, NULL, NULL);
+    int size = WideCharToMultiByte(nCodePage, 0, unicode.c_str(), unicode.size(), NULL, 0, NULL, NULL);
 
     rstring strRet(size, 0);
-    WideCharToMultiByte(nCodePage, 0, unicode.c_str(), -1, (LPSTR)strRet.c_str(), size, NULL, NULL);
+    WideCharToMultiByte(nCodePage, 0, unicode.c_str(), unicode.size(), (LPSTR)strRet.c_str(), size, NULL, NULL);
 
     return strRet;
 }
@@ -186,10 +186,10 @@ const rstring CharsetUtil::FBIG5ToGB2312(const rstring& big5)
     rwstring unicode = CharsetUtil::BIG5ToUnicode(big5);
 
     rstring gb2312 = CharsetUtil::UnicodeToGB2312(unicode);
-    int size = LCMapStringA(lcid, LCMAP_SIMPLIFIED_CHINESE, gb2312.c_str(), -1, NULL, 0);
+    int size = LCMapStringA(lcid, LCMAP_SIMPLIFIED_CHINESE, gb2312.c_str(), big5.size(), NULL, 0);
 
     rstring strRet(size, 0);
-    LCMapStringA(0x0804, LCMAP_SIMPLIFIED_CHINESE, gb2312.c_str(), -1, (LPSTR)strRet.c_str(), size);
+    LCMapStringA(0x0804, LCMAP_SIMPLIFIED_CHINESE, gb2312.c_str(), big5.size(), (LPSTR)strRet.c_str(), size);
 
     return strRet;
 }
@@ -198,10 +198,10 @@ const rstring CharsetUtil::FBIG5ToGB2312(const rstring& big5)
 const rstring CharsetUtil::GB2312ToFBIG5(const rstring gb2312)
 {
     LCID lcid = MAKELCID(MAKELANGID(LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED), SORT_CHINESE_PRC);
-    int size = LCMapStringA(lcid, LCMAP_TRADITIONAL_CHINESE, gb2312.c_str(), -1, NULL, 0);
+    int size = LCMapStringA(lcid, LCMAP_TRADITIONAL_CHINESE, gb2312.c_str(), gb2312.size(), NULL, 0);
 
     rstring strRet(size, 0);
-    LCMapStringA(lcid, LCMAP_TRADITIONAL_CHINESE, gb2312.c_str(), -1, (LPSTR)strRet.c_str(), size);
+    LCMapStringA(lcid, LCMAP_TRADITIONAL_CHINESE, gb2312.c_str(), gb2312.size(), (LPSTR)strRet.c_str(), size);
 
     rwstring unicode = CharsetUtil::GB2312ToUnicode(strRet);
     rstring big5 = CharsetUtil::UnicodeToBIG5(unicode);

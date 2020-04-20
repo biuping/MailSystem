@@ -142,9 +142,9 @@ void MIMEDecoder::base64Decode(const rstring& encoded, rstring& decoded)
 	// 使用工具解码
 	char* buf = new char[decoded.size() + 1];
 	ZeroMemory(buf, sizeof(char) * (decoded.size() + 1));
-	EncodeUtil::base64_decode(decoded.c_str(), decoded.size(), buf);
+	size_t byteslen = EncodeUtil::base64_decode(decoded.c_str(), decoded.size(), buf);
 
-	decoded = buf;
+	decoded = rstring(buf, byteslen);
 	delete[] buf;
 }
 
