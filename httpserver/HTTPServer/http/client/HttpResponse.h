@@ -47,7 +47,7 @@ public:
 	void set_common();
 
 	//将传递来的字符串设置成body
-	void build_body(rstring& body);
+	void build_body(const rstring& body);
 
 	//200 ok
 	void build_ok();
