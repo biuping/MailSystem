@@ -30,7 +30,7 @@ public:
 	virtual bool alive();
 	virtual bool authenticate(const rstring& usr, const rstring& passwd);
 
-	virtual bool getStatus(size_t& mailnum, size_t& totsize);
+	virtual bool getStatus(size_t& mailnum, unsigned long long& totsize);
 	virtual bool getMailListWithSize(std::vector<Mail*>& mails);
 	virtual bool getMailListWithUID(std::vector<Mail*>& mails);
 	virtual bool retrMail(size_t i, Mail* mail);

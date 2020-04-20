@@ -1,6 +1,9 @@
 #ifndef _MAIL_CLIENT_H_
 #define _MAIL_CLIENT_H_
 
+#define MAX_RECVMAIL_NUMBER 16U
+
+
 #include <vector>
 #include "MailReceiver.h"
 #include "MailSender.h"

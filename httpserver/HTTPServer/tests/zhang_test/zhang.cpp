@@ -134,7 +134,8 @@ void pop3_test()
 		}
 
 		/* stat */
-		size_t mailnum, totsize;
+		size_t mailnum = 0;
+		unsigned long long totsize = 0;
 		if (popcli->getStatus(mailnum, totsize)) {
 			rstring info = "mails: ";
 			info += std::to_string(mailnum) + " total size: " + std::to_string(totsize);
@@ -212,16 +213,16 @@ void mailcli_test()
 		LogUtil::report(desc);
 
 		/* RecvMail */
-		//LogUtil::report(cli.RecvMail());
+		LogUtil::report(cli.RecvMail());
 
 		/* DownloadAttach */
 		rstring att;
-		Json::Value attObj = cli.DownloadAttach("1tbiAQcHBFmj3-i-OgANsQ", 0);
+		Json::Value attObj = cli.DownloadAttach("ZC2814-2gs1YWAclCSxbUgWNCujWa4", 0);
 		Tools::json_write(attObj, att, true);
 		LogUtil::report(att);
 
 		/* Delete Mail */
-		LogUtil::report(cli.DeleteMail(slist{ "1tbiAQcHBFmj3-i-OgANsQ" }));
+		LogUtil::report(cli.DeleteMail(slist{ "ZC2814-2gs1YWAclCSxbUgWNCujWa4" }));
 	}
 }
 
