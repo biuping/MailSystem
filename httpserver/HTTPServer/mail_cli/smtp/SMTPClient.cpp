@@ -321,9 +321,9 @@ int SMTPClient::SendAttachment_Ex()
     {
         std::string sendBuff;
         sendBuff = "--qwertyuiop\r\n";
-        sendBuff += "Content-Type:";
+        sendBuff += "Content-Type: ";
         sendBuff += Attachments[i].content_type;
-        sendBuff += "; \r\n";
+        sendBuff += ";\r\n";
         sendBuff += " name=\"";
 
         sendBuff += Attachments[i].file_name;
@@ -342,14 +342,27 @@ int SMTPClient::SendAttachment_Ex()
         char fileBuff[MAX_FILE_LEN];
         char* chSendBuff;
         memset(fileBuff, 0, sizeof(fileBuff));
+        int allLength = Attachments[i].content.size()/ MAX_FILE_LEN;
+        string contents = Attachments[i].content;
+        int index = 0;
+        while (index<allLength)
+        {
+            string subContent = contents.substr(MAX_FILE_LEN * index, MAX_FILE_LEN * (index + 1));
+            /*文件使用base64加密传送*/
+            strncpy(fileBuff, subContent.c_str(), MAX_FILE_LEN);
+            fileBuff[MAX_FILE_LEN] = '\0';
+            chSendBuff = base64Encode(fileBuff, MAX_FILE_LEN);
+            chSendBuff[strlen(chSendBuff)] = '\r';
+            chSendBuff[strlen(chSendBuff)] = '\n';
+            send(sockClient, chSendBuff, strlen(chSendBuff), 0);
+            delete[]chSendBuff;
+            index++;
+        }
+        
+        string subContent = contents.substr(MAX_FILE_LEN * index, contents.size());
         /*文件使用base64加密传送*/
-        strncpy(fileBuff, Attachments[i].content.c_str(), MAX_FILE_LEN);
-        chSendBuff = base64Encode(fileBuff, MAX_FILE_LEN);
-        chSendBuff[strlen(chSendBuff)] = '\r';
-        chSendBuff[strlen(chSendBuff)] = '\n';
-        send(sockClient, chSendBuff, strlen(chSendBuff), 0);
-        delete[]chSendBuff;
-
+        strncpy(fileBuff, subContent.c_str(), subContent.size());
+        fileBuff[subContent.size()] = '\0';
         chSendBuff = base64Encode(fileBuff, Attachments[i].content.size());
         chSendBuff[strlen(chSendBuff)] = '\r';
         chSendBuff[strlen(chSendBuff)] = '\n';

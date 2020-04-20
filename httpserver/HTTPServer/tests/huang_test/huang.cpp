@@ -13,7 +13,7 @@ void start_huang()
 	MailClient* mcli = new MailClient();
 	
 	MailSender* msd = new SMTPClient();
-
+	
 	mcli->setSender(msd);
 	string a = "";
 	bool aaa = mcli->Login("2017302580306@whu.edu.cn", "wdrs14569", a);
@@ -21,9 +21,8 @@ void start_huang()
 	/*msd->SetContent("aa");
 	msd->SetEmailTitle("测试");
 	msd->SetTargetEmail("calvin_huang1@qq.com");*/
-
 	vector<Attachment>aa;
-	Attachment attahs = Attachment("application / octet - stream", "hello.txt", "123");
+	Attachment attahs = Attachment("application/octet-stream", "hello.txt", "道可道，非常道；名可名，非常名	无名，天地之始，有名，万物之母。故常无欲，以观其妙，常有欲，以观其徼。此两者，同出而异名，同谓之玄，玄之又玄，众妙之门。");
 	aa.push_back(attahs);
 	mcli->SendMail("1092949763@qq.com", "测试", "附件及多目标发送测试", aa);
 	int aaaaaa = 0;
