@@ -68,9 +68,9 @@ size_t HttpResponse::size()
 
 const char* HttpResponse::serialize()
 {
-	rstring builder;
+	rstring* builder = new rstring;
 	//头部第一行
-	builder.append(m_package.version).append(" ")
+	(*builder).append(m_package.version).append(" ")
 		.append(m_package.code).append(" ")
 		.append(m_package.phrase).append("\r\n");
 
@@ -82,20 +82,20 @@ const char* HttpResponse::serialize()
 		const rstring& name = itor->first;
 		const rstring& attr = itor->second;
 
-		builder.append(name).append(": ")
+		(*builder).append(name).append(": ")
 			.append(attr).append("\r\n");
 	}
 	//body分割行
-	builder.append("\r\n");
-	builder.append(m_package.body, m_package.bodylen);
+	(*builder).append("\r\n");
+	(*builder).append(m_package.body, m_package.bodylen);
 	
 	//拷贝内存
-	size_t len = builder.size();
+	size_t len = (*builder).size();
 	m_package.data = new char[len +1];
-	memcpy(m_package.data, &builder[0], len);
+	memcpy(m_package.data, &(*builder)[0], len);
 	m_package.data[len] = 0x00;
 	m_package.totalsize = len + 1;
-
+	delete builder;
 	return m_package.data;
 }
 
@@ -108,7 +108,6 @@ void HttpResponse::set_common()
 	this->add_head("Access-Control-Max-Age", "3600");
 	this->set_version(HTTP_VERSION);
 	this->add_head(HTTP_HEAD_CONNECTION, "close");
-	this->add_head("Access-Control-Allow-Origin", "*");
 }
 
 void HttpResponse::build_body(const rstring& body)

@@ -31,6 +31,12 @@ typedef struct Attachment{
 typedef struct UserInfo {
 	rstring email_address;
 	rstring pass;
+	UserInfo() {};
+	UserInfo(rstring email, rstring pass)
+	{
+		this->email_address = email;
+		this->pass = pass;
+	}
 };
 
 typedef std::map<rstring, UserInfo*> UserStore;
