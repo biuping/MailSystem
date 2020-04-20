@@ -358,7 +358,9 @@ const Json::Value MailClient::MailToJson(Mail* mail, size_t index)
 	for (MessagePart* att : attachs) {
 		Json::Value attachObj;
 		attachObj["name"] = att->getFileName();
-		attachObj["size"] = att->getContentDisposition().rawsize;
+		attachObj["size"] = att->getContentDisposition().rawsize.size() == 0 ?
+			std::to_string(att->getMessage().size()) + "B" :
+			att->getContentDisposition().rawsize;
 		mailObj["attachments"].append(attachObj);
 	}
 

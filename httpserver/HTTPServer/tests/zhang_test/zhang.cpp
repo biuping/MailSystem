@@ -213,7 +213,7 @@ void mailcli_test()
 		LogUtil::report(desc);
 
 		/* RecvMail */
-		//LogUtil::report(cli.RecvMail());
+		LogUtil::report(cli.RecvMail());
 
 		/* DownloadAttach */
 		rstring att;
