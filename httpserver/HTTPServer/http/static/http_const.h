@@ -15,7 +15,7 @@
 #define HTTP_FORM_NAME			"name"
 #define HTTP_FORM_DISPOSITION	"Content-Disposition"
 
-#define HTTP_HEAD_JSON_TYPE		"application/json"
+#define HTTP_HEAD_JSON_TYPE		"application/json; charset=utf-8"
 #define HTTP_HEAD_FORM_TYPE		"multipart/form-data"
 #define HTTP_HEAD_HTML_TYPE		"text/html"
 #define HTTP_HEAD_CSS_TYPE		"text/css"
