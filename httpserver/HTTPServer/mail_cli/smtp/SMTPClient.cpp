@@ -189,6 +189,12 @@ int SMTPClient::Login()
 //登录函数 mailsender!
 bool SMTPClient::Login(string userCount, string userPass, string& description)
 {
+    string smtpServer="smtp.";
+    int Stmppos = userCount.find('@', 0);
+    smtpServer += userCount.substr(Stmppos+1,userCount.size()); //得到用户名
+    this->SetPass(userPass);
+    this->SetUserName(userCount);
+    this->SetSrvDomain(smtpServer);
     if (false == CreateConn())
     {
         return false;
@@ -435,15 +441,15 @@ void SMTPClient::SetPass(std::string& pass)
 {
     this->pass = pass;
 }
-void SMTPClient::SetTargetEmail(std::string& targetAddr)
+void SMTPClient::SetTargetEmail(const std::string& targetAddr)
 {
     this->targetAddr = targetAddr;
 }
-void SMTPClient::SetEmailTitle(std::string& title)
+void SMTPClient::SetEmailTitle(const std::string& title)
 {
     this->title = title;
 }
-void SMTPClient::SetContent(std::string& content)
+void SMTPClient::SetContent(const std::string& content)
 {
     this->content = content;
 }

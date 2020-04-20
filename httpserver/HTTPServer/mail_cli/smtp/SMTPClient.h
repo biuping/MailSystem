@@ -68,9 +68,9 @@ public:
     void SetSrvDomain(std::string& domain);
     void SetUserName(std::string& user);
     void SetPass(std::string& pass);
-    void SetTargetEmail(std::string& targetAddr);
-    void SetEmailTitle(std::string& title);
-    void SetContent(std::string& content);
+    void SetTargetEmail(const std::string& targetAddr);
+    void SetEmailTitle(const std::string& title);
+    void SetContent(const std::string& content);
     void SetPort(int port);
  
    

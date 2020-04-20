@@ -12,23 +12,31 @@ void start_huang()
 	HttpSocket socketInit;
 	MailClient* mcli = new MailClient();
 	
-	MailSender * msd= new SMTPClient(
-		25,                             /*smtp端口*/
-		"smtp.whu.edu.cn",                 /*smtp服务器地址*/
-		"2017302580306@whu.edu.cn",         /*你的邮箱地址*/
-		"wdrs14569",                   /*邮箱密码*/
-		"1092949763@qq.com",  /*目的邮箱地址,这一部分用空格分割可添加多个收信人*/
-		"测试",                           /*主题*/
-		"SMTP附件及多目标发送测试"      /*邮件正文*/
-	);
+	MailSender* msd = new SMTPClient();
+
 	mcli->setSender(msd);
 	string a = "";
-	bool aaa=mcli->Login("2017302580306@whu.edu.cn", "wdrs14569", a);
+	bool aaa = mcli->Login("2017302580306@whu.edu.cn", "wdrs14569", a);
+
+	msd->SetContent("aa");
+	msd->SetEmailTitle("测试");
+	msd->SetTargetEmail("calvin_huang1@qq.com");
 
 	vector<Attachment>aa;
 	Attachment attahs = Attachment("application / octet - stream", "hello.txt", "123");
 	aa.push_back(attahs);
 	mcli->SendMail("1092949763@qq.com", "测试", "附件及多目标发送测试", aa);
+	//	25,                             /*smtp端口*/
+	//	"smtp.whu.edu.cn",                 /*smtp服务器地址*/
+	//	"2017302580306@whu.edu.cn",         /*你的邮箱地址*/
+	//	"wdrs14569",                   /*邮箱密码*/
+	//	"1092949763@qq.com",  /*目的邮箱地址,这一部分用空格分割可添加多个收信人*/
+	//	"测试",                           /*主题*/
+	//	"SMTP附件及多目标发送测试"      /*邮件正文*/
+	//);
+	
+
+	
 	
 
 	
