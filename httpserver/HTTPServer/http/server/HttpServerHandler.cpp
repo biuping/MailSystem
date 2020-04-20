@@ -111,6 +111,7 @@ HttpResponse* HttpServerHandler::handle_request(HttpRequest& request)
 
 	HttpResponse* response = new HttpResponse();
 
+	//处理预请求
 	if (method.compare("OPTIONS") == 0)
 	{
 		response->build_ok();
