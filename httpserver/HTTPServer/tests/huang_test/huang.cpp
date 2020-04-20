@@ -22,6 +22,9 @@ void start_huang()
 		"SMTP附件及多目标发送测试"      /*邮件正文*/
 	);
 	mcli->setSender(msd);
+	string a = "";
+	bool aaa=mcli->Login("2017302580306@whu.edu.cn", "wdrs14569", a);
+
 	vector<Attachment>aa;
 	Attachment attahs = Attachment("application / octet - stream", "hello.txt", "123");
 	aa.push_back(attahs);
