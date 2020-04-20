@@ -24,6 +24,9 @@
     <ClCompile Include="POP3Test.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="MailClientTest.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">

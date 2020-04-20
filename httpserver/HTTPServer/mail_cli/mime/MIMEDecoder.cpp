@@ -9,6 +9,8 @@ const rstring MIMEDecoder::encodedWordPattern = R"(\=\?(\S+?)\?(\w)\?(.+?)\?\=)"
 const rstring MIMEDecoder::replacePattern = R"(()" + MIMEDecoder::encodedWordPattern +
 											R"()\s+()" + MIMEDecoder::encodedWordPattern + R"())";
 
+
+// 解码 encoded-word
 void MIMEDecoder::decodeWord(const rstring& encoded, rstring& decoded)
 {
 	// 正则表达式
@@ -42,6 +44,8 @@ void MIMEDecoder::decodeWord(const rstring& encoded, rstring& decoded)
 	}
 }
 
+
+// 解码邮件体内容
 void MIMEDecoder::decodeMailBody(const rstring& encoded, const rstring& charset,
 	ContentTransferEncoding encoding, rstring& decoded)
 {
@@ -66,6 +70,7 @@ void MIMEDecoder::decodeMailBody(const rstring& encoded, const rstring& charset,
 }
 
 
+// 解码encoded-word调用方法（传入字符集和编码方式）
 const rstring MIMEDecoder::decode(const rstring& encoded,
 	const rstring& charset, const rstring& encoding)
 {
@@ -87,6 +92,7 @@ const rstring MIMEDecoder::decode(const rstring& encoded,
 }
 
 
+// rfc2231中对于content-tpye类的参数列表解码
 void MIMEDecoder::rfc2231Decode(const rstring& raw, str_kvlist & kvs)
 {
 	// nomarlize, 检查分号遗失
@@ -125,6 +131,7 @@ void MIMEDecoder::rfc2231Decode(const rstring& raw, str_kvlist & kvs)
 	MIMEDecoder::rfc2231DecodePairs(kvs);
 }
 
+
 // base64 解码
 void MIMEDecoder::base64Decode(const rstring& encoded, rstring& decoded)
 {
@@ -142,11 +149,15 @@ void MIMEDecoder::base64Decode(const rstring& encoded, rstring& decoded)
 	delete[] buf;
 }
 
+
+// 解码 quoted printable
 void MIMEDecoder::quotedPrintableDecode(const rstring& encoded, rstring& decoded, bool variant)
 {
 	EncodeUtil::quoted_printable_decode(encoded, decoded, variant);
 }
 
+
+// 解码参数键值对
 void MIMEDecoder::rfc2231DecodePairs(str_kvlist& kvs)
 {
 	for (str_kvlist::iterator ite = kvs.begin(); ite != kvs.end(); ++ite) {
@@ -213,6 +224,8 @@ void MIMEDecoder::rfc2231DecodePairs(str_kvlist& kvs)
 	}
 }
 
+
+// 解码 rfc2231 中单一编码字的内容
 void MIMEDecoder::rfc2231DecodeSingle(rstring& encoded, rstring& encoding)
 {
 	size_t start = encoded.find('\'');
