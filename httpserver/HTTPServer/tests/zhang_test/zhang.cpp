@@ -26,7 +26,7 @@ void utility_test()
 {
 	const char* text = "zhangjiaji";
 	char buf[BUFFER_SIZE];
-	int len;
+	size_t len;
 	rstring msg = "Base64 decode ";
 	msg += text;
 	msg += ": ";
@@ -213,16 +213,16 @@ void mailcli_test()
 		LogUtil::report(desc);
 
 		/* RecvMail */
-		LogUtil::report(cli.RecvMail());
+		//LogUtil::report(cli.RecvMail());
 
 		/* DownloadAttach */
 		rstring att;
-		Json::Value attObj = cli.DownloadAttach("ZC2814-2gs1YWAclCSxbUgWNCujWa4", 0);
+		Json::Value attObj = cli.DownloadAttach("1tbiAQcHBFmj3-i-OgAQsN", 0);
 		Tools::json_write(attObj, att, true);
 		LogUtil::report(att);
 
 		/* Delete Mail */
-		LogUtil::report(cli.DeleteMail(slist{ "ZC2814-2gs1YWAclCSxbUgWNCujWa4" }));
+		LogUtil::report(cli.DeleteMail(slist{ "1tbiAQcHBFmj3-i-OgAQsN" }));
 	}
 }
 

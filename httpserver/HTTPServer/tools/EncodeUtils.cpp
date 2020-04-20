@@ -4,12 +4,12 @@
 
 
 // encode 'text' into base64 str into 'buf'
-const char* EncodeUtil::base64_encode(const unsigned char* text, int size, char* buf, int* out_len)
+const char* EncodeUtil::base64_encode(const unsigned char* text, size_t size, char* buf, size_t* out_len)
 {
     char* head_buf = buf;
     static const char* base64_encoding =
         "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-    int buflen = 0;
+    size_t buflen = 0;
     while (size > 0)
     {
         *buf++ = base64_encoding[(text[0] >> 2) & 0x3f];
@@ -69,12 +69,12 @@ char GetBase64Value(char ch)
 }
 
 // decode base64 str 'text' into 'buf'
-int EncodeUtil::base64_decode(const char* text, int size, char* buf)
+size_t EncodeUtil::base64_decode(const char* text, size_t size, char* buf)
 {
     if (size % 4)
         return -1;
     unsigned char chunk[4];
-    int parsenum = 0;
+    size_t parsenum = 0;
     while (size > 0)
     {
         chunk[0] = GetBase64Value(text[0]);
@@ -137,7 +137,6 @@ void EncodeUtil::quoted_printable_decode(const rstring& encoded, rstring& decode
 // charset: 字符集
 const rstring EncodeUtil::convert2UTF8(const rstring& bytes, const rstring& charset)
 {
-    size_t charsetlen = charset.size();
     // TODO: 可以继续完善
     if (GeneralUtil::strEquals(charset.c_str(), "binary", true) ||
         GeneralUtil::strEquals(charset.c_str(), "US-ASCII", true) ||
@@ -163,7 +162,7 @@ const rstring EncodeUtil::convert2UTF8(const rstring& bytes, const rstring& char
         return CharsetUtil::GBKToUtf8(bytes);
     }
     else {
-        return bytes;
+        return CharsetUtil::AnsiToUtf8(bytes);
     }
 }
 
