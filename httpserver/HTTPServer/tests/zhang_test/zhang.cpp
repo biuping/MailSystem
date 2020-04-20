@@ -181,6 +181,12 @@ void pop3_test()
 			LogUtil::report(mails[mailno]->getFirstPlainTextMessage());
 			LogUtil::report(mails[mailno]->getFirstHtmlMessage());
 		}
+
+		/* release mails */
+		for (size_t i = 0; i < mails.size(); ++i) {
+			delete mails[i];
+			mails[i] = nullptr;
+		}
 	}
 	else {
 		std::cout << "Failed";
