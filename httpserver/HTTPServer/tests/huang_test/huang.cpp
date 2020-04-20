@@ -2,13 +2,17 @@
 #include "../../http/server/HttpServer.h"
 #include "huang.h"
 #include <iostream>
+#include "../../mail_cli/MailClient.h"
+#include "../../mail_cli/MailSender.h"
 #include <string>
 using namespace std;
 
 void start_huang()
 {
 	HttpSocket socketInit;
-	SMTPClient smtp(
+	MailClient* mcli = new MailClient();
+	
+	MailSender * msd= new SMTPClient(
 		25,                             /*smtp端口*/
 		"smtp.whu.edu.cn",                 /*smtp服务器地址*/
 		"2017302580306@whu.edu.cn",         /*你的邮箱地址*/
@@ -17,14 +21,20 @@ void start_huang()
 		"测试",                           /*主题*/
 		"SMTP附件及多目标发送测试"      /*邮件正文*/
 	);
-
-	Attachment attahs = Attachment("123","hello.txt","application / octet - stream");
+	mcli->setSender(msd);
+	vector<Attachment>aa;
+	Attachment attahs = Attachment("application / octet - stream", "hello.txt", "123");
+	aa.push_back(attahs);
+	mcli->SendMail("1092949763@qq.com", "测试", "附件及多目标发送测试", aa);
 	
 
 	
-	smtp.AddAttachment(attahs);
+	
 
-	int err;
+	
+	
+
+	/*int err;
 	if ((err = smtp.SendEmail_Ex()) != 0)
 	{
 		if (err == 1)
@@ -36,6 +46,6 @@ void start_huang()
 		if (err == 4)
 			cout << "错误4: 请检查附件目录是否正确，以及文件是否存在!" << endl;
 	}
-	system("pause");
+	system("pause");*/
 
 }
