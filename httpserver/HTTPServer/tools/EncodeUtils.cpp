@@ -135,7 +135,7 @@ void EncodeUtil::quoted_printable_decode(const rstring& encoded, rstring& decode
 // 使用不同字符集对 ascii 字符串（邮件字符串）编码
 // asciitext: ascii 字符串
 // charset: 字符集
-const rstring EncodeUtil::encodeAsciiWithCharset(const rstring& asciitext, const rstring& charset)
+const rstring EncodeUtil::convert2UTF8(const rstring& bytes, const rstring& charset)
 {
     size_t charsetlen = charset.size();
     // TODO: 可以继续完善
@@ -144,26 +144,26 @@ const rstring EncodeUtil::encodeAsciiWithCharset(const rstring& asciitext, const
         GeneralUtil::strStartWith(charset.c_str(), "iso-8859-", true) ||
         GeneralUtil::strEquals(charset.c_str(), "ANSI", true)) {
         // ascii
-        return asciitext;
+        return CharsetUtil::AnsiToUtf8(bytes);
     }
     else if (GeneralUtil::strEquals(charset.c_str(), "UTF-8", true)) {
         // utf8
-        return CharsetUtil::AnsiToUtf8(asciitext);
+        return bytes;
     }
-    else if (GeneralUtil::strEquals(charset.c_str(), "gb2312", true)) {
-        // gb2312
-        return CharsetUtil::UnicodeToUtf8(CharsetUtil::AnsiToUnicode(asciitext));
+    else if (GeneralUtil::strEquals(charset.c_str(), "BIG5", true)) {
+        return CharsetUtil::FBIG5ToGB2312(bytes);
     }
-    else if (GeneralUtil::strEquals(charset.c_str(), "GBK", true)) {
-        // gbk
-        return CharsetUtil::Utf8ToGBK(CharsetUtil::AnsiToUtf8(asciitext));
+    else if (GeneralUtil::strEquals(charset.c_str(), "gb2312", true) ||
+        GeneralUtil::strEquals(charset.c_str(), "GBK", true)) {
+        // gb2312 和 gbk
+        return CharsetUtil::GBKToUtf8(bytes);
     }
     else if (GeneralUtil::strStartWith(charset.c_str(), "gb", true) == 0) {
-        // 其他 gb 规范，采用 GBK 尝试编码
-        return CharsetUtil::Utf8ToGBK(CharsetUtil::AnsiToUtf8(asciitext));
+        // 其他 gb 规范，目前采用 GBK 尝试转换
+        return CharsetUtil::GBKToUtf8(bytes);
     }
     else {
-        return asciitext;
+        return bytes;
     }
 }
 

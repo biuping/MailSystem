@@ -14,7 +14,7 @@ namespace EncodeUtil {
 
 	void quoted_printable_decode(const rstring& encoded, rstring& decoded, bool variant);
 
-	const rstring encodeAsciiWithCharset(const rstring& asciitext, const rstring& charset);
+	const rstring convert2UTF8(const rstring& bytes, const rstring& charset);
 
 	static void removeIllegalCtlChars(rstring& raw);
 	static void removeCarriageNewLineNotPaired(rstring& raw);
