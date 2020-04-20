@@ -64,7 +64,7 @@ public:
     void DeleteAttachment(int index); //删除附件
     void DeleteAllAttachment(); //删除所有的附件
      /*错误码的说明:1.网络错误导致的错误2.用户名错误3.密码错误4.文件不存在0.成功*/
-    int SendEmail_Ex();
+    int SendEmail_Ex(const rstring& targetAddr, const rstring& theme, const rstring& content);
     void SetSrvDomain(std::string& domain);
     void SetUserName(std::string& user);
     void SetPass(std::string& pass);

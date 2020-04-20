@@ -90,6 +90,7 @@ bool MailClient::Login(const rstring& mailAddr, const rstring& passwd, rstring& 
 }
 rstring MailClient::SendMail(const rstring& targetAddr,const rstring& theme,const rstring& content,std::vector<Attachment>& attachments) 
 {
+	
 	// Json对象
 	Json::Value mailsjson;
 	bool success = false;
@@ -103,7 +104,7 @@ rstring MailClient::SendMail(const rstring& targetAddr,const rstring& theme,cons
 	}
 	for (int i = 0; i < attachments.size(); i++)
 		mSender->AddAttachment(attachments[i]);
-	int num = mSender->SendEmail_Ex();
+	int num = mSender->SendEmail_Ex(targetAddr,theme,content);
 	switch (num)
 	{
 		/*错误码的说明:1.网络错误导致的错误2.用户名错误3.密码错误4.文件不存在0.成功*/

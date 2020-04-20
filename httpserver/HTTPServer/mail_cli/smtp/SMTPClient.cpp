@@ -379,8 +379,11 @@ bool SMTPClient::SendEnd()
 }
 
 //·¢ËÍÓÊ¼şº¯Êı
-int SMTPClient::SendEmail_Ex()
+int SMTPClient::SendEmail_Ex(const rstring& targetAddr, const rstring& theme, const rstring& content)
 {
+    this->SetTargetEmail(targetAddr);
+    this->SetEmailTitle(theme);
+    this->SetContent(content);
     if (false == CreateConn())
     {
         return 1;
