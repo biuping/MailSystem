@@ -106,7 +106,9 @@
 <script>
     import Axios from 'axios'
     import Vue from 'vue'
+    Axios.defaults.headers.post['Content-Type']='application/json'
     Vue.prototype.$axios = Axios
+    import saveutil from '../utils/saveDraftUtil'
     export default{
         data(){
             return{
@@ -131,18 +133,26 @@
                             "email_address":this.logininfo.account,
                             "password":this.logininfo.password
                         })
-                    // this.$axios.post(url,data).then(res=>{
+                    // this.$axios.post(url,data,{
+                    //     headers:{'Content-Type':'application/json'}
+                    // }).then(res=>{
                     //     console.log(res)
                     // })
                     this.$axios({
                         url:url,
-                        method:'post',
-                        data:data
+                        method:'post',                      
+                        data:data,
+                        headers:{'Content-Type':'application/json'}
                     }).then(function(response){
 
                         console.log("data:"+JSON.stringify(response.data));
+                        let jstring = JSON.stringify(response.data)
+                        let mes = JSON.parse(jstring)
+                        let idstring = {id:mes.id}
+                        saveutil.saveId('userid',idstring)
+                        console.log(mes.id)
                         console.log(response)
-                        // this.$router.push({path:'/mainpage',params:{account:this.account}})
+                        this.$router.push({path:'/mainpage'})
 
                     }.bind(this)).catch(function(error){
                         console.log(error)

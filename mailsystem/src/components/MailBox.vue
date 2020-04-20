@@ -147,6 +147,11 @@
 </style>
 <script>
 import mailcom from './Mail.vue'
+import saveutil from '../utils/saveDraftUtil'
+import Axios from 'axios'
+import Vue from 'vue'
+Axios.defaults.headers.post['Content-Type']='application/json'
+Vue.prototype.$axios = Axios
 
 export default {   
     data(){
@@ -183,6 +188,7 @@ export default {
                     this.checkModel.push(this.maillist.indexOf(item))
                 })
             }
+            // this.getMails()
         },
         deleteMail:function(){
             // 通过index删除mail：存在问题，邮件index是变化的，
@@ -216,6 +222,29 @@ export default {
         deleteFromMail:function(){
             this.maillist.splice(this.choosedMailindex,1)
             this.backMailBox()
+        },
+        getMails:function(){
+            let userid = saveutil.readData('userid')
+            let data = JSON.stringify({
+                "id":userid.id 
+            })
+            const url = "http://127.0.0.1:8006/recv_mail_with_attach"
+            this.$axios({
+                url:url,
+                method:'post',                      
+                data:data,
+                headers:{'Content-Type':'application/json'}
+            }).then(function(response){
+
+                console.log("data:"+JSON.stringify(response.data));
+                let jstring = JSON.stringify(response.data)
+                console.log(jstring)
+                console.log(response)
+
+            }.bind(this)).catch(function(error){
+                console.log(error)
+            })
+            console.log(userid.id)
         }
     },
 	components:{
@@ -240,7 +269,29 @@ export default {
 		}
     },
 	mounted() {
-		this.flag=true
+        this.flag=true
+        let userid = saveutil.readData('userid')
+            let data = JSON.stringify({
+                "id":userid.id 
+            })
+            const url = "http://127.0.0.1:8006/recv_mail_with_attach"
+            this.$axios({
+                url:url,
+                method:'post',                      
+                data:data,
+                headers:{'Content-Type':'application/json'}
+            }).then(function(response){
+
+                console.log("data:"+JSON.stringify(response.data));
+                let jstring = JSON.stringify(response.data)
+                console.log(jstring)
+                console.log(response)
+
+            }.bind(this)).catch(function(error){
+                console.log(error)
+            })
+            console.log(userid.id)
+        
 	}
 }
 </script>
