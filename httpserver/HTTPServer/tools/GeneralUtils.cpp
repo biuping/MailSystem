@@ -200,3 +200,17 @@ size_t GeneralUtil::strStripCharsIn(rstring& str, const rstring& chars)
 
 	return k;
 }
+
+bool GeneralUtil::strEquals(const rstring& str1, const rstring& str2, bool caseIgnore)
+{
+	size_t len1 = str1.size();
+	size_t len2 = str2.size();
+	size_t len = len1 > len2 ? len1 : len2;
+	
+	if (caseIgnore) {
+		return _strnicmp(str1.c_str(), str2.c_str(), len) == 0;
+	}
+	else {
+		return strncmp(str1.c_str(), str2.c_str(), len) == 0;
+	}
+}

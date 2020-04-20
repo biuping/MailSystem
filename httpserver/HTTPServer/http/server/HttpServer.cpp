@@ -93,7 +93,7 @@ int HttpServer::start_non_block(int backlog)
 	FD_SET(listen_sd, &master_set); //将服务器套接字放入读集合
 
 	//设置超时时间3min
-	timeout.tv_sec = 3 * 60;
+	timeout.tv_sec = TIMEOUT_SEC;
 	timeout.tv_usec = 0;
 
 	do {

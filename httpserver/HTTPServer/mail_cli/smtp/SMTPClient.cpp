@@ -186,6 +186,61 @@ int SMTPClient::Login()
     }
     return 0;
 }
+//登录函数 mailsender!
+bool SMTPClient::Login(string userCount, string userPass, string& description)
+{
+    string sendBuff;
+    sendBuff = "EHLO ";
+    sendBuff += userCount; // 这一部分需要通过telnet验证一下
+    sendBuff += "\r\n";
+    if (false == Send(sendBuff) || false == Recv()) //既接收也发送
+    {
+        description = "Login failed, Internet error!";
+        return false;
+    }
+    sendBuff.empty();
+    sendBuff = "AUTH LOGIN\r\n";
+    if (false == Send(sendBuff) || false == Recv()) //请求登陆
+    {
+        description = "Login failed, Internet error!";
+        return false;
+    }
+    sendBuff.empty();
+    int pos = userCount.find('@', 0);
+    sendBuff = userCount.substr(0, pos); //得到用户名
+    char* ecode;
+    ecode = base64Encode(sendBuff.c_str(), strlen(sendBuff.c_str()));
+    sendBuff.empty();
+    sendBuff = ecode;
+    sendBuff += "\r\n";
+    delete[]ecode;
+    if (false == Send(sendBuff) || false == Recv()) //发送用户名，并接收服务器的返回
+    {
+        description = "Login failed, Internet error!";
+        return false;
+    }
+    sendBuff.empty();
+    ecode = base64Encode(userPass.c_str(), strlen(userPass.c_str()));
+    sendBuff = ecode;
+    sendBuff += "\r\n";
+    delete[]ecode;
+    if (false == Send(sendBuff) || false == Recv()) //发送用户密码，并接收服务器的返回
+    {
+        description = "Login failed, Internet error!";
+        return false;
+    }
+    if (NULL != strstr(buff, "550"))
+    {
+        description = "Login failed, user name error!";
+        return false;
+    }
+    if (NULL != strstr(buff, "535")) /*535是认证失败的返回*/
+    {
+        description = "Login failed,password error!";
+        return false;
+    }
+   
+}
 //发送邮件头部信息
 bool SMTPClient::SendEmailHead()     
 {
@@ -252,49 +307,45 @@ bool SMTPClient::SendTextBody()
 //发送附件
 int SMTPClient::SendAttachment_Ex() 
 {
-    for (std::list<FILEINFO*>::iterator pIter = listFile.begin(); pIter != listFile.end(); pIter++)
+    for (int i = 0; i < Attachments.size(); i++)
     {
         std::string sendBuff;
         sendBuff = "--qwertyuiop\r\n";
-        sendBuff += "Content-Type: application/octet-stream;\r\n";
+        sendBuff += "Content-Type:";
+        sendBuff += Attachments[i].content_type;
+        sendBuff += "; \r\n";
         sendBuff += " name=\"";
-        sendBuff += (*pIter)->fileName;
+
+        sendBuff += Attachments[i].file_name;
         sendBuff += "\"";
         sendBuff += "\r\n";
         sendBuff += "Content-Transfer-Encoding: base64\r\n";
         sendBuff += "Content-Disposition: attachment;\r\n";
         sendBuff += " filename=\"";
-        sendBuff += (*pIter)->fileName;
+
+        sendBuff += Attachments[i].file_name;
         sendBuff += "\"";
         sendBuff += "\r\n";
         sendBuff += "\r\n";
         Send(sendBuff);
-        std::ifstream ifs((*pIter)->filePath, std::ios::in | std::ios::binary);
-        if (false == ifs.is_open())
-        {
-            return 4; /*错误码4表示文件打开错误*/
-        }
+
         char fileBuff[MAX_FILE_LEN];
         char* chSendBuff;
         memset(fileBuff, 0, sizeof(fileBuff));
         /*文件使用base64加密传送*/
-        while (ifs.read(fileBuff, MAX_FILE_LEN))
-        {
-            //cout << ifs.gcount() << endl;
-            chSendBuff = base64Encode(fileBuff, MAX_FILE_LEN);
-            chSendBuff[strlen(chSendBuff)] = '\r';
-            chSendBuff[strlen(chSendBuff)] = '\n';
-            send(sockClient, chSendBuff, strlen(chSendBuff), 0);
-            delete[]chSendBuff;
-        }
-     
-        chSendBuff = base64Encode(fileBuff, ifs.gcount());
+        strncpy(fileBuff, Attachments[i].content.c_str(), MAX_FILE_LEN);
+        chSendBuff = base64Encode(fileBuff, MAX_FILE_LEN);
+        chSendBuff[strlen(chSendBuff)] = '\r';
+        chSendBuff[strlen(chSendBuff)] = '\n';
+        send(sockClient, chSendBuff, strlen(chSendBuff), 0);
+        delete[]chSendBuff;
+
+        chSendBuff = base64Encode(fileBuff, Attachments[i].content.size());
         chSendBuff[strlen(chSendBuff)] = '\r';
         chSendBuff[strlen(chSendBuff)] = '\n';
         int err = send(sockClient, chSendBuff, strlen(chSendBuff), 0);
         if (err != strlen(chSendBuff))
         {
-            //cout << "文件传送出错!" << endl;
             return 1;
         }
         delete[]chSendBuff;
@@ -351,39 +402,21 @@ int SMTPClient::SendEmail_Ex()
 }
 
 //添加附件函数
-void SMTPClient::AddAttachment(std::string& filePath)
+void SMTPClient::AddAttachment(Attachment attachs) //添加附件
 {
-    FILEINFO* pFile = new FILEINFO;
-    strcpy_s(pFile->filePath, filePath.c_str());
-    const char* p = filePath.c_str();
-    strcpy_s(pFile->fileName, p + filePath.find_last_of("\\") + 1);
-    listFile.push_back(pFile);
+    Attachments.push_back(attachs);
 }
 
 //删除附件
-void SMTPClient::DeleteAttachment(std::string& filePath) 
+void SMTPClient::DeleteAttachment(int index)
 {
-    std::list<FILEINFO*>::iterator pIter;
-    for (pIter = listFile.begin(); pIter != listFile.end(); pIter++)
-    {
-        if (strcmp((*pIter)->filePath, filePath.c_str()) == 0)
-        {
-            FILEINFO* p = *pIter;
-            listFile.remove(*pIter);
-            delete p;
-            break;
-        }
-    }
+    vector <Attachment> ::iterator itr = Attachments.begin() + index - 1;
+    Attachments.erase(itr);
 }
 //删除所有的文件
 void SMTPClient::DeleteAllAttachment() 
 {
-    for (std::list<FILEINFO*>::iterator pIter = listFile.begin(); pIter != listFile.end();)
-    {
-        FILEINFO* p = *pIter;
-        pIter = listFile.erase(pIter);
-        delete p;
-    }
+    Attachments.clear();
 }
 //set get函数
 void SMTPClient::SetSrvDomain(std::string& domain)

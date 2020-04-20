@@ -60,7 +60,7 @@ void Tools::json_read(const char* start, size_t len, Json::Value& json_object, J
 
 }
 
-void Tools::json_write(Json::Value& root,rstring& res, bool beautify)
+void Tools::json_write(const Json::Value& root,rstring& res, bool beautify)
 {
 	Json::StreamWriterBuilder writer_builder;
 	if (!beautify)

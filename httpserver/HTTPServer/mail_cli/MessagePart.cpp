@@ -156,14 +156,14 @@ bool MessagePart::isText()
 {
 	return mContentType.media.size() == 0 ||
 		GeneralUtil::strStartWith(mContentType.media, "text/", true) ||
-		(_strnicmp(mContentType.media.c_str(), "message/rfc822", mContentType.media.size()) == 0);
+		GeneralUtil::strEquals(mContentType.media.c_str(), "message/rfc822", true);
 }
 
 // 是否为附件类型
 bool MessagePart::isAttachment()
 {
 	return (!isText() && !isMultipart()) ||
-		(_strnicmp(mContentDisposition.type.c_str(), "attachment", mContentDisposition.type.size()) == 0);
+		GeneralUtil::strEquals(mContentDisposition.type.c_str(), "attachment", true);
 }
 
 // 获取第一个媒体类型为 media 的部分

@@ -25,11 +25,14 @@ void json_test()
 
 	rstring write_res;
 	Json::Value root;
+	Json::Value ro;
+	ro["new_obj"] = "new";
 	root["null"] = NULL;			//注意此处在输出是显示为0，而非null
 	root["message"] = "OK";
 	root["age"] = 52;
 	root["array"].append("arr");	// 新建一个key为array，类型为数组，对第一个元素赋值为字符串“arr”
 	root["array"].append(123);		// 为数组 key_array 赋值，对第二个元素赋值为：123
+	root["array"].append(ro);
 
 	Tools::json_write(root, write_res);
 	std::cout << write_res << std::endl;

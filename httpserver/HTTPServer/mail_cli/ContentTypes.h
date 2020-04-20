@@ -27,11 +27,13 @@ typedef struct {
 	rstring charset;
 	rstring name;
 	str_kvmap params;
+	rstring raw;
 } mail_content_type_t;
 
 
 typedef struct mail_content_disposition_t {
 	long long size;
+	rstring rawsize;
 	rstring filename;
 	rstring type;
 	rstring creation_date;
