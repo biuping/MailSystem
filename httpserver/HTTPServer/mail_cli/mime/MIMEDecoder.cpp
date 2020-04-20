@@ -72,11 +72,11 @@ const rstring MIMEDecoder::decode(const rstring& encoded,
 	rstring decoded = encoded;
 	
 	// decode first
-	if (_strnicmp(encoding.c_str(), "B", 1) == 0) {
+	if (GeneralUtil::strEquals(encoding.c_str(), "B", true)) {
 		// base64 encoding
 		base64Decode(encoded, decoded);
 	}
-	else if (_strnicmp(encoding.c_str(), "Q", 1) == 0) {
+	else if (GeneralUtil::strEquals(encoding.c_str(), "Q", true)) {
 		// quoted-printable encoding
 		quotedPrintableDecode(encoded, decoded, true);
 	}

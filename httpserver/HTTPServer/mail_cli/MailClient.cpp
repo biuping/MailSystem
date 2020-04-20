@@ -73,7 +73,7 @@ bool MailClient::Login(const rstring& mailAddr, const rstring& passwd, rstring& 
 				return false;
 			}
 		}
-	} // mReceiver is OK
+	} // receiver is OK
 
 	if (mSender != nullptr) {
 		// sender
@@ -127,40 +127,202 @@ rstring MailClient::SendMail(const rstring& targetAddr,const rstring& theme,cons
 	}
 
 }
-const rstring MailClient::RecvMail(rstring& description)
+
+const rstring MailClient::RecvMail()
 {
+	// Json对象
+	Json::Value mailsjson;
+	bool success = true;
+	rstring description;
+
+	mailsjson["mails"] = Json::Value(Json::ValueType::arrayValue);
+
 	if (mReceiver == nullptr) {
 		// 未绑定Receiver
 		description = "No receiver binded";
-		return "";
-	}
-
-	if (mReceiver->alive()) {
+		success = false;
+	} else if (!mReceiver->alive()) {
 		// 未登录或丢失连接
 		description = "Not logged in or the connection has benn lost";
-		return "";
+		success = false;
 	}
+	else {
+		// 连接正常
+		std::vector<Mail*> mails;
+		// 创建带UID的邮件数组
+		mReceiver->getMailListWithUID(mails);
 
-	// 连接正常
-	std::vector<Mail*> mails;
-	// 创建带UID的邮件数组
-	mReceiver->getMailListWithUID(mails);
-	for (size_t i = 0; i < mails.size(); ++i) {
-		// 取第 i 封邮件
-		if (mReceiver->retrMail(i, mails[i])) {
-			// 获取成功
+		size_t failedCount = 0;
+		for (size_t i = 0; i < mails.size(); ++i) {
+			// 取第 i 封邮件
+			if (mReceiver->retrMail(i, mails[i])) {
+				// 获取成功
+				mailsjson["mails"].append(MailToJson(mails[i], i));
+			}
+			else {
+				// 获取失败
+				mailsjson["mails"].append(Json::Value::nullSingleton());
+				++failedCount;
+			}
+		}
+
+		description = "Total :" + std::to_string(mails.size()) +
+			", success: " + std::to_string(mails.size() - failedCount) +
+			", failed: " + std::to_string(failedCount);
+		if (failedCount >= mails.size()) {
+			success = false;
+		}
+
+		// 释放资源
+		for (size_t i = 0; i < mails.size(); ++i) {
+			delete mails[i];
+			mails[i] = nullptr;
+		}
+	}
+	mailsjson["success"] = success;
+	mailsjson["description"] = description;
+
+	rstring mailsjsonStr;
+	Tools::json_write(mailsjson, mailsjsonStr);
+	
+	return mailsjsonStr;
+}
+
+const rstring MailClient::DeleteMail(const std::list<rstring>& mailId)
+{
+	// Json对象
+	Json::Value deleteObj;
+	bool success = true;
+	rstring description;
+
+	deleteObj["deleted"] = Json::Value(Json::ValueType::arrayValue);
+
+	if (mReceiver == nullptr) {
+		// 未绑定Receiver
+		description = "No receiver binded";
+		success = false;
+	}
+	else if (!mReceiver->alive()) {
+		// 未登录或丢失连接
+		description = "Not logged in or the connection has benn lost";
+		success = false;
+	}
+	else {
+		// 成功连接
+		slist completed;
+		mReceiver->deleteMails(mailId, completed);
+		description = "Total: " + std::to_string(mailId.size()) +
+			", success: " + std::to_string(completed.size()) +
+			", failed: " + std::to_string(mailId.size() - completed.size());
+
+		if (completed.size() != mailId.size()) {
+			success = false;
+		}
+		
+		for (rstring s : completed) {
+			deleteObj["deleted"].append(s);
 		}
 	}
 
-	return rstring();
+	deleteObj["success"] = success;
+	deleteObj["description"] = description;
+
+	rstring deleteJsonStr;
+	Tools::json_write(deleteObj, deleteJsonStr);
+	return deleteJsonStr;
 }
 
-rstring MailClient::DeleteMail(const std::list<rstring>& mailId)
+const Json::Value MailClient::DownloadAttach(const rstring& mailId, const int attachIndex)
 {
-	return rstring();
+	// Json对象
+	Json::Value attachObj;
+	bool success = true;
+	rstring description;
+
+	// keys
+	attachObj["filename"] = "";
+	attachObj["content-type"] = "";
+	attachObj["content"] = "";
+
+	if (mReceiver == nullptr) {
+		// 未绑定Receiver
+		description = "No receiver binded";
+		success = false;
+	}
+	else if (!mReceiver->alive()) {
+		// 未登录或丢失连接
+		description = "Not logged in or the connection has benn lost";
+		success = false;
+	}
+	else {
+		Mail* mail = new Mail();
+		if (mReceiver->retrMail(mailId, mail)) {
+			// 取到该邮件
+			std::list<MessagePart*> parts;
+			mail->getAllAttachmentParts(parts);
+			// 检查索引
+			if (parts.size() != 0 && attachIndex >= 0 && (size_t)attachIndex < parts.size()) {
+				// 寻找索引对应附件
+				size_t idx = 0;
+				for (std::list<MessagePart*>::iterator ite = parts.begin();
+					ite != parts.end();
+					++ite) {
+					if (idx == (size_t)attachIndex) {
+						// 找到该附件，设置属性
+						attachObj["filename"] = (*ite)->getFileName();
+						attachObj["content-type"] = (*ite)->getContentType().raw;
+						attachObj["content"] = (*ite)->getMessage();
+						description = "OK";
+						break;
+					}
+					++idx;
+				}
+			}
+			else {
+				success = false;
+				description = "Cannot find attachment " +
+					std::to_string(attachIndex) + " on mail " + mailId;
+			}
+		}
+		else {
+			success = false;
+			description = "Cannot retreive the mail " + mailId;
+		}
+
+		delete mail;
+	}
+
+	attachObj["success"] = success;
+	attachObj["description"] = description;
+	return attachObj;
 }
 
-rstring MailClient::DownloadAttach(const rstring& mailId, const rstring& attachIndex)
+const Json::Value MailClient::MailToJson(Mail* mail, size_t index)
 {
-	return rstring();
+	if (mail == nullptr) {
+		return Json::Value::nullSingleton();
+	}
+
+	Json::Value mailObj;
+	mail_header_t header = mail->getHeader();
+	mailObj["mail_id"] = mail->getUID();
+	mailObj["sender"] = header.from.name.size() == 0 ?
+		header.from.addr :
+		header.from.name + " <" + header.from.addr + ">";
+	mailObj["theme"] = header.subject;
+	mailObj["order_id"] = index;
+	mailObj["content"] = mail->getFirstPlainTextMessage();
+	
+	// 附件部分
+	mailObj["attachments"] = Json::Value(Json::ValueType::arrayValue);
+	std::list<MessagePart*> attachs;
+	mail->getAllAttachmentParts(attachs);
+	for (MessagePart* att : attachs) {
+		Json::Value attachObj;
+		attachObj["name"] = att->getFileName();
+		attachObj["size"] = att->getContentDisposition().rawsize;
+		mailObj["attachments"].append(attachObj);
+	}
+
+	return mailObj;
 }
