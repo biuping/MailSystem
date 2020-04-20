@@ -111,6 +111,11 @@ HttpResponse* HttpServerHandler::handle_request(HttpRequest& request)
 
 	HttpResponse* response = new HttpResponse();
 
+	if (method.compare("OPTIONS") == 0)
+	{
+		response->build_ok();
+		return response;
+	}
 	if (request.has_head(HTTP_HEAD_CONTENT_TYPE) && method.compare("POST") == 0)
 	{
 		const rstring& content_type = request.head_content(HTTP_HEAD_CONTENT_TYPE);
@@ -378,7 +383,7 @@ UserInfo* HttpServerHandler::AuthUserById(HttpResponse* response, rstring& uuid)
 		rstring res;
 		Tools::json_write(root, res);
 
-		response->set_status("403", "NO AUTHENTICATION");
+		response->set_status("403", "Forbidden");
 		response->set_common();
 		response->build_body(res);
 		response->add_head(HTTP_HEAD_CONTENT_TYPE, HTTP_HEAD_JSON_TYPE);
