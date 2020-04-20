@@ -243,8 +243,8 @@ void HttpServerHandler::Login(HttpResponse* response)
 
 void HttpServerHandler::SendWithAttach(HttpResponse* response, MultipartRecord& record)
 {
-	Attachment* attach_ptr;
-	std::list<Attachment*> attachs;
+	Attachment attach_ptr;
+	std::vector<Attachment> attachs;
 	rstring id_str;
 	rstring email_address;
 	rstring password;
@@ -264,26 +264,15 @@ void HttpServerHandler::SendWithAttach(HttpResponse* response, MultipartRecord& 
 		{
 			return;
 		}
-		//UserInfo* info = AuthUserById(response, id_str);
-		//if (info != nullptr)
-		//{
-		//	email_address = info->email_address;
-		//	password = info->pass;
-		//}
-		//else
-		//{
-		//	return;
-		//}
 	}
 
 	//检查附件
 	HttpHead_t* attach = record.FindHeaderByName("attachment");
 	if (attach != nullptr)
 	{
-		attach_ptr = new Attachment;
-		attach_ptr->file_name = record.FindHeadContent(*attach, HTTP_FORM_FILENAME);
-		attach_ptr->content_type = record.FindHeadContent(*attach, HTTP_FORM_CONTENT_TYPE);
-		attach_ptr->content = record.FindHeadContent(*attach, HTTP_FORM_CONTENT);
+		attach_ptr.file_name = record.FindHeadContent(*attach, HTTP_FORM_FILENAME);
+		attach_ptr.content_type = record.FindHeadContent(*attach, HTTP_FORM_CONTENT_TYPE);
+		attach_ptr.content = record.FindHeadContent(*attach, HTTP_FORM_CONTENT);
 		attachs.push_back(attach_ptr);
 	}
 	HttpHead_t* theme = record.FindHeaderByName("theme");
@@ -301,7 +290,9 @@ void HttpServerHandler::SendWithAttach(HttpResponse* response, MultipartRecord& 
 	{
 		content_str = record.FindHeadContent(*content, HTTP_FORM_CONTENT);
 	}
-
+	const rstring& res = client.SendMail(recver_str, theme_str, content_str, attachs);
+	response->build_ok();
+	response->build_body(res);
 	response->add_head(HTTP_HEAD_CONTENT_TYPE, HTTP_HEAD_JSON_TYPE);
 }
 
@@ -318,6 +309,10 @@ void HttpServerHandler::RecvWithAttach(HttpResponse* response)
 	{
 		return;
 	}
+	const rstring& res = client.RecvMail();
+	response->build_ok();
+	response->build_body(res);
+	response->add_head(HTTP_HEAD_CONTENT_TYPE, HTTP_HEAD_JSON_TYPE);
 }
 
 void HttpServerHandler::RecvNoAttach(HttpResponse* response)
@@ -333,6 +328,12 @@ void HttpServerHandler::DownloadAttach(HttpResponse* response)
 	{
 		return;
 	}
+	const rstring& mailId = m_object["mailId"].asString();
+	const int attachIndex = m_object["attach_index"].asInt();
+	
+	const Json::Value& root = client.DownloadAttach(mailId, attachIndex);
+	const rstring& filename = root["filename"].asString();
+	const rstring& content_type = root["content-type"].asString();
 
 	rstring down = "dGhpcyBpcyB0ZXN0Mg0KDQoNCi0tLS0tLS0tLS0tLQ0KLS0NCi0tLS0tLS0tLS0tLQ==";
 	response->add_head(HTTP_HEAD_CONTENT_TYPE, "text / plain; name = \"test2.txt\"");
