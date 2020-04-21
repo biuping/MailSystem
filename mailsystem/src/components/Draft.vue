@@ -158,6 +158,10 @@ export default {
             alert('保存成功')
         },
         sendMail:function(event){
+            if(this.draftMail.recipient=''){
+                alert('请输入收件人邮箱')
+                return
+            }
             event.preventDefault()
             let formData = new FormData()
             let userid = savedraftutil.readData('userid')
@@ -191,8 +195,6 @@ export default {
         }
         if(this.draftMail.attachmentName!=''){
             this.fileName=this.draftMail.attachmentName
-
-            //TODO 注意attachment不用在前端呈现，如果要发送邮件，直接将this.mailDraft.attachment传到后台即可
         }
         
     }

@@ -151,6 +151,10 @@ export default {
             alert('保存草稿成功')
         },
         sendMail:function(event){
+            if(this.draftMail.recipient=''){
+                alert('请输入收件人邮箱')
+                return
+            }
             event.preventDefault()
             let formData = new FormData()
             let userid = savedraftutil.readData('userid')
@@ -174,7 +178,9 @@ export default {
                     alert("发送成功")
 )
                 }
-            })
+            }).catch(function(err){
+				console.log(err)
+			})
 
 
         }

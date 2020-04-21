@@ -133,11 +133,6 @@
                             "email_address":this.logininfo.account,
                             "password":this.logininfo.password
                         })
-                    // this.$axios.post(url,data,{
-                    //     headers:{'Content-Type':'application/json'}
-                    // }).then(res=>{
-                    //     console.log(res)
-                    // })
                     this.$axios({
                         url:url,
                         method:'post',                      
@@ -158,9 +153,6 @@
                         console.log(error)
                     })
                 }
-            },
-            jumpto:function(){
-                this.$router.push({path:'/mainpage',params:{account:this.account}})
             }
         },
         mounted(){
