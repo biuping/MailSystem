@@ -359,8 +359,6 @@ int SMTPClient::SendAttachment_Ex()
             memcpy(fileBuff, contents.data(), contents.size());
             fileBuff[contents.size()] = '\0';
             chSendBuff = base64Encode(fileBuff, contents.size());
-           /* chSendBuff[strlen(chSendBuff)] = '\r';
-            chSendBuff[strlen(chSendBuff)] = '\n';*/
             int err= send(sockClient, chSendBuff, strlen(chSendBuff), 0);
             if (err != strlen(chSendBuff))
             {

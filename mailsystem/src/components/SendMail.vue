@@ -10,8 +10,8 @@
         </ul>
         <div class="cutoff_line"></div>
         <div class="input-group recive">
-            <span class="input-group-addon" id="basic-addon3">收件人</span>
-            <input type="email" class="form-control" aria-describedby="basic-addon3" v-model="draftMail.recipient">
+            <span class="input-group-addon" id="basic-addon">收件人</span>
+            <input type="email" class="form-control" aria-describedby="basic-addon" v-model="draftMail.recipient">
         </div>
         <div class="mail_group">
             <div class="input-group">
@@ -71,7 +71,7 @@
         position: relative;
         margin-top: 1%;
         margin-left: 1%;
-        width: 20%;
+        width: 98%;
     }
     .inputfile_label{
         position: relative;
@@ -117,6 +117,7 @@ import qs from 'querystring'
 Axios.defaults.headers.post['Content-Type']='multipart/form-data'
 
 Vue.prototype.$http = Axios
+Vue.prototype.$axios=Axios
 export default {
     data(){
         return {
@@ -154,7 +155,7 @@ export default {
             let formData = new FormData()
             let userid = savedraftutil.readData('userid')
             formData.append("id",userid)
-
+            const self = this
             formData.append("attachment",this.file)           
             formData.append("recver",this.draftMail.recipient)
             formData.append("content",this.draftMail.content)
@@ -165,12 +166,16 @@ export default {
                 }
             }
             const url = "http://127.0.0.1:8006/send_mail_with_attach"
-            this.$http.post(url,formData,config).then(function(res){
+            this.$axios.post(url,formData,config).then(function(res){
                 console.log(res)
                 if(res.status==200){
                     console.log("success send")
+                    self.refresh(
+                    alert("发送成功")
+)
                 }
             })
+
 
         }
        
