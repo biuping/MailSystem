@@ -106,8 +106,9 @@ void MIMEParser::parseBody(const str_citer& begin, const str_citer& end,
 	else {
 		// non multipart message
 		// 直接根据字符集与编码方式解码
-		MIMEDecoder::decodeMailBody(raw, header.content_type.charset,
-			header.content_transfer_encoding, body.message);
+		MIMEDecoder::decodeMailBody(raw, header.content_transfer_encoding, body.message);
+		// 统一转为UTF8
+		body.message = MIMEDecoder::asUTF8(body.message, header.content_type.charset);
 	}
 }
 
@@ -350,8 +351,11 @@ void MIMEParser::parseMessagePartBody(const str_citer& begin, const str_citer& e
 		// non multipart message
 		// 直接根据字符集与编码方式解码
 		rstring message = "";
-		MIMEDecoder::decodeMailBody(raw, part->getContentType().charset,
-			part->getEncoding(), message);
+		MIMEDecoder::decodeMailBody(raw, part->getEncoding(), message);
+		// 非附件则转为 UTF8 字符集
+		if (!part->isAttachment()) {
+			message = MIMEDecoder::asUTF8(message, part->getContentType().charset);
+		}
 		part->setMessage(message);
 	}
 }
