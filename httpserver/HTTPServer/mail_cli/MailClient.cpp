@@ -206,7 +206,7 @@ const rstring MailClient::RecvMail()
 			description += "Total :" + std::to_string(mails.size()) +
 				", success: " + std::to_string(mails.size() - failedCount) +
 				", failed: " + std::to_string(failedCount);
-			if (failedCount >= mails.size()) {
+			if (failedCount >= mails.size() || failedCount >= MAX_RECVMAIL_NUMBER) {
 				success = false;
 			}
 

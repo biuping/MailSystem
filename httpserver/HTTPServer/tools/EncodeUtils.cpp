@@ -117,6 +117,7 @@ void EncodeUtil::quoted_printable_decode(const rstring& encoded, rstring& decode
             // ½âÂë qp
             rstring qp = encoded.substr(i, 3);
             EncodeUtil::decodeEqual(qp);
+            decoded.append(qp);
             i += 2;
         }
         else {

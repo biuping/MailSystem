@@ -77,6 +77,11 @@ void decode_test()
 
 	str_kvlist kvs;
 	MIMEDecoder::rfc2231Decode("text/plain charset=\"iso-8859-1\" name=\"somefile.txt\" attachment; files", kvs);
+
+	rstring encoded = "=CE=D2=C8=A5";
+	rstring decoded = "";
+	MIMEDecoder::quotedPrintableDecode(encoded, decoded, true);
+	LogUtil::report(decoded);
 }
 
 
