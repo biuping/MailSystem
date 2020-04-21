@@ -309,9 +309,11 @@ bool SMTPClient::SendTextBody()
     std::string sendBuff;
     sendBuff = "--qwertyuiop\r\n";
     sendBuff += "Content-Type: text/plain;";
-    sendBuff += "charset=\"gb2312\"\r\n\r\n";
-    sendBuff += content;
+    sendBuff += "charset=\"gb18030\"\r\n";
+    sendBuff += "Content-Transfer-Encoding: base64 \r\n\r\n";
+    sendBuff += base64Encode(content.data(),content.size());
     sendBuff += "\r\n\r\n";
+    cout << sendBuff;
     return Send(sendBuff);
 }
 //发送附件
@@ -337,27 +339,28 @@ int SMTPClient::SendAttachment_Ex()
         sendBuff += "\"";
         sendBuff += "\r\n";
         sendBuff += "\r\n";
+
+
         Send(sendBuff);
 
         char fileBuff[MAX_FILE_LEN];
-       
         char* chSendBuff;
         memset(fileBuff, 0, sizeof(fileBuff));
 
-        int allLength = Attachments[i].content.size()/ MAX_FILE_LEN;
    
         string contents = Attachments[i].content;
-      //  std::ifstream ifs("C:\\Users\\hjx\\Desktop\\test.docx", std::ios::in | std::ios::binary);
-       // ifs.read(fileBu, MAX_FILE_LEN);
+        //std::ifstream ifs("C:\\Users\\hjx\\Desktop\\test.docx", std::ios::in | std::ios::binary);
+        //ifs.read(fileBu, MAX_FILE_LEN);
         //string contents = fileBu;
 
         if(Attachments[i].content.size() <=MAX_FILE_LEN)
         {
             /*文件使用base64加密传送*/
-            memcpy(fileBuff, contents.c_str(), contents.size());
+            memcpy(fileBuff, contents.data(), contents.size());
+            fileBuff[contents.size()] = '\0';
             chSendBuff = base64Encode(fileBuff, contents.size());
-            chSendBuff[strlen(chSendBuff)] = '\r';
-            chSendBuff[strlen(chSendBuff)] = '\n';
+           /* chSendBuff[strlen(chSendBuff)] = '\r';
+            chSendBuff[strlen(chSendBuff)] = '\n';*/
             int err= send(sockClient, chSendBuff, strlen(chSendBuff), 0);
             if (err != strlen(chSendBuff))
             {
@@ -365,19 +368,7 @@ int SMTPClient::SendAttachment_Ex()
             }
             delete[]chSendBuff;
         }
-        
-     
-       /* chSendBuff = base64Encode(fileBuff, contents.size());
-      
-        chSendBuff[strlen(chSendBuff)] = '\r';
-        int counts = strlen(chSendBuff);
-        chSendBuff[strlen(chSendBuff)] = '\n';
-        int err = send(sockClient, chSendBuff, strlen(chSendBuff), 0);
-        if (err != strlen(chSendBuff))
-        {
-            return 1;
-        }
-        delete[]chSendBuff;*/
+
     }
     return 0;
 }
@@ -385,7 +376,8 @@ int SMTPClient::SendAttachment_Ex()
 bool SMTPClient::SendEnd() 
 {
     std::string sendBuff;
-    sendBuff = "--qwertyuiop--";
+    sendBuff = "\r\n\r\n";
+    sendBuff += "--qwertyuiop--";
     sendBuff += "\r\n.\r\n";
     if (false == Send(sendBuff) || false == Recv())
     {

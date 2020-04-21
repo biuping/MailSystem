@@ -22,7 +22,7 @@ void start_huang()
 	Attachment attahs = Attachment("application/octet-stream", "hello.txt", "道可道");
 	aa.push_back(attahs);
 
-	mcli->SendMail("zhangjiaji@whu.edu.cn 1092949763@qq.com", "测试", "附件及多目标发送测试", aa);
+	mcli->SendMail("1092949763@qq.com Jiaxing_huang@whu.edu.cn", "测试", "aaaa", aa);
 	int aaaaaa = 0;
 	//	25,                             /*smtp端口*/
 	//	"smtp.whu.edu.cn",                 /*smtp服务器地址*/
