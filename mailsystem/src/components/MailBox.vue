@@ -4,7 +4,7 @@
             <ul class="mail_list">
                 <transition-group >
 					
-                    <li v-for="(mail,index) in maillist" :key="mail.order_id" class="animated">
+                    <li v-for="(mail,index) in maillistSorted" :key="mail.order_id" class="animated">
 						
                         <input type="checkbox" v-model="checkModel" :value="index">
                         <div class="singleMail" @click="toMail(mail,index)">
@@ -241,11 +241,23 @@ export default {
         deleteFromMail:function(){
             this.maillist.splice(this.choosedMailindex,1)
             this.backMailBox()
+        },
+        sortMail:function(){
+            return this.maillist.sort(function(a,b){
+                var x =a['order_id']
+                var y = b['order_id']
+                return ((x>y)?-1:(x<y)?1:0)
+            })
         }
     },
 	components:{
 		mailcom
-	},
+    },
+    computed:{
+        maillistSorted:function(){
+            return this.sortMail()
+        }
+    },
     watch:{
         checkModel(){
             if(this.checkModel.length==this.maillist.length){

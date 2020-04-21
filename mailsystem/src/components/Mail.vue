@@ -15,7 +15,7 @@
 				<span class="glyphicon glyphicon-save myspan" aria-hidden="true">附件</span>
 				<ul class="attachment_ul">
 					<li v-for="(value,index) in this.mail.attachments" :key="index" @click="download(index,value.name)">
-						{{value.name}}  {{value.size}}
+						{{value.name}}  {{transform(value.size)}}
 					</li>
 				</ul>
 		         <!-- <button class="btn btn-info mybtn" id="input_display" >
@@ -236,7 +236,27 @@ export default {
 			).catch(function(err){
 				console.log(err)
 			})
-		}
+		},
+        transform:function(filesize){
+			let fileSize = parseInt(filesize)
+            var size = ""
+            if(fileSize<0.1*1024){  //小于0.1KB，则转化成B
+                size = fileSize.toFixed(2) + "B"
+            }else if(fileSize < 0.1 * 1024 * 1024){            //小于0.1MB，则转化成KB
+                size = (fileSize/1024).toFixed(2) + "KB"
+            }else if(fileSize < 0.1 * 1024 * 1024 * 1024){        //小于0.1GB，则转化成MB
+                size = (fileSize/(1024 * 1024)).toFixed(2) + "MB"
+            }else{                                            //其他转化成GB
+                size = (fileSize/(1024 * 1024 * 1024)).toFixed(2) + "GB"
+            }
+            var sizeStr = size + "";                        //转成字符串
+            var index = sizeStr.indexOf(".");                    //获取小数点处的索引
+            var dou = sizeStr.substr(index + 1 ,2)            //获取小数点后两位的值
+            if(dou == "00"){                                //判断后两位是否为00，如果是则删除00                
+                return sizeStr.substring(0, index) + sizeStr.substr(index + 3, 2)
+            }
+            return size
+        }
 	}
 }
 </script>
