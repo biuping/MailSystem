@@ -72,7 +72,7 @@ char GetBase64Value(char ch)
 size_t EncodeUtil::base64_decode(const char* text, size_t size, char* buf)
 {
     if (size % 4)
-        return -1;
+        return (size_t)-1;
     unsigned char chunk[4];
     size_t parsenum = 0;
     while (size > 0)

@@ -144,7 +144,9 @@ void MIMEDecoder::base64Decode(const rstring& encoded, rstring& decoded)
 	ZeroMemory(buf, sizeof(char) * (decoded.size() + 1));
 	size_t byteslen = EncodeUtil::base64_decode(decoded.c_str(), decoded.size(), buf);
 
-	decoded = rstring(buf, byteslen);
+	if (byteslen != (size_t)-1) {
+		decoded = rstring(buf, byteslen);
+	}
 	delete[] buf;
 }
 
