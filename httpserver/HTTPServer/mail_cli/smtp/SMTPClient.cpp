@@ -326,6 +326,7 @@ int SMTPClient::SendAttachment_Ex()
         sendBuff += "Content-Type: ";
         sendBuff += Attachments[i].content_type;
         sendBuff += ";\r\n";
+        sendBuff += "charset=\"utf-8\"\r\n";
         sendBuff += " name=\"";
 
         sendBuff += Attachments[i].file_name;
