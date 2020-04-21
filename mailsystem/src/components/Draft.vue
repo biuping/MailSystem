@@ -1,8 +1,11 @@
 <template>
     <div class="sendmail_frame" ref="main_frame">
+    <form   action="http://127.0.0.1:8006/send_mail_with_attach"
+        enctype="multipart/form-data" method="post"
+        target="nm_iframe">
         
         <ul class="nav nav-pills">
-            <li role="presentation" class="left"><button type="button" class="btn btn-primary" @click="sendMail">发送</button></li>
+            <li role="presentation" class="left"><button type="submit" class="btn btn-primary" @click="sendMail">发送</button></li>
             <li role="presentation" class="left"><button type="button" class="btn btn-info" @click="saveDraft">保存</button></li>
             <li role="presentation" class="right"><button type="button" class="btn btn-danger" @click="deleteDraft">
                 <span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>
@@ -11,17 +14,18 @@
         <div class="cutoff_line"></div>
         <div class="input-group recive">
             <span class="input-group-addon" id="basic-addon3" >收件人</span>
-            <input type="email" class="form-control" aria-describedby="basic-addon3" v-model="draftMail.recipient">
+            <input type="email" class="form-control" aria-describedby="basic-addon3" v-model="draftMail.recipient" name="recver">
         </div>
         <div class="mail_group">
             <div class="input-group">
                 <span class="input-group-addon " id="basic-addon">主题</span>               
-                <input type="text" class="form-control" id="basic-url" aria-describedby="basic-addon" v-model="draftMail.theme">
+                <input type="text" class="form-control" id="basic-url" aria-describedby="basic-addon" v-model="draftMail.theme" name="theme">
                
                                
             </div>
             <div class="form-group">
-                <input type="file" id="thisfile" ref="inputFile" style="display:none" @change="fileChange">
+                <input type="file" id="thisfile" ref="inputFile" style="display:none" @change="fileChange" name="attachment">
+                <input type="text" style="display:none" @change="fileChange" name="id" v-model="userid">
                 <div id="uplode_group" class="uplode">
                     <button class="btn btn-info mybtn" id="input_display" @click="uploadFile" >
                         <span class="glyphicon glyphicon-folder-open myspan" aria-hidden="true"></span>上传附件
@@ -29,10 +33,12 @@
                     
                     <input type="text" name="" id="filePath" disabled v-model="fileName">
                 </div>
-                <textarea class="form-control" rows="22" v-model="draftMail.content"></textarea>
+                <textarea class="form-control" rows="22" v-model="draftMail.content" name="content"></textarea>
            </div>
         </div>
 
+    </form>
+    <iframe id="id_iframe" name="nm_iframe" style="display:none;"></iframe>
     </div>
 </template>
 <style scoped>
@@ -119,7 +125,8 @@ export default {
         return {
             flag:false,
             fileName:'',
-            draftMail:savedraftutil.readData('draft_mail')
+            draftMail:savedraftutil.readData('draft_mail'),
+            userid:''
         }
     },
     methods:{
@@ -149,38 +156,39 @@ export default {
         },
         sendMail:function(){
             const url = "http://127.0.0.1:8006/send_mail_with_attach"
-            let userid = savedraftutil.readData('userid')
-            this.$axios({
-                method:'post',
-                url:url,
-                data:{
-                "id":userid,
-                "attachment":this.$refs.inputFile.files[0],
-                "recver":this.draftMail.recipient,
-                "content":this.draftMail.content,
-                "theme":this.draftMail.theme
-                 },
-                transformRequest:{
-                    function(data){
-                        let ret=''
-                        for(let it in data){
-                            ret += encodeURIComponent(it)+'='+encodeURIComponent(data[it])+'&'
-                        }
-                        ret = ret.substring(0,ret.lastIndexOf('&'))
-                        return ret
-                    }
-                },
-                headers:{'Content-Type':'application/x-www-form-urlencoded'}
-            }).then(function(response){
-                    console.log("SUCCESS")
-                    let jstring = JSON.stringify(response.data)
-                    let info=JSON.parse(jstring)
-                    console.log(info)
-                    console.log(response)
-                }.bind(this)).catch(function(error){
-                    console.log("ERROR")
-                    console.log(error)
-            })
+            this.userid = savedraftutil.readData('userid')
+            
+            // this.$axios({
+            //     method:'post',
+            //     url:url,
+            //     data:{
+            //     "id":userid,
+            //     "attachment":this.$refs.inputFile.files[0],
+            //     "recver":this.draftMail.recipient,
+            //     "content":this.draftMail.content,
+            //     "theme":this.draftMail.theme
+            //      },
+            //     transformRequest:{
+            //         function(data){
+            //             let ret=''
+            //             for(let it in data){
+            //                 ret += encodeURIComponent(it)+'='+encodeURIComponent(data[it])+'&'
+            //             }
+            //             ret = ret.substring(0,ret.lastIndexOf('&'))
+            //             return ret
+            //         }
+            //     },
+            //     headers:{'Content-Type':'application/x-www-form-urlencoded'}
+            // }).then(function(response){
+            //         console.log("SUCCESS")
+            //         let jstring = JSON.stringify(response.data)
+            //         let info=JSON.parse(jstring)
+            //         console.log(info)
+            //         console.log(response)
+            //     }.bind(this)).catch(function(error){
+            //         console.log("ERROR")
+            //         console.log(error)
+            // })
         }               
     },
     mounted(){

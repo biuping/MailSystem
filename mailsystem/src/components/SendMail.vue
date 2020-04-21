@@ -1,8 +1,8 @@
 <template>
-    <div class="sendmail_frame" ref="main_frame">
+    <form class="sendmail_frame" ref="main_frame">
         
         <ul class="nav nav-pills">
-            <li role="presentation" class="left"><button type="button" class="btn btn-primary" @click="sendMail">发送</button></li>
+            <li role="presentation" class="left"><button type="submit" class="btn btn-primary" @click="sendMail($event)">发送</button></li>
             <li role="presentation" class="left"><button type="button" class="btn btn-info" @click="saveDraft">存草稿</button></li>
             <li role="presentation" class="right"><button type="button" class="btn btn-danger" @click="refresh">
                 <span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>
@@ -21,9 +21,9 @@
                                
             </div>
             <div class="form-group">
-                <input type="file" id="thisfile" ref="inputFile" style="display:none" @change="fileChange">
+                <input type="file" id="thisfile" ref="inputFile" style="display:none" @change="fileChange($event)">
                 <div id="uplode_group" class="uplode">
-                    <button class="btn btn-info mybtn" id="input_display" @click="uploadFile" >
+                    <button class="btn btn-info mybtn" id="input_display" @click="uploadFile" type="button">
                         <span class="glyphicon glyphicon-folder-open myspan" aria-hidden="true"></span>上传附件
                     </button>
                     
@@ -34,7 +34,7 @@
         </div>
 
         <!-- <span class="label label-primary">Primary</span> -->
-    </div>
+    </form>
 </template>
 <style scoped>
     .sendmail_frame{
@@ -113,21 +113,16 @@
 import savedraftutil from '../utils/saveDraftUtil'
 import Axios from 'axios'
 import Vue from 'vue'
-Axios.defaults.headers.post['Content-Type']='application/x-www-form-urlencoded'
-Axios.defaults.headers.get['Content-Type']='application/x-www-form-urlencoded'
-// Axios.defaults.transformRequest = [function (data) {
-//  let ret = ''
-//  for (let it in data) {
-//   ret += encodeURIComponent(it) + '=' + encodeURIComponent(data[it]) + '&'
-//  }
-//  return ret
-// }]
-Vue.prototype.$axios = Axios
+import qs from 'querystring'
+Axios.defaults.headers.post['Content-Type']='multipart/form-data'
+
+Vue.prototype.$http = Axios
 export default {
     data(){
         return {
             flag:false,
             fileName:'',
+            file:'',
             draftMail:{recipient:'',theme:'',attachment:Object,attachmentName:'',content:''}
         }
     },
@@ -138,6 +133,8 @@ export default {
         },
         fileChange:function(e){
             this.fileName=this.$refs.inputFile.files[0].name
+            this.file=e.target.files[0]
+            console.log(this.file)
         },
         refresh:function(){
             this.$router.go(0)
@@ -152,47 +149,29 @@ export default {
             this.refresh()
             alert('保存草稿成功')
         },
-        sendMail:function(){
-            const url = "http://127.0.0.1:8006/send_mail_with_attach"
+        sendMail:function(event){
+            event.preventDefault()
+            let formData = new FormData()
             let userid = savedraftutil.readData('userid')
-            // let data = {
-            //     "id":userid,
-            //     "attachment":this.$refs.inputFile.files[0],
-            //     "recver":this.draftMail.recipient,
-            //     "content":this.draftMail.content,
-            //     "theme":this.draftMail.theme
-            // }
-            this.$axios({
-                method:'post',
-                url:url,
-                data:{
-                "id":userid,
-                "attachment":this.$refs.inputFile.files[0],
-                "recver":this.draftMail.recipient,
-                "content":this.draftMail.content,
-                "theme":this.draftMail.theme
-                 },
-                transformRequest:{
-                    function(data){
-                        let ret=''
-                        for(let it in data){
-                            ret += encodeURIComponent(it)+'='+encodeURIComponent(data[it])+'&'
-                        }
-                        ret = ret.substring(0,ret.lastIndexOf('&'))
-                        return ret
-                    }
-                },
-                headers:{'Content-Type':'application/x-www-form-urlencoded'}
-            }).then(function(response){
-                    console.log("SUCCESS")
-                    let jstring = JSON.stringify(response.data)
-                    let info=JSON.parse(jstring)
-                    console.log(info)
-                    console.log(response)
-                }.bind(this)).catch(function(error){
-                    console.log("ERROR")
-                    console.log(error)
+            formData.append("id",userid)
+
+            formData.append("attachment",this.file)           
+            formData.append("recver",this.draftMail.recipient)
+            formData.append("content",this.draftMail.content)
+            formData.append("theme",this.draftMail.theme)
+            let config={
+                headers:{
+                    'Content-Type':'multipart/form-data'
+                }
+            }
+            const url = "http://127.0.0.1:8006/send_mail_with_attach"
+            this.$http.post(url,formData,config).then(function(res){
+                console.log(res)
+                if(res.status==200){
+                    console.log("success send")
+                }
             })
+
         }
        
 
