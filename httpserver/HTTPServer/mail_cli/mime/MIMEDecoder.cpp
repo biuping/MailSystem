@@ -46,7 +46,7 @@ void MIMEDecoder::decodeWord(const rstring& encoded, rstring& decoded)
 
 
 // 解码邮件体内容
-void MIMEDecoder::decodeMailBody(const rstring& encoded, const rstring& charset,
+void MIMEDecoder::decodeMailBody(const rstring& encoded, 
 	ContentTransferEncoding encoding, rstring& decoded)
 {
 	switch (encoding)
@@ -65,8 +65,6 @@ void MIMEDecoder::decodeMailBody(const rstring& encoded, const rstring& charset,
 		decoded = encoded;
 		break;
 	}
-
-	decoded = EncodeUtil::convert2UTF8(decoded, charset);
 }
 
 
@@ -155,6 +153,11 @@ void MIMEDecoder::base64Decode(const rstring& encoded, rstring& decoded)
 void MIMEDecoder::quotedPrintableDecode(const rstring& encoded, rstring& decoded, bool variant)
 {
 	EncodeUtil::quoted_printable_decode(encoded, decoded, variant);
+}
+
+const rstring MIMEDecoder::asUTF8(const rstring& bytes, const rstring& charset)
+{
+	return EncodeUtil::convert2UTF8(bytes, charset);
 }
 
 

@@ -19,12 +19,12 @@ class MIMEDecoder
 {
 public:
 	static void decodeWord(const rstring& encoded, rstring& decoded);
-	static void decodeMailBody(const rstring& encoded, const rstring& charset,
-		ContentTransferEncoding encoding, rstring& decoded);
+	static void decodeMailBody(const rstring& encoded, ContentTransferEncoding encoding, rstring& decoded);
 	static const rstring decode(const rstring& encoded, const rstring& charset, const rstring& encoding);
 	static void rfc2231Decode(const rstring& raw, str_kvlist& kvs);
 	static void base64Decode(const rstring& encoded, rstring& decoded);
 	static void quotedPrintableDecode(const rstring& encoded, rstring& decoded, bool variant);
+	static const rstring asUTF8(const rstring& bytes, const rstring& charset);
 private:
 	static const rstring encodedWordPattern;
 	static const rstring replacePattern;
