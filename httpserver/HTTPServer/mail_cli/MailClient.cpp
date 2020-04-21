@@ -349,8 +349,19 @@ const Json::Value MailClient::MailToJson(Mail* mail, size_t index)
 		header.from.name + " <" + header.from.addr + ">";
 	mailObj["theme"] = header.subject;
 	mailObj["order_id"] = index;
-	mailObj["content"] = mail->getFirstPlainTextMessage();
-	
+
+	// find a available text version
+	std::list<MessagePart*> textparts;
+	mail->getAllTextParts(textparts);
+	if (textparts.size() == 1) {
+		// 只有一个可用的文本部分
+		mailObj["content"] = (*(textparts.begin()))->getMessage();
+	}
+	else {
+		// 否则只使用普通文本
+		mailObj["content"] = mail->getFirstPlainTextMessage();
+	}
+
 	// 附件部分
 	mailObj["attachments"] = Json::Value(Json::ValueType::arrayValue);
 	std::list<MessagePart*> attachs;
