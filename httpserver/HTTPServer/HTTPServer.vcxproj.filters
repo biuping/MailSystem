@@ -1,234 +1,68 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;c++;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
-    </Filter>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
-    <Filter Include="Header Files\http_include">
-      <UniqueIdentifier>{30a3a0f1-54df-4365-9d0b-6ef6783a21aa}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\http_src">
-      <UniqueIdentifier>{4461f2de-3fe3-4cc5-8635-fed406c15e23}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\socket_include">
-      <UniqueIdentifier>{3d830faa-365d-4a56-8e04-fe1c11eede5c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\socket_src">
-      <UniqueIdentifier>{aad43a5a-9c56-48cf-b4c9-2559447ec802}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\tools_src">
-      <UniqueIdentifier>{f257eafa-5e90-4f72-bd73-6af64693f70c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\tools_include">
-      <UniqueIdentifier>{d19b943c-ff71-4d35-a0ce-180bcae228e7}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\mail_client_src">
-      <UniqueIdentifier>{3091043f-a5fa-4fc1-9e29-89aaec8183bb}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\mail_client_include">
-      <UniqueIdentifier>{9e311552-d7fc-43b1-9ce2-51a42dbd175b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\mail_client_src\pop3_src">
-      <UniqueIdentifier>{bf03365d-50ea-4eff-a06b-787e14da5ad3}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\mail_client_include\pop3_include">
-      <UniqueIdentifier>{2cd6dd06-56fc-466b-ae63-9eb3d5fba64d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\mail_client_include\smtp_include">
-      <UniqueIdentifier>{1c45976a-17f2-40fa-80f4-ee551ffcf061}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\mail_client_src\smtp_src">
-      <UniqueIdentifier>{edea0cba-c540-4e9a-8df4-fd462c41df03}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\mail_client_src\mime_src">
-      <UniqueIdentifier>{9e268d78-8712-4817-b712-f9b1f578f18d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\mail_client_include\mime_include">
-      <UniqueIdentifier>{cb689b98-1e9b-420b-8ae5-28cf03026646}</UniqueIdentifier>
-    </Filter>
+    <ClCompile Include="mail_cli\smtp\SMTPClient.cpp" />
+    <ClCompile Include="tests\huang_test\huang.cpp" />
+    <ClCompile Include="mail_cli\MessagePart.cpp" />
+    <ClCompile Include="tools\CharsetUtils.cpp" />
+    <ClCompile Include="http\client\HttpClient.cpp" />
+    <ClCompile Include="http\client\HttpRequest.cpp" />
+    <ClCompile Include="http\client\HttpResponse.cpp" />
+    <ClCompile Include="http\server\HttpServer.cpp" />
+    <ClCompile Include="http\server\HttpServerHandler.cpp" />
+    <ClCompile Include="http\socket\HttpSocket.cpp" />
+    <ClCompile Include="mail_cli\Mail.cpp" />
+    <ClCompile Include="mail_cli\MailClient.cpp" />
+    <ClCompile Include="mail_cli\MailReceiver.cpp" />
+    <ClCompile Include="mail_cli\MailSender.cpp" />
+    <ClCompile Include="mail_cli\pop3\POP3Client.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="mail_cli\mime\MIMEParser.cpp" />
+    <ClCompile Include="mail_cli\mime\MIMEDecoder.cpp" />
+    <ClCompile Include="socket\TCPClientSocket.cpp" />
+    <ClCompile Include="http\static\Tools.cpp" />
+    <ClCompile Include="tests\mao_test\mao.cpp" />
+    <ClCompile Include="tests\zhang_test\zhang.cpp" />
+    <ClCompile Include="tools\EncodeUtils.cpp" />
+    <ClCompile Include="tools\GeneralUtils.cpp" />
+    <ClCompile Include="tools\LogUtils.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="mail_cli\Mail.cpp">
-      <Filter>Source Files\mail_client_src</Filter>
-    </ClCompile>
-    <ClCompile Include="mail_cli\MailClient.cpp">
-      <Filter>Source Files\mail_client_src</Filter>
-    </ClCompile>
-    <ClCompile Include="mail_cli\MailReceiver.cpp">
-      <Filter>Source Files\mail_client_src</Filter>
-    </ClCompile>
-    <ClCompile Include="mail_cli\MailSender.cpp">
-      <Filter>Source Files\mail_client_src</Filter>
-    </ClCompile>
-    <ClCompile Include="socket\TCPClientSocket.cpp">
-      <Filter>Source Files\socket_src</Filter>
-    </ClCompile>
-    <ClCompile Include="tools\EncodeUtils.cpp">
-      <Filter>Source Files\tools_src</Filter>
-    </ClCompile>
-    <ClCompile Include="mail_cli\pop3\POP3Client.cpp">
-      <Filter>Source Files\mail_client_src\pop3_src</Filter>
-    </ClCompile>
-    <ClCompile Include="http\static\Tools.cpp">
-      <Filter>Source Files\http_src</Filter>
-    </ClCompile>
-    <ClCompile Include="http\client\HttpClient.cpp">
-      <Filter>Source Files\http_src</Filter>
-    </ClCompile>
-    <ClCompile Include="http\client\HttpRequest.cpp">
-      <Filter>Source Files\http_src</Filter>
-    </ClCompile>
-    <ClCompile Include="http\client\HttpResponse.cpp">
-      <Filter>Source Files\http_src</Filter>
-    </ClCompile>
-    <ClCompile Include="http\server\HttpServerHandler.cpp">
-      <Filter>Source Files\http_src</Filter>
-    </ClCompile>
-    <ClCompile Include="http\server\HttpServer.cpp">
-      <Filter>Source Files\http_src</Filter>
-    </ClCompile>
-    <ClCompile Include="http\socket\HttpSocket.cpp">
-      <Filter>Source Files\http_src</Filter>
-    </ClCompile>
-    <ClCompile Include="main.cpp">
-      <Filter>Source Files\http_src</Filter>
-    </ClCompile>
-    <ClCompile Include="tools\LogUtils.cpp">
-      <Filter>Source Files\tools_src</Filter>
-    </ClCompile>
-    <ClCompile Include="tests\zhang_test\zhang.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="tests\mao_test\mao.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="tools\CharsetUtils.cpp">
-      <Filter>Source Files\tools_src</Filter>
-    </ClCompile>
-    <ClCompile Include="tools\GeneralUtils.cpp">
-      <Filter>Source Files\tools_src</Filter>
-    </ClCompile>
-    <ClCompile Include="mail_cli\mime\MIMEDecoder.cpp">
-      <Filter>Source Files\mail_client_src\mime_src</Filter>
-    </ClCompile>
-    <ClCompile Include="mail_cli\mime\MIMEParser.cpp">
-      <Filter>Source Files\mail_client_src\mime_src</Filter>
-    </ClCompile>
-    <ClCompile Include="mail_cli\smtp\SMTPClient.cpp">
-      <Filter>Source Files\mail_client_src\smtp_src</Filter>
-    </ClCompile>
-    <ClCompile Include="tests\huang_test\huang.cpp">
-      <Filter>Source Files</Filter>
-    <ClCompile Include="mail_cli\MessagePart.cpp">
-      <Filter>Source Files\mail_client_src</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="tools\EncodeUtils.h">
-      <Filter>Header Files\tools_include</Filter>
-    </ClInclude>
-    <ClInclude Include="socket\TCPClientSocket.h">
-      <Filter>Header Files\socket_include</Filter>
-    </ClInclude>
-    <ClInclude Include="mail_cli\pop3\POP3Client.h">
-      <Filter>Header Files\mail_client_include\pop3_include</Filter>
-    </ClInclude>
-    <ClInclude Include="mail_cli\Mail.h">
-      <Filter>Header Files\mail_client_include</Filter>
-    </ClInclude>
-    <ClInclude Include="mail_cli\MailClient.h">
-      <Filter>Header Files\mail_client_include</Filter>
-    </ClInclude>
-    <ClInclude Include="mail_cli\MailReceiver.h">
-      <Filter>Header Files\mail_client_include</Filter>
-    </ClInclude>
-    <ClInclude Include="mail_cli\MailSender.h">
-      <Filter>Header Files\mail_client_include</Filter>
-    </ClInclude>
-    <ClInclude Include="http\static\Tools.h">
-      <Filter>Header Files\http_include</Filter>
-    </ClInclude>
-    <ClInclude Include="http\static\config.h">
-      <Filter>Header Files\http_include</Filter>
-    </ClInclude>
-    <ClInclude Include="http\static\http_const.h">
-      <Filter>Header Files\http_include</Filter>
-    </ClInclude>
-    <ClInclude Include="http\client\HttpClient.h">
-      <Filter>Header Files\http_include</Filter>
-    </ClInclude>
-    <ClInclude Include="http\client\HttpRequest.h">
-      <Filter>Header Files\http_include</Filter>
-    </ClInclude>
-    <ClInclude Include="http\client\HttpResponse.h">
-      <Filter>Header Files\http_include</Filter>
-    </ClInclude>
-    <ClInclude Include="http\server\HttpServer.h">
-      <Filter>Header Files\http_include</Filter>
-    </ClInclude>
-    <ClInclude Include="http\server\HttpServerHandler.h">
-      <Filter>Header Files\http_include</Filter>
-    </ClInclude>
-    <ClInclude Include="http\socket\HttpSocket.h">
-      <Filter>Header Files\http_include</Filter>
-    </ClInclude>
-    <ClInclude Include="tests\test.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="tests\mao_test\mao.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="tools\LogUtils.h">
-      <Filter>Header Files\tools_include</Filter>
-    </ClInclude>
-    <ClInclude Include="tests\zhang_test\zhang.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="tools\CharsetUtils.h">
-      <Filter>Header Files\tools_include</Filter>
-    </ClInclude>
-    <ClInclude Include="tools\GeneralUtils.h">
-      <Filter>Header Files\tools_include</Filter>
-    </ClInclude>
-    <ClInclude Include="mail_cli\mime\MIMEDecoder.h">
-      <Filter>Header Files\mail_client_include\mime_include</Filter>
-    </ClInclude>
-    <ClInclude Include="mail_cli\mime\MIMEParser.h">
-      <Filter>Header Files\mail_client_include\mime_include</Filter>
-    </ClInclude>
-    <ClInclude Include="mail_cli\smtp\SMTPClient.h">
-      <Filter>Header Files\mail_client_include\smtp_include</Filter>
-    </ClInclude>
-    <ClInclude Include="http\static\MultipartParser.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="http\static\MultipartReader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="http\static\MultipartRecord.h">
-      <Filter>Header Files</Filter>
-    <ClInclude Include="tests\my.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="tests\huang_test\huang.h">
-      <Filter>Header Files</Filter>
-    <ClInclude Include="mail_cli\MessagePart.h">
-      <Filter>Header Files\mail_client_include</Filter>
-    </ClInclude>
-    <ClInclude Include="mail_cli\ContentTypes.h">
-      <Filter>Header Files\mail_client_include</Filter>
-    </ClInclude>
+    <ClInclude Include="http\static\MultipartParser.h" />
+    <ClInclude Include="http\static\MultipartReader.h" />
+    <ClInclude Include="http\static\MultipartRecord.h" />
+    <ClInclude Include="mail_cli\ContentTypes.h" />
+    <ClInclude Include="mail_cli\smtp\SMTPClient.h" />
+    <ClInclude Include="tests\huang_test\huang.h" />
+    <ClInclude Include="tests\my.h" />
+    <ClInclude Include="mail_cli\MessagePart.h" />
+    <ClInclude Include="tools\CharsetUtils.h" />
+    <ClInclude Include="http\static\config.h" />
+    <ClInclude Include="http\client\HttpClient.h" />
+    <ClInclude Include="http\client\HttpRequest.h" />
+    <ClInclude Include="http\client\HttpResponse.h" />
+    <ClInclude Include="http\server\HttpServer.h" />
+    <ClInclude Include="http\server\HttpServerHandler.h" />
+    <ClInclude Include="http\socket\HttpSocket.h" />
+    <ClInclude Include="http\static\http_const.h" />
+    <ClInclude Include="mail_cli\Mail.h" />
+    <ClInclude Include="mail_cli\MailClient.h" />
+    <ClInclude Include="mail_cli\MailReceiver.h" />
+    <ClInclude Include="mail_cli\MailSender.h" />
+    <ClInclude Include="mail_cli\pop3\POP3Client.h" />
+    <ClInclude Include="mail_cli\mime\MIMEParser.h" />
+    <ClInclude Include="mail_cli\mime\MIMEDecoder.h" />
+    <ClInclude Include="tests\mao_test\mao.h" />
+    <ClInclude Include="tests\test.h" />
+    <ClInclude Include="socket\TCPClientSocket.h" />
+    <ClInclude Include="http\static\Tools.h" />
+    <ClInclude Include="tests\zhang_test\zhang.h" />
+    <ClInclude Include="tools\GeneralUtils.h" />
+    <ClInclude Include="tools\LogUtils.h" />
+    <ClInclude Include="tools\EncodeUtils.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="ClassDiagram.cd" />
   </ItemGroup>
 </Project>

@@ -8,10 +8,15 @@
 #include "..\..\mail_cli\pop3\POP3Client.h"
 #include "..\..\mail_cli\smtp\SMTPClient.h"
 #include "..\..\tests\my.h"
-#ifndef MAO_TEST
+
+#ifdef _DEBUG
+#ifndef  MAO_TEST
 #define TEST_MAIL_ADDR ""
 #define TEST_MAIL_PASSWD ""
 #endif // !MAO_TEST
+#endif // _DEBUG
+
+
 
 
 //存储用户信息

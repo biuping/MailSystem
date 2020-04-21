@@ -5,8 +5,13 @@ HttpServerHandler::HttpServerHandler()
 {
 	m_client = nullptr;
 	m_readbuff = nullptr;
-	UserInfo* info=new UserInfo(TEST_MAIL_ADDR, TEST_MAIL_PASSWD);
+
+#ifdef _DEBUG
+	UserInfo* info = new UserInfo(TEST_MAIL_ADDR, TEST_MAIL_PASSWD);
 	userStore["1"] = info;
+#endif // DEBUG
+
+	
 }
 
 HttpServerHandler::HttpServerHandler(HttpClient* client) :
@@ -344,6 +349,17 @@ void HttpServerHandler::DownloadAttach(HttpResponse* response)
 	const int attachIndex = m_object["attach_index"].asInt();
 	
 	const Json::Value& root = client.DownloadAttach(mailId, attachIndex);
+	bool success = root["success"].asBool();
+	//不成功
+	if (!success) {
+		rstring res;
+		Tools::json_write(root, res);
+		response->build_ok();
+		response->build_body(res);
+		response->add_head(HTTP_HEAD_CONTENT_TYPE, HTTP_HEAD_JSON_TYPE);
+		return;
+	}
+	//成功--下载
 	const rstring& filename = root["filename"].asString();
 	const rstring& content_type = root["content-type"].asString();
 	const rstring& content = root["content"].asString();

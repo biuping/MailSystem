@@ -350,7 +350,7 @@ int SMTPClient::SendAttachment_Ex()
             string subContent = contents.substr(MAX_FILE_LEN * index, MAX_FILE_LEN * (index + 1));
             /*文件使用base64加密传送*/
             memcpy(fileBuff, subContent.c_str(), MAX_FILE_LEN);
-            fileBuff[MAX_FILE_LEN] = '\0';
+            //fileBuff[MAX_FILE_LEN] = '\0';
             chSendBuff = base64Encode(fileBuff, MAX_FILE_LEN);
             chSendBuff[strlen(chSendBuff)] = '\r';
             chSendBuff[strlen(chSendBuff)] = '\n';
