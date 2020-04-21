@@ -18,13 +18,11 @@ void start_huang()
 	string a = "";
 	bool aaa = mcli->Login("2017302580306@whu.edu.cn", "wdrs14569", a);
 
-	/*msd->SetContent("aa");
-	msd->SetEmailTitle("测试");
-	msd->SetTargetEmail("calvin_huang1@qq.com");*/
 	vector<Attachment>aa;
-	Attachment attahs = Attachment("application/octet-stream", "hello.docx", "道可道");
+	Attachment attahs = Attachment("application/octet-stream", "hello.txt", "道可道");
 	aa.push_back(attahs);
-	mcli->SendMail("1092949763@qq.com", "测试", "附件及多目标发送测试", aa);
+
+	mcli->SendMail("zhangjiaji@whu.edu.cn 1092949763@qq.com", "测试", "附件及多目标发送测试", aa);
 	int aaaaaa = 0;
 	//	25,                             /*smtp端口*/
 	//	"smtp.whu.edu.cn",                 /*smtp服务器地址*/

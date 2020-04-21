@@ -340,30 +340,35 @@ int SMTPClient::SendAttachment_Ex()
         Send(sendBuff);
 
         char fileBuff[MAX_FILE_LEN];
+       
         char* chSendBuff;
         memset(fileBuff, 0, sizeof(fileBuff));
+
         int allLength = Attachments[i].content.size()/ MAX_FILE_LEN;
+   
         string contents = Attachments[i].content;
-        int index = 0;
-        while (index<allLength)
+      //  std::ifstream ifs("C:\\Users\\hjx\\Desktop\\test.docx", std::ios::in | std::ios::binary);
+       // ifs.read(fileBu, MAX_FILE_LEN);
+        //string contents = fileBu;
+
+        if(Attachments[i].content.size() <=MAX_FILE_LEN)
         {
-            string subContent = contents.substr(MAX_FILE_LEN * index, MAX_FILE_LEN * (index + 1));
             /*文件使用base64加密传送*/
-            memcpy(fileBuff, subContent.c_str(), MAX_FILE_LEN);
-            fileBuff[MAX_FILE_LEN] = '\0';
-            chSendBuff = base64Encode(fileBuff, MAX_FILE_LEN);
+            memcpy(fileBuff, contents.c_str(), contents.size());
+            chSendBuff = base64Encode(fileBuff, contents.size());
             chSendBuff[strlen(chSendBuff)] = '\r';
             chSendBuff[strlen(chSendBuff)] = '\n';
-            send(sockClient, chSendBuff, strlen(chSendBuff), 0);
+            int err= send(sockClient, chSendBuff, strlen(chSendBuff), 0);
+            if (err != strlen(chSendBuff))
+            {
+                return 1;
+            }
             delete[]chSendBuff;
-            index++;
         }
         
-        string subContent = contents.substr(MAX_FILE_LEN * index, contents.size());
-        /*文件使用base64加密传送*/
-        memcpy(fileBuff, subContent.c_str(), subContent.size());
-        fileBuff[subContent.size()] = '\0';
-        chSendBuff = base64Encode(fileBuff, Attachments[i].content.size());
+     
+       /* chSendBuff = base64Encode(fileBuff, contents.size());
+      
         chSendBuff[strlen(chSendBuff)] = '\r';
         int counts = strlen(chSendBuff);
         chSendBuff[strlen(chSendBuff)] = '\n';
@@ -372,7 +377,7 @@ int SMTPClient::SendAttachment_Ex()
         {
             return 1;
         }
-        delete[]chSendBuff;
+        delete[]chSendBuff;*/
     }
     return 0;
 }
