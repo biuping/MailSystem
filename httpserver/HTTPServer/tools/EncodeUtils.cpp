@@ -132,7 +132,7 @@ void EncodeUtil::quoted_printable_decode(const rstring& encoded, rstring& decode
                 decoded.append(std::to_string((char)0x20));
             }
             else {
-                decoded.append(std::to_string(encoded[i]));
+                decoded.append(1, encoded[i]);
             }
         }
     }
@@ -143,36 +143,36 @@ void EncodeUtil::quoted_printable_decode(const rstring& encoded, rstring& decode
 // charset: 字符集
 const rstring EncodeUtil::convert2UTF8(const rstring& bytes, const rstring& charset)
 {
+    // 去除结尾 \0 ，再转为utf8，否则结尾会出现方框
+    rstring cleaned = CharsetUtil::StripAnsiEndingZero(bytes);
+
     // TODO: 可以继续完善
     if (GeneralUtil::strEquals(charset.c_str(), "binary", true) ||
         GeneralUtil::strEquals(charset.c_str(), "US-ASCII", true) ||
         GeneralUtil::strStartWith(charset.c_str(), "iso-8859-", true) ||
         GeneralUtil::strEquals(charset.c_str(), "ANSI", true)) {
         // ascii
-        // 去除结尾 \0，再进行字符集转换
-        return CharsetUtil::AnsiToUtf8(CharsetUtil::StripAnsiEndingZero(bytes));
+        return CharsetUtil::AnsiToUtf8(cleaned);
     }
     else if (GeneralUtil::strEquals(charset.c_str(), "UTF-8", true)) {
         // utf8
-        return bytes;
+        return cleaned;
     }
     else if (GeneralUtil::strEquals(charset.c_str(), "BIG5", true)) {
-        return CharsetUtil::FBIG5ToGB2312(bytes);
+        return CharsetUtil::FBIG5ToGB2312(cleaned);
     }
     else if (GeneralUtil::strEquals(charset.c_str(), "gb2312", true) ||
         GeneralUtil::strEquals(charset.c_str(), "GBK", true)) {
         // gb2312 和 gbk
-        // 去除结尾 \0，再进行字符集转换
-        return CharsetUtil::GBKToUtf8(CharsetUtil::StripAnsiEndingZero(bytes));
+        return CharsetUtil::GBKToUtf8(cleaned);
     }
     else if (GeneralUtil::strStartWith(charset.c_str(), "gb", true)) {
         // 其他 gb 规范，目前采用 GBK 尝试转换
-        // 去除结尾 \0，再进行字符集转换
-        return CharsetUtil::GBKToUtf8(CharsetUtil::StripAnsiEndingZero(bytes));
+        return CharsetUtil::GBKToUtf8(cleaned);
     }
     else {
         // 默认按 ansi 方式处理
-        return CharsetUtil::AnsiToUtf8(CharsetUtil::StripAnsiEndingZero(bytes));
+        return CharsetUtil::AnsiToUtf8(cleaned);
     }
 }
 

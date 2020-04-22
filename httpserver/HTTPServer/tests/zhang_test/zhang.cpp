@@ -95,6 +95,11 @@ void decode_test()
 	decoded = "";
 	MIMEDecoder::decodeWord(encoded, decoded);
 	LogUtil::report(decoded);
+
+	encoded = "=?UTF-8?B?cGFpemHpgYvllrbkuovli5nlsYA=?=";
+	decoded = "";
+	MIMEDecoder::decodeWord(encoded, decoded);
+	LogUtil::report(decoded);
 }
 
 

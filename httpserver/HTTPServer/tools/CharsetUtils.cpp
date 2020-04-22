@@ -130,7 +130,7 @@ bool CharsetUtil::IsUTF8(const void* pBuffer, long size)
     return isUTF8;
 }
 
-rstring CharsetUtil::StripAnsiEndingZero(const rstring& ansi)
+const rstring CharsetUtil::StripAnsiEndingZero(const rstring& ansi)
 {
     char removes[1] = { 0 };
     rstring bytes = ansi;

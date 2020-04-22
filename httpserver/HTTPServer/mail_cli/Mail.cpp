@@ -91,7 +91,8 @@ const rstring Mail::getFirstPlainTextMessage()
 {
 	const rstring media = "text/plain";
 
-	if (mHeader.content_type.media.compare(media) == 0) {
+	if (mHeader.content_type.media.size() == 0 ||
+		mHeader.content_type.media.compare(media) == 0) {
 		return mBody.message;
 	}
 

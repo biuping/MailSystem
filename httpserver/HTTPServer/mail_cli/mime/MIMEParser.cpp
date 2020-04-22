@@ -782,6 +782,8 @@ void MIMEParser::cleanBody(rstring& rawbody)
 
 		sz += lineEnd;
 	}
+
+	rawbody = cleaned;
 }
 
 void MIMEParser::extractParts(const str_citer& begin, const str_citer& end,
