@@ -1,5 +1,6 @@
 #include "CharsetUtils.h"
 #include <Windows.h>
+#include "GeneralUtils.h"
 
 
 // 效果等同于 wstring to string
@@ -127,6 +128,14 @@ bool CharsetUtil::IsUTF8(const void* pBuffer, long size)
     }
 
     return isUTF8;
+}
+
+rstring CharsetUtil::StripAnsiEndingZero(const rstring& ansi)
+{
+    char removes[1] = { 0 };
+    rstring bytes = ansi;
+    GeneralUtil::strStripCharsInEnding(bytes, rstring(removes, 1));
+    return bytes;
 }
 
 

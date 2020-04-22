@@ -24,6 +24,7 @@ namespace GeneralUtil {
 	size_t strFindLineEnd(const str_citer& begin, const str_citer& end);
 	size_t strSkipWhiteSpaces(const str_citer& begin, const str_citer& end);
 	size_t strStripCharsIn(rstring& str, const rstring& chars);
+	size_t strStripCharsInEnding(rstring& str, const rstring& strips);
 	bool strEquals(const rstring& str1, const rstring& str2, bool caseIgnore = false);
 
 	static const char* whitespaces = " \f\v\t\r\n";

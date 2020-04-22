@@ -15,9 +15,9 @@ void start_zhang()
 	//pop3_test();
 	//utility_test();
 	//string_test();
-	//decode_test();
+	decode_test();
 	//charset_test();
-	mailcli_test();
+	//mailcli_test();
 }
 
 
@@ -54,6 +54,14 @@ void utility_test()
 	LogUtil::report(test);
 	GeneralUtil::strStripCharsIn(test, " \t");
 	LogUtil::report(test);
+
+	test = "aaaccd";
+	test[5] = '\0';
+	test[4] = '\0';
+	rstring chars = "ce1";
+	chars[2] = '\0';
+	GeneralUtil::strStripCharsInEnding(test, chars);
+	LogUtil::report(test);
 }
 
 
@@ -81,6 +89,11 @@ void decode_test()
 	rstring encoded = "=CE=D2=C8=A5";
 	rstring decoded = "";
 	MIMEDecoder::quotedPrintableDecode(encoded, decoded, true);
+	LogUtil::report(decoded);
+
+	encoded = "=?gb18030?B?suLK1M7EvP4=?=";
+	decoded = "";
+	MIMEDecoder::decodeWord(encoded, decoded);
 	LogUtil::report(decoded);
 }
 

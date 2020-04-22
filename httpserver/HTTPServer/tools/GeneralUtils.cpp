@@ -183,6 +183,9 @@ size_t GeneralUtil::strSkipWhiteSpaces(const str_citer& begin, const str_citer& 
 	return tot;
 }
 
+// 去除字符串中的某些字符
+// str: 被修改的字符串
+// char: 要去除的字符集合
 size_t GeneralUtil::strStripCharsIn(rstring& str, const rstring& chars)
 {
 	size_t k = 0;
@@ -199,6 +202,21 @@ size_t GeneralUtil::strStripCharsIn(rstring& str, const rstring& chars)
 	str.erase(str.size() - k);
 
 	return k;
+}
+
+// 去除字符串结尾的某些字符
+// str: 被修改的字符串
+// strips: 要去除的字符的集合
+size_t GeneralUtil::strStripCharsInEnding(rstring& str, const rstring& strips)
+{
+	size_t pos = str.find_last_not_of(strips);
+	if (pos != rstring::npos && pos < str.size()-1) {
+		size_t stripLen = str.size() - 1 - pos;
+		str.erase(pos + 1);
+		return stripLen;
+	}
+
+	return 0;
 }
 
 bool GeneralUtil::strEquals(const rstring& str1, const rstring& str2, bool caseIgnore)

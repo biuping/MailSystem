@@ -181,9 +181,11 @@ const rstring MailClient::RecvMail()
 
 			// 检查邮件数量是否过多
 			size_t i = 0;
+			size_t total = mails.size();
 			if (mails.size() > MAX_RECVMAIL_NUMBER) {
 				// 邮件数量超过上限，从最新的开始取
 				i = mails.size() - MAX_RECVMAIL_NUMBER;
+				total = MAX_RECVMAIL_NUMBER;
 				description += std::to_string(mails.size()) +
 					" mails (too many) in the mailbox, only latest " +
 					std::to_string(MAX_RECVMAIL_NUMBER) + " are collected\n";
@@ -203,10 +205,10 @@ const rstring MailClient::RecvMail()
 				}
 			}
 
-			description += "Total :" + std::to_string(mails.size()) +
-				", success: " + std::to_string(mails.size() - failedCount) +
+			description += "Total :" + std::to_string(total) +
+				", success: " + std::to_string(total - failedCount) +
 				", failed: " + std::to_string(failedCount);
-			if (failedCount >= mails.size() || failedCount >= MAX_RECVMAIL_NUMBER) {
+			if (failedCount >= total) {
 				success = false;
 			}
 
@@ -319,12 +321,12 @@ const Json::Value MailClient::DownloadAttach(const rstring& mailId, const int at
 			else {
 				success = false;
 				description = "Cannot find attachment " +
-					std::to_string(attachIndex) + " on mail " + mailId;
+					std::to_string(attachIndex) + " on mail '" + mailId + "'";
 			}
 		}
 		else {
 			success = false;
-			description = "Cannot retreive the mail " + mailId;
+			description = "Cannot retreive the mail '" + mailId + "'";
 		}
 
 		delete mail;
