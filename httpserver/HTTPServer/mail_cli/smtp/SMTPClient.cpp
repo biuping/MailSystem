@@ -308,8 +308,8 @@ bool SMTPClient::SendTextBody()
 {
     std::string sendBuff;
     sendBuff = "--qwertyuiop\r\n";
-    sendBuff += "Content-Type: text/plain;";
-    sendBuff += "charset=\"gb18030\"\r\n";
+    sendBuff += "Content-Type: text/html;";
+    sendBuff += "\r\n\tcharset=\"utf-8\"\r\n";
     sendBuff += "Content-Transfer-Encoding: base64 \r\n\r\n";
     sendBuff += base64Encode(content.data(),content.size());
     sendBuff += "\r\n\r\n";
@@ -323,10 +323,12 @@ int SMTPClient::SendAttachment_Ex()
     {
         std::string sendBuff;
         sendBuff = "--qwertyuiop\r\n";
-        sendBuff += "Content-Type: ";
-        sendBuff += Attachments[i].content_type;
-        sendBuff += ";\r\n";
-        sendBuff += "charset=\"utf-8\"\r\n";
+  
+        sendBuff += "Content-Type:application/octet-stream;";
+        sendBuff += "\r\n\tcharset=\"utf-8\"\r\n";
+        //sendBuff += Attachments[i].content_type;
+      //  sendBuff += ";\r\n";
+       // sendBuff += "charset=\"utf-8\"\r\n";
         sendBuff += " name=\"";
 
         sendBuff += Attachments[i].file_name;

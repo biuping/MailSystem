@@ -103,7 +103,13 @@ rstring MailClient::SendMail(const rstring& targetAddr,const rstring& theme,cons
 		return "";
 	}
 	for (int i = 0; i < attachments.size(); i++)
-		mSender->AddAttachment(attachments[i]);
+	{
+		if (attachments[i].content_type != "")
+		{
+			mSender->AddAttachment(attachments[i]);
+		}
+	}
+		
 	int num = mSender->SendEmail_Ex(targetAddr,theme,content);
 	switch (num)
 	{
