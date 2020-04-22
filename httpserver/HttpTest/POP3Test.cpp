@@ -108,7 +108,8 @@ namespace POP3Testing
 
 		TEST_METHOD(TEST_STAT)
 		{
-			size_t mailnum = 0, totsize = 0;
+			size_t mailnum = 0;
+			unsigned long long totsize = 0;
 			Assert::IsTrue(popcli->getStatus(mailnum, totsize));
 			Assert::IsTrue(mailnum == 4);
 			Assert::IsTrue(totsize > 0);
