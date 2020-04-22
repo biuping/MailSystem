@@ -47,7 +47,7 @@ int HttpResponse::del_head(const rstring& name)
 
 int HttpResponse::set_body(const char* body, size_t bodylen)
 {
-	if (body == nullptr || bodylen == 0x00 || bodylen > BODY_MAXSIZE)
+	if (body == nullptr || bodylen == 0x00)
 		return -1;
 
 	char* buff = new char[bodylen];

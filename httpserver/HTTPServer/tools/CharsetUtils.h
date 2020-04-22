@@ -33,6 +33,7 @@ namespace CharsetUtil
     const rstring  GB2312ToFBIG5(const rstring gb2312);
 
     bool IsUTF8(const void* pBuffer, long size);
+    rstring StripAnsiEndingZero(const rstring& ansi);
 
     /* show hex utilities */
     void showHex(const char* bytes, int len);

@@ -1,7 +1,7 @@
 ﻿<template>
     
     <div id="login-group">
-        <div action="">
+        <div>
             <transition enter-active-class="fadeInDown" :="{enter:400}">
                 <div class="headline animated" v-if="flag" >樱花邮箱</div>
             </transition>
@@ -28,6 +28,7 @@
             </transition>     
             
         </div>
+        <img src="../../static/img/login.gif" class="wait" v-if="wait">
         <div class="bg" ></div>
         
     </div>
@@ -55,6 +56,17 @@
         animation-fill-mode:forwards;
         border-radius: 15px;
         z-index: -1;
+    }
+    .wait{
+        position: absolute;
+        top: 45%;
+        left: 45%;
+        width: 40px;
+        height: 40px;
+        margin:0;
+        transform: translate3d(-25%, -25%, 0);
+
+        z-index: 3;
     }
     .account-group,.pwd-group{
         position: relative;
@@ -113,6 +125,7 @@
         data(){
             return{
                 flag:false,
+                wait:false,
                 logininfo:{account:'',password:''}                               
             }
         },
@@ -121,7 +134,8 @@
                 this.flag=!this.flag
             },
             login:function(){
-                // TODO 登录请求
+                this.wait=true // wait animation
+                // 登录请求
                 if(this.logininfo.account==''){
                     alert('用户名不能为空')
                 }else if(this.logininfo.password==''){
@@ -133,11 +147,6 @@
                             "email_address":this.logininfo.account,
                             "password":this.logininfo.password
                         })
-                    // this.$axios.post(url,data,{
-                    //     headers:{'Content-Type':'application/json'}
-                    // }).then(res=>{
-                    //     console.log(res)
-                    // })
                     this.$axios({
                         url:url,
                         method:'post',                      
@@ -150,21 +159,16 @@
                         let mes = JSON.parse(jstring)
                         let idstring = mes.id
                         saveutil.saveId('userid',idstring)
-                        console.log(mes.id)
-                        console.log(response)
                         this.$router.push({path:'/mainpage'})
 
                     }.bind(this)).catch(function(error){
                         console.log(error)
                     })
                 }
-            },
-            jumpto:function(){
-                this.$router.push({path:'/mainpage',params:{account:this.account}})
             }
         },
         mounted(){
-            
+            this.wait=false
             this.flag=true
         }
     }

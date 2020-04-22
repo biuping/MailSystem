@@ -1,7 +1,8 @@
 <template>
     <div class="mail_frame animated" ref="main_frame">
         <div class="mailbox" v-if="flag">
-            <ul class="mail_list">
+            <img class="wait" src="../../static/img/wait.gif" v-if="wait">
+            <ul class="mail_list" v-if="!wait">
                 <transition-group >
 					
                     <li v-for="(mail,index) in maillistSorted" :key="mail.order_id" class="animated">
@@ -24,8 +25,8 @@
                 </transition-group>
                 
             </ul>
-            <button type="button" class="btn btn-primary btn_checkall" @click="checkAll" ref="checkbtn">全选</button>
-            <button type="button" class="btn btn-danger btn_delete" @click="deleteMail">
+            <button type="button" class="btn btn-primary btn_checkall" @click="checkAll" ref="checkbtn" v-if="!wait">全选</button>
+            <button type="button" class="btn btn-danger btn_delete" @click="deleteMail" v-if="!wait">
                 <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
             </button>
             
@@ -68,6 +69,15 @@
         height: 90%;
         width: 100%;
         padding: 0%;
+    }
+    .wait{
+        position: relative;
+        top: 40%;
+        left: 45%;
+        margin:0;
+        transform: translate3d(-25%, -25%, 0);
+
+        z-index: 3;
     }
     .singleMail{
         position: relative;
@@ -160,6 +170,7 @@ export default {
             maillist:[],
             allchecked:false,   //是否全选判断
             childFlag:false,
+            wait:true,
 			choosedMailindex:0,
             checkModel:[]       //双向绑定选取的数组
         }
@@ -292,6 +303,7 @@ export default {
                 console.log("SUCCESS")
                 let jstring = JSON.stringify(response.data)
                 this.maillist=JSON.parse(jstring).mails
+                this.wait=false
                 console.log(this.maillist)
                 console.log(response)
 

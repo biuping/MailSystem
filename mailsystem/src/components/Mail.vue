@@ -18,11 +18,6 @@
 						{{value.name}}  {{transform(value.size)}}
 					</li>
 				</ul>
-		         <!-- <button class="btn btn-info mybtn" id="input_display" >
-		             <span class="glyphicon glyphicon-save myspan" aria-hidden="true"></span>下载附件
-		         </button> -->
-		         
-		         <!-- <input type="text" name="" id="filePath" disabled > -->
 		     </div>
 		     <textarea class="form-control" rows="22" readonly="" v-model="mail.content"></textarea>
 		</div>
@@ -216,24 +211,31 @@ export default {
 				"mailId":this.mail.mail_id,
 				"attach_index":index
 			})
+			console.log(data)
 			self.$axios({
 				method:"post",
 				url:url,
 				data:data,
+				headers:{'Content-Type':'application/json'},
 				responseType:"blob"
 			}).then(
 				function(response){
-					data=response.data
-					// 创建一个a标签进行下载，但是不会跳转
-					let url = window.URL.createObjectURL(new Blob([data]))
-					let link = document.createElement("a")
-					link.style.display="none"
-					link.href=url
-					link.setAttribute("download",fileName)
-					document.body.appendChild(link)
-					link.click()
+					if(response.status==200){
+						console.log('download')
+						let res=response.data
+						//创建一个a标签进行下载，但是不会跳转
+						let url = window.URL.createObjectURL(new Blob([res]))
+						let link = document.createElement("a")
+						link.style.display="none"
+						link.href=url
+						link.setAttribute("download",fileName)
+						document.body.appendChild(link)
+						link.click()
+					}					
+
 				}
 			).catch(function(err){
+				alert('网络连接错误')
 				console.log(err)
 			})
 		},

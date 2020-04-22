@@ -37,7 +37,12 @@ const char* EncodeUtil::base64_encode(const unsigned char* text, size_t size, ch
         }
 
         text += 3;
-        size -= 3;
+        if (size >= 3) {
+            size -= 3;
+        }
+        else {
+            size = 0;
+        }
         buflen += 4;
     }
     *buf = 0;
@@ -117,6 +122,7 @@ void EncodeUtil::quoted_printable_decode(const rstring& encoded, rstring& decode
             // 解码 qp
             rstring qp = encoded.substr(i, 3);
             EncodeUtil::decodeEqual(qp);
+            decoded.append(qp);
             i += 2;
         }
         else {
@@ -143,7 +149,8 @@ const rstring EncodeUtil::convert2UTF8(const rstring& bytes, const rstring& char
         GeneralUtil::strStartWith(charset.c_str(), "iso-8859-", true) ||
         GeneralUtil::strEquals(charset.c_str(), "ANSI", true)) {
         // ascii
-        return CharsetUtil::AnsiToUtf8(bytes);
+        // 去除结尾 \0，再进行字符集转换
+        return CharsetUtil::AnsiToUtf8(CharsetUtil::StripAnsiEndingZero(bytes));
     }
     else if (GeneralUtil::strEquals(charset.c_str(), "UTF-8", true)) {
         // utf8
@@ -155,14 +162,17 @@ const rstring EncodeUtil::convert2UTF8(const rstring& bytes, const rstring& char
     else if (GeneralUtil::strEquals(charset.c_str(), "gb2312", true) ||
         GeneralUtil::strEquals(charset.c_str(), "GBK", true)) {
         // gb2312 和 gbk
-        return CharsetUtil::GBKToUtf8(bytes);
+        // 去除结尾 \0，再进行字符集转换
+        return CharsetUtil::GBKToUtf8(CharsetUtil::StripAnsiEndingZero(bytes));
     }
     else if (GeneralUtil::strStartWith(charset.c_str(), "gb", true)) {
         // 其他 gb 规范，目前采用 GBK 尝试转换
-        return CharsetUtil::GBKToUtf8(bytes);
+        // 去除结尾 \0，再进行字符集转换
+        return CharsetUtil::GBKToUtf8(CharsetUtil::StripAnsiEndingZero(bytes));
     }
     else {
-        return CharsetUtil::AnsiToUtf8(bytes);
+        // 默认按 ansi 方式处理
+        return CharsetUtil::AnsiToUtf8(CharsetUtil::StripAnsiEndingZero(bytes));
     }
 }
 
