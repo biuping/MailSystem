@@ -1,4 +1,5 @@
 #pragma once
+#ifdef _DEBUG
 #include "my.h"
 
 #ifdef MAO_TEST
@@ -15,3 +16,5 @@ void start_zhang();
 void start_huang();
 #define TEST_START start_huang
 #endif
+
+#endif //!_DEBUG
