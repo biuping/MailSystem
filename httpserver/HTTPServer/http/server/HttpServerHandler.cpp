@@ -92,7 +92,7 @@ void HttpServerHandler::handle_client()
 	if (nullptr != response)
 	{
 		const char* buff = response->serialize();
-		size_t len = strlen(buff);
+		size_t len = response->size();
 		m_client->send(buff, len, 0);
 		delete response;
 	}
@@ -354,7 +354,7 @@ void HttpServerHandler::DownloadAttach(HttpResponse* response)
 	if (!success) {
 		rstring res;
 		Tools::json_write(root, res);
-		response->build_ok();
+		response->build_not_found();
 		response->build_body(res);
 		response->add_head(HTTP_HEAD_CONTENT_TYPE, HTTP_HEAD_JSON_TYPE);
 		return;
