@@ -3,7 +3,7 @@
     <form >
         
         <ul class="nav nav-pills">
-            <li role="presentation" class="left"><button type="submit" class="btn btn-primary" @click="sendMail($event)">发送</button></li>
+            <li role="presentation" class="left"><button type="button" class="btn btn-primary" @click="sendMail($event)">发送</button></li>
             <li role="presentation" class="left"><button type="button" class="btn btn-info" @click="saveDraft">保存</button></li>
             <li role="presentation" class="right"><button type="button" class="btn btn-danger" @click="deleteDraft">
                 <span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>
@@ -158,33 +158,36 @@ export default {
             alert('保存成功')
         },
         sendMail:function(event){
-            if(this.draftMail.recipient=''){
-                alert('请输入收件人邮箱')
-                return
-            }
             event.preventDefault()
-            let formData = new FormData()
-            let userid = savedraftutil.readData('userid')
-            formData.append("id",userid)
-            const self = this
-            formData.append("attachment",this.file)           
-            formData.append("recver",this.draftMail.recipient)
-            formData.append("content",this.draftMail.content)
-            formData.append("theme",this.draftMail.theme)
-            let config={
-                headers:{
-                    'Content-Type':'multipart/form-data'
+            if(this.draftMail.recipient==''){
+                alert('请输入收件人邮箱')
+            }else{
+                
+                let formData = new FormData()
+                let userid = savedraftutil.readData('userid')
+                formData.append("id",userid)
+                const self = this
+                formData.append("attachment",this.file)           
+                formData.append("recver",this.draftMail.recipient)
+                formData.append("content",this.draftMail.content)
+                formData.append("theme",this.draftMail.theme)
+                console.log(this.draftMail.recipient)
+                let config={
+                    headers:{
+                        'Content-Type':'multipart/form-data'
+                    }
                 }
+                const url = "http://127.0.0.1:8006/send_mail_with_attach"
+                this.$axios.post(url,formData,config).then(function(res){
+                    console.log(res)
+                    if(res.status==200){
+                        console.log("success send")
+                        alert("发送成功")
+                        self.refresh()
+                    }
+                })
             }
-            const url = "http://127.0.0.1:8006/send_mail_with_attach"
-            this.$axios.post(url,formData,config).then(function(res){
-                console.log(res)
-                if(res.status==200){
-                    console.log("success send")
-                    alert("发送成功")
-                    self.refresh()
-                }
-            })
+            
 
 
         }               

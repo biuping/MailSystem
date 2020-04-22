@@ -151,7 +151,7 @@ export default {
             alert('保存草稿成功')
         },
         sendMail:function(event){
-            if(this.draftMail.recipient=''){
+            if(this.draftMail.recipient==''){
                 alert('请输入收件人邮箱')
                 return
             }
@@ -174,9 +174,8 @@ export default {
                 console.log(res)
                 if(res.status==200){
                     console.log("success send")
-                    self.refresh(
+                    self.refresh()
                     alert("发送成功")
-)
                 }
             }).catch(function(err){
 				console.log(err)
